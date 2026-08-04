@@ -1,0 +1,3 @@
+Timestamp,Image_File,Mode,ROI_Coords,Total_ROI_Pixels,Canopy_Area_Pixels,GPR_Percent,Canopy_Width_Pixels,Canopy_Height_Pixels
+2026-08-04 14:44:12,pechay_test.jpeg,hsv,FULL,199950,56021.0,28.0175,356,303
+2026-08-04 14:44:48,pechay_test.jpeg,exg,FULL,199950,62480.0,31.2478,459,396
