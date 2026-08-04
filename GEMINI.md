@@ -33,9 +33,9 @@ At the end of every work session, the user will trigger a "Session Wrap-Up." Gem
 
 ## 6. Current Progress & Next Steps (Update After Every Session)
 
-* **Current Status:** Re-proposal successful. Shifted away from IoT/App focus to Computer Vision and Statistical Modeling. Panel revisions have been fully integrated into the LaTeX manuscript.
-* **Latest Achievement:** Created the new polynomial regression structure, updated the hardware schematic (dropping the multiplexer), and mapped out the verifiable deliverables.
+* **Current Status:** Successfully implemented and tested an edge-ready, headless-compatible Python/OpenCV computer vision pipeline in `vision/vision.py` for automated daily GPR and geometrical feature extraction.
+* **Latest Achievement:** Refactored CV script to include contour-based moss/soil algae filtering, parameterized ROI cropping, automated CSV metrics logging (`pechay_growth_log.csv`), and a comparative Excess Green Index (ExG) mode. Tested both HSV and ExG modes successfully on `pechay_test.jpeg`.
 * **Immediate Next Actions:**
-    1.  *Administrative:* Secure signed Endorsement Form from Engr. Macapagal and Engr. Saavedra with the new title.
-    2.  *Logistics:* Finalize the greenhouse space allocation with Ma'am Linda/PPFO.
-    3.  *Software:* Begin writing and testing the Python/OpenCV script for HSV Green Pixel Ratio (GPR) extraction on a laptop.
+    1.  *Administrative:* Secure signed Endorsement Forms for the revised thesis title from Engr. Macapagal and Engr. Saavedra.
+    2.  *Logistics:* Coordinate with Ma'am Linda/PPFO to finalize greenhouse space allocation and pot setup.
+    3.  *Edge Setup:* Flash the Raspberry Pi Zero 2W, set up the camera and virtual environment, and configure the noon cron job to execute the refactored script.
