@@ -76,7 +76,7 @@ def process_image(args):
         image_path = os.path.join(script_dir, image_path)
         
     print(f"[PROCESS] Loading image: {image_path}")
-    img = cv2.imread(image_path)
+    img = cv2.imread(image_path) # Read the image in BGR format
     if img is None:
         raise FileNotFoundError(f"Error: Unable to load image at {image_path}")
 
@@ -88,7 +88,7 @@ def process_image(args):
             # Ensure boundaries are within image dimensions
             x_min, x_max = max(0, x_min), min(w, x_max)
             y_min, y_max = max(0, y_min), min(h, y_max)
-            roi_img = img[y_min:y_max, x_min:x_max]
+            roi_img = img[y_min:y_max, x_min:x_max] # Crop the image to the specified ROI
             print(f"[ROI] Cropped to specified coordinates: [{x_min}, {y_min}] to [{x_max}, {y_max}]")
         except Exception as e:
             print(f"[ROI] [WARNING] Invalid ROI coordinates format. Using full image. Error: {e}")
