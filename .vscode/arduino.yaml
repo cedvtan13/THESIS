@@ -1,0 +1,4 @@
+configuration: FlashFreq=80,UploadSpeed=115200,DebugLevel=none,EraseFlash=none
+board: esp32:esp32:nodemcu-32s
+sketch: REY/irrigation_controller/irrigation_controller.ino
+port: /dev/cu.SLAB_USBtoUART
