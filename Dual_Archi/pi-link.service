@@ -1,0 +1,17 @@
+[Unit]
+Description=AgriSentry ESP32-S3 serial bridge (pi_link)
+After=network.target dev-ttyAMA0.device
+Wants=network.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=__VENV__/bin/python3 __DIR__/pi_link.py
+Restart=always
+RestartSec=10
+StandardOutput=append:__DIR__/pi_link.log
+StandardError=append:__DIR__/pi_link.log
+
+[Install]
+WantedBy=multi-user.target

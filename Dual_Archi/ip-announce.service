@@ -1,0 +1,12 @@
+[Unit]
+Description=Log this node's IP addresses at boot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ip_announce.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
