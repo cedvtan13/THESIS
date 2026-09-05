@@ -74,7 +74,14 @@ CAPTURE_SIZE = (2304, 1296)                  # 2x binned from 4608x2592
 # not the code.
 HUE_LO, HUE_HI = 35, 85                      # OpenCV units == 70-170 deg
 SAT_MIN, VAL_MIN = 40, 40                    # reject grey soil and shadow
-MORPH_KERNEL = np.ones((5, 5), np.uint8)     # opening, severs leaf bridges
+# Opening kernel. MEASURED: a 5x5 opening only removes bridges up to 2 px
+# wide -- a 3 px bridge survives it intact. At 1.28 px/mm that is 2.3 mm,
+# thinner than a pechay petiole, so 5x5 was not doing the job Section
+# III.C credits it with. 9x9 severs up to about 7 px (5.5 mm). Verify on a
+# real frame before locking this in: too large a kernel starts eroding
+# genuine leaf edges, which shrinks GPR systematically.
+MORPH_K = 9
+MORPH_KERNEL = np.ones((MORPH_K, MORPH_K), np.uint8)
 
 # GPR jumping more than this in one day is implausible biologically and usually
 # means the rig moved or the lighting changed. Flagged, not discarded.
