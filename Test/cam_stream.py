@@ -6,14 +6,13 @@ from picamera2 import Picamera2
 
 # -------------------------------------------------------------
 # CONFIGURATION: Change resolution here to test FOV & Framing
-# Common 16:9 / 4:3 modes:
-#  (1280, 720)  - Recommended: smooth 30fps preview, low network lag
-#  (1920, 1080) - Full HD: good for fine rim alignment
-#  (2304, 1296) - 2K sensor binning mode
-#  (4608, 2592) - Full native Pi Cam V3 resolution (laggy for streaming)
+# Common 16:9 / 4:3 modes for IMX708:
+#  (1280, 720)  - Recommended: low network latency, smooth preview
+#  (1920, 1080) - Full HD: sharp pot rim inspection
+#  (2304, 1296) - 2K sensor binning native mode
 # -------------------------------------------------------------
-STREAM_WIDTH = 1920
-STREAM_HEIGHT = 1080
+STREAM_WIDTH = 1280
+STREAM_HEIGHT = 720
 PORT = 8000
 
 PAGE = f"""\
@@ -92,9 +91,11 @@ config = picam2.create_video_configuration(
     main={"size": (STREAM_WIDTH, STREAM_HEIGHT), "format": "XBGR8888"}
 )
 picam2.configure(config)
-picam2.start_recording(Picamera2.Encoder.mjpeg, output)
 
-print(f"[Camera] Stream ready at: http://ced.local:{PORT}/ (or via your Pi's IP)")
+# "mjpeg" string format resolves the AttributeError across all picamera2 releases
+picam2.start_recording("mjpeg", output)
+
+print(f"[Camera] Stream live at: http://ced.local:{PORT}/ (or your Pi IP)")
 
 try:
     address = ('', PORT)
