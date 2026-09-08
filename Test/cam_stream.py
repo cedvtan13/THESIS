@@ -3,14 +3,8 @@ import time
 from http import server
 from threading import Condition
 from picamera2 import Picamera2
+from picamera2.encoders import MjpegEncoder
 
-# -------------------------------------------------------------
-# CONFIGURATION: Change resolution here to test FOV & Framing
-# Common 16:9 / 4:3 modes for IMX708:
-#  (1280, 720)  - Recommended: low network latency, smooth preview
-#  (1920, 1080) - Full HD: sharp pot rim inspection
-#  (2304, 1296) - 2K sensor binning native mode
-# -------------------------------------------------------------
 STREAM_WIDTH = 1280
 STREAM_HEIGHT = 720
 PORT = 8000
@@ -82,20 +76,19 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_error(404)
             self.end_headers()
 
-# Initialize Picamera2
 output = StreamingOutput()
 picam2 = Picamera2()
 
-# Configure camera stream
 config = picam2.create_video_configuration(
     main={"size": (STREAM_WIDTH, STREAM_HEIGHT), "format": "XBGR8888"}
 )
 picam2.configure(config)
 
-# "mjpeg" string format resolves the AttributeError across all picamera2 releases
-picam2.start_recording("mjpeg", output)
+# Instantiate the encoder object directly
+encoder = MjpegEncoder()
+picam2.start_recording(encoder, output)
 
-print(f"[Camera] Stream live at: http://ced.local:{PORT}/ (or your Pi IP)")
+print(f"[Camera] Stream live at: http://groupb.local:{PORT}/ (or your Pi IP)")
 
 try:
     address = ('', PORT)
