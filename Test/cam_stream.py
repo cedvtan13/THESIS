@@ -3,7 +3,6 @@ import time
 from http import server
 from threading import Condition
 from picamera2 import Picamera2
-from picamera2.encoders import MjpegEncoder
 
 STREAM_WIDTH = 1280
 STREAM_HEIGHT = 720
@@ -29,15 +28,16 @@ PAGE = f"""\
 </html>
 """
 
-class StreamingOutput(io.BufferedIOBase):
-    def __init__(self):
-        self.frame = None
-        self.condition = Condition()
+# Initialize Picamera2
+picam2 = Picamera2()
+config = picam2.create_video_configuration(
+    main={"size": (STREAM_WIDTH, STREAM_HEIGHT), "format": "XBGR8888"}
+)
+picam2.configure(config)
+picam2.start()
 
-    def write(self, buf):
-        with self.condition:
-            self.frame = buf
-            self.condition.notify_all()
+# Give auto-exposure and auto-focus 1 second to stabilize
+time.sleep(1)
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -60,42 +60,35 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
             self.end_headers()
             try:
+                buf = io.BytesIO()
                 while True:
-                    with output.condition:
-                        output.condition.wait()
-                        frame = output.frame
+                    buf.seek(0)
+                    buf.truncate()
+                    picam2.capture_file(buf, format='jpeg')
+                    frame = buf.getvalue()
+
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
                     self.send_header('Content-Length', len(frame))
                     self.end_headers()
                     self.wfile.write(frame)
                     self.wfile.write(b'\r\n')
+                    # Small delay to keep CPU usage low on Pi Zero 2W
+                    time.sleep(0.04)
             except Exception:
                 pass
         else:
             self.send_error(404)
             self.end_headers()
 
-output = StreamingOutput()
-picam2 = Picamera2()
-
-config = picam2.create_video_configuration(
-    main={"size": (STREAM_WIDTH, STREAM_HEIGHT), "format": "XBGR8888"}
-)
-picam2.configure(config)
-
-# Instantiate the encoder object directly
-encoder = MjpegEncoder()
-picam2.start_recording(encoder, output)
-
 print(f"[Camera] Stream live at: http://groupb.local:{PORT}/ (or your Pi IP)")
 
 try:
-    address = ('', PORT)
-    server = server.HTTPServer(address, StreamingHandler)
-    server.serve_forever()
+    server_address = ('', PORT)
+    httpd = server.HTTPServer(server_address, StreamingHandler)
+    httpd.serve_forever()
 except KeyboardInterrupt:
     print("\nStopping camera stream...")
 finally:
-    picam2.stop_recording()
+    picam2.stop()
     picam2.close()
