@@ -108,8 +108,8 @@ const int ADC_FAULT_LOW  = 150;
 const int ADC_FAULT_HIGH = 4000;
 
 const float ML_PER_PERCENT     = 3.25f;     // Scaled for 13x10cm pot (~560g wet)
-const float PUMP_FLOW_ML_PER_S = 25.0f;
-const float MAX_DOSE_ML        = 120.0f;
+const float PUMP_FLOW_ML_PER_S = 2.81f;
+const float MAX_DOSE_ML        = 75.0f;
 
 /* ---------------------------------------------------------------------------
  * ENCLOSURE THERMAL REGULATION (BMP388)
