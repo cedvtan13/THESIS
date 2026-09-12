@@ -99,10 +99,10 @@ const float GERM_LOWER_BOUND = 50.0f;
 const float GERM_UPPER_BOUND = 60.0f;
 
 /* ---------------------------------------------------------------------------
- * CALIBRATION CONSTANTS
+ * CALIBRATION CONSTANTS//
  * ------------------------------------------------------------------------- */
-int dryADC[NUM_PODS] = {2647, 2647, 2647, 2647, 2647, 2647, 2647, 2647, 2647};
-int wetADC[NUM_PODS] = {1476, 1476, 1476, 1476, 1476, 1476, 1476, 1476, 1476};
+int dryADC[NUM_PODS] = {2553, 2553, 2553, 2553, 2553, 2553, 2553, 2553, 2553};
+int wetADC[NUM_PODS] = {1130, 1130, 1130, 1130, 1130, 1130, 1130, 1130, 1130};
 
 const int ADC_FAULT_LOW  = 150;
 const int ADC_FAULT_HIGH = 4000;
