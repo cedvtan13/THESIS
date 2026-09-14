@@ -6,7 +6,7 @@ import time
 app = Flask(__name__)
 
 picam2 = Picamera2()
-picam2.configure(picam2.create_video_configuration(main={"size": (1280, 720)}))
+picam2.configure(picam2.create_video_configuration(main={"size": (2304, 1296)}))
 picam2.start()
 
 def generate_frames():

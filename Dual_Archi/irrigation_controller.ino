@@ -8,6 +8,7 @@
 // Comment out this line to compile for your custom ESP32-S3 PCB!
 #define USE_NODEMCU32S
 
+#include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP3XX.h>
@@ -107,9 +108,9 @@ int wetADC[NUM_PODS] = {1130, 1130, 1130, 1130, 1130, 1130, 1130, 1130, 1130};
 const int ADC_FAULT_LOW  = 150;
 const int ADC_FAULT_HIGH = 4000;
 
-const float ML_PER_PERCENT     = 3.25f;     // Scaled for 13x10cm pot (~560g wet)
-const float PUMP_FLOW_ML_PER_S = 2.81f;
-const float MAX_DOSE_ML        = 75.0f;
+const float ML_PER_PERCENT     = 3.18f;     // Based on 318 mL total field capacity
+const float PUMP_FLOW_ML_PER_S = 20.0f;     // Measured at 200 mL / 10 sec
+const float MAX_DOSE_ML        = 100.0f;    // Capped at ~30% of total capacity
 
 /* ---------------------------------------------------------------------------
  * ENCLOSURE THERMAL REGULATION (BMP388)
