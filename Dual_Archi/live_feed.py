@@ -6,8 +6,8 @@ from picamera2 import Picamera2
 app = Flask(__name__)
 
 # Choose your higher resolution here (e.g., 1920x1080 or 2304x1296)
-STREAM_WIDTH = 1080
-STREAM_HEIGHT = 1080
+STREAM_WIDTH = 720
+STREAM_HEIGHT = 720
 
 picam2 = Picamera2()
 config = picam2.create_video_configuration(main={"size": (STREAM_WIDTH, STREAM_HEIGHT)})
