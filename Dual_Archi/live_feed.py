@@ -1,22 +1,26 @@
+import io
+import time
 from flask import Flask, Response
 from picamera2 import Picamera2
-import cv2
-import time
 
 app = Flask(__name__)
 
 picam2 = Picamera2()
-picam2.configure(picam2.create_video_configuration(main={"size": (1280, 720)}))
+config = picam2.create_video_configuration(main={"size": (1280, 720)})
+picam2.configure(config)
 picam2.start()
+time.sleep(1)
 
 def generate_frames():
+    buf = io.BytesIO()
     while True:
-        frame = picam2.capture_array()
-        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        ret, buffer = cv2.imencode('.jpg', frame_bgr)
+        buf.seek(0)
+        buf.truncate()
+        picam2.capture_file(buf, format='jpeg')
+        frame = buf.getvalue()
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-        time.sleep(0.1)
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        time.sleep(0.5)  # 2 fps keeps RAM and Wi-Fi stable on Pi Zero 2W
 
 @app.route('/')
 def index():
