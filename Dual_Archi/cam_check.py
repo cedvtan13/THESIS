@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-cam_checkn.py -- camera acceptance test for the GPR pipeline. Group B thesis rig.
+cam_check.py -- camera acceptance test for the GPR pipeline. Group B thesis rig.
 
 This is NOT a live view. cam_stream.py already shows you a picture. This asks a
 different question: is the picture GOOD ENOUGH TO MEASURE FROM?
@@ -19,8 +19,20 @@ RUN IN THIS ORDER
   4. python3 cam_check.py --rois          are all nine pots inside the frame
   5. python3 cam_check.py --check         full pass/fail, run before D=1
 
-Output images land in ~/thesis/camcheck/ . Look at them. The numbers narrow
-down where to look; your eyes make the call.
+WHERE THE IMAGES GO
+  Default: ~/thesis/camcheck/ . Change it per run, or permanently:
+
+      python3 cam_check.py --check --out-dir ~/Pictures/day0
+      python3 cam_check.py --check --out-dir /media/usb/camcheck
+      export CAMCHECK_OUT=~/Pictures/camcheck        # for this shell session
+      export THESIS_BASE=/mnt/data/thesis            # moves rois AND images
+
+  Every run OVERWRITES the same filenames (capture.jpg, check_1.jpg, ...), so
+  use a per-session --out-dir if you want to compare two mounting heights or
+  two days side by side. Nothing here is ever deleted -- it just gets replaced.
+
+Look at the images. The numbers narrow down where to look; your eyes make the
+call.
 """
 
 import argparse
@@ -29,9 +41,15 @@ import os
 import sys
 import time
 
-BASE     = os.path.expanduser("~/thesis")
-OUT_DIR  = os.path.join(BASE, "camcheck")
-ROI_FILE = os.path.join(BASE, "pot_rois.json")
+# Where things live. All three are overridable:
+#   --out-dir DIR    or  env CAMCHECK_OUT
+#   --roi-file FILE  or  env CAMCHECK_ROIS
+#   env THESIS_BASE changes the default parent of both at once
+BASE     = os.path.expanduser(os.environ.get("THESIS_BASE", "~/thesis"))
+OUT_DIR  = os.path.expanduser(os.environ.get("CAMCHECK_OUT",
+                                             os.path.join(BASE, "camcheck")))
+ROI_FILE = os.path.expanduser(os.environ.get("CAMCHECK_ROIS",
+                                             os.path.join(BASE, "pot_rois.json")))
 
 # Must match capture_gpr.py EXACTLY, or this test proves nothing about it.
 HUE_LO, HUE_HI   = 35, 85          # OpenCV hue units (0-179), NOT degrees
@@ -61,7 +79,17 @@ def need_picamera2():
 
 
 def ensure_out():
-    os.makedirs(OUT_DIR, exist_ok=True)
+    """Create the output directory, and fail with a readable message rather
+    than a traceback if the path is not writable (a USB stick that is mounted
+    read-only, or a folder owned by root, are the usual causes)."""
+    try:
+        os.makedirs(OUT_DIR, exist_ok=True)
+    except OSError as e:
+        sys.exit(f"cannot create {OUT_DIR}: {e}\n"
+                 f"  pick another with  --out-dir /some/writable/path")
+    if not os.access(OUT_DIR, os.W_OK):
+        sys.exit(f"{OUT_DIR} is not writable.\n"
+                 f"  pick another with  --out-dir /some/writable/path")
 
 
 # --------------------------------------------------------------------- 1 ---
@@ -361,6 +389,7 @@ def cmd_check(args):
 
 
 def main():
+    global OUT_DIR, ROI_FILE
     ap = argparse.ArgumentParser(description="Group B camera acceptance test")
     ap.add_argument("--info",        action="store_true")
     ap.add_argument("--capture",     action="store_true")
@@ -372,7 +401,18 @@ def main():
     ap.add_argument("--distance", type=float, default=DEFAULT_SUBJECT_M,
                     help="metres from lens to CANOPY plane (default %.2f)"
                          % DEFAULT_SUBJECT_M)
+    ap.add_argument("--out-dir", default=None, metavar="DIR",
+                    help="where to save images (default %s). Created if needed."
+                         % OUT_DIR)
+    ap.add_argument("--roi-file", default=None, metavar="FILE",
+                    help="pot_rois.json to check against (default %s)" % ROI_FILE)
     a = ap.parse_args()
+
+    if a.out_dir:
+        OUT_DIR = os.path.abspath(os.path.expanduser(a.out_dir))
+    if a.roi_file:
+        ROI_FILE = os.path.abspath(os.path.expanduser(a.roi_file))
+    print(f"[cam_check] images -> {OUT_DIR}")
 
     if   a.info:        cmd_info()
     elif a.capture:     cmd_capture(a)
