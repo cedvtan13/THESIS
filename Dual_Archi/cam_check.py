@@ -20,12 +20,13 @@ RUN IN THIS ORDER
   5. python3 cam_check.py --check         full pass/fail, run before D=1
 
 WHERE THE IMAGES GO
-  Default: ~/thesis/camcheck/ . Change it per run, or permanently:
+  Default: a camcheck/ folder NEXT TO THIS SCRIPT. Run it from
+  ~/THESIS/Dual_Archi and they land in ~/THESIS/Dual_Archi/camcheck.
+  Every run prints the destination as its first line. Change it with:
 
       python3 cam_check.py --check --out-dir ~/Pictures/day0
       python3 cam_check.py --check --out-dir /media/usb/camcheck
       export CAMCHECK_OUT=~/Pictures/camcheck        # for this shell session
-      export THESIS_BASE=/mnt/data/thesis            # moves rois AND images
 
   Every run OVERWRITES the same filenames (capture.jpg, check_1.jpg, ...), so
   use a per-session --out-dir if you want to compare two mounting heights or
@@ -41,15 +42,40 @@ import os
 import sys
 import time
 
-# Where things live. All three are overridable:
-#   --out-dir DIR    or  env CAMCHECK_OUT
-#   --roi-file FILE  or  env CAMCHECK_ROIS
-#   env THESIS_BASE changes the default parent of both at once
-BASE     = os.path.expanduser(os.environ.get("THESIS_BASE", "~/thesis"))
-OUT_DIR  = os.path.expanduser(os.environ.get("CAMCHECK_OUT",
-                                             os.path.join(BASE, "camcheck")))
-ROI_FILE = os.path.expanduser(os.environ.get("CAMCHECK_ROIS",
-                                             os.path.join(BASE, "pot_rois.json")))
+# WHERE THINGS GO
+# ---------------
+# Output lands in camcheck/ NEXT TO THIS SCRIPT, wherever you put the script.
+# Copy cam_check.py into ~/THESIS/Dual_Archi and the images appear in
+# ~/THESIS/Dual_Archi/camcheck -- not in some other directory you have to
+# remember. "Beside the script" is the least surprising default there is.
+#
+# Note this is deliberately NOT ~/thesis. capture_gpr.py uses ~/thesis as its
+# runtime data directory, and on this Pi ~/thesis and ~/THESIS are two
+# different folders (Linux is case-sensitive). Diagnostic images are not
+# runtime data, so they do not belong in the same place.
+#
+# Override, in increasing priority:
+#   env CAMCHECK_OUT   / --out-dir DIR
+#   env CAMCHECK_ROIS  / --roi-file FILE
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+OUT_DIR = os.path.expanduser(os.environ.get("CAMCHECK_OUT",
+                                            os.path.join(SCRIPT_DIR, "camcheck")))
+
+
+def _find_rois():
+    """pot_rois.json beside the script wins; fall back to capture_gpr.py's
+    ~/thesis so this still works if you run the script from elsewhere."""
+    env = os.environ.get("CAMCHECK_ROIS")
+    if env:
+        return os.path.expanduser(env)
+    here = os.path.join(SCRIPT_DIR, "pot_rois.json")
+    if os.path.exists(here):
+        return here
+    return os.path.expanduser("~/thesis/pot_rois.json")
+
+
+ROI_FILE = _find_rois()
 
 # Must match capture_gpr.py EXACTLY, or this test proves nothing about it.
 HUE_LO, HUE_HI   = 35, 85          # OpenCV hue units (0-179), NOT degrees
@@ -129,8 +155,33 @@ def cmd_info():
 
 
 # --------------------------------------------------------------- helpers ---
-def open_camera(lock=True, lens_position=None, distance_m=DEFAULT_SUBJECT_M):
-    """Same configuration capture_gpr.py uses. If this differs, the test lies."""
+# The literal values hardcoded in capture_gpr.py's capture_frame(). Every one
+# is marked "MEASURE ONCE" in that file and none has been measured yet. Keep
+# these in sync by hand -- --as-gpr is only honest if they match.
+GPR_CONTROLS = {
+    "LensPosition":  2.5,          # = 40 cm. Almost certainly wrong for the rig.
+    "ExposureTime":  8000,         # microseconds = 1/125 s
+    "AnalogueGain":  1.0,
+    "ColourGains":   (1.8, 1.6),
+}
+
+
+def open_camera(lock=True, lens_position=None, distance_m=DEFAULT_SUBJECT_M,
+                exposure_us=None, gain=None, as_gpr=False):
+    """Open the camera the way capture_gpr.py does.
+
+    Three lock behaviours, and the difference between them matters:
+
+      lock=False      everything automatic. What your eye would call "correct".
+      lock=True       let AE/AWB converge for 2 s, THEN freeze whatever they
+                      chose. Stable, and adapted to the light in the room.
+      as_gpr=True     force capture_gpr.py's hardcoded ExposureTime/gain. This
+                      is what the real pipeline will actually record, and it
+                      does NOT adapt to anything.
+
+    lock=True and as_gpr=True give different frames whenever the ambient light
+    differs from what the hardcoded values assume -- which is the whole reason
+    --as-gpr exists."""
     Picamera2 = need_picamera2()
     picam2 = Picamera2()
     cfg = picam2.create_still_configuration(
@@ -139,17 +190,92 @@ def open_camera(lock=True, lens_position=None, distance_m=DEFAULT_SUBJECT_M):
     picam2.start()
     time.sleep(2.0)                     # let AE/AWB settle before we freeze them
 
-    if lock:
+    if lock or as_gpr:
         from libcamera import controls
-        lp = lens_position if lens_position is not None else 1.0 / distance_m
-        picam2.set_controls({
-            "AfMode": controls.AfModeEnum.Manual,
-            "LensPosition": lp,
-            "AeEnable": False,
-            "AwbEnable": False,
-        })
+        if as_gpr:
+            ctrl = {"AfMode": controls.AfModeEnum.Manual,
+                    "AeEnable": False, "AwbEnable": False}
+            ctrl.update(GPR_CONTROLS)
+        else:
+            lp = lens_position if lens_position is not None else 1.0 / distance_m
+            ctrl = {"AfMode": controls.AfModeEnum.Manual,
+                    "LensPosition": lp,
+                    "AeEnable": False, "AwbEnable": False}
+            if exposure_us is not None:
+                ctrl["ExposureTime"] = int(exposure_us)
+            if gain is not None:
+                ctrl["AnalogueGain"] = float(gain)
+        picam2.set_controls(ctrl)
         time.sleep(1.5)
     return picam2
+
+
+def cmd_as_gpr(args):
+    """Show what capture_gpr.py will actually record, right now."""
+    print("CAPTURE USING capture_gpr.py's HARDCODED CONTROLS")
+    for k, v in GPR_CONTROLS.items():
+        print(f"    {k:<14} {v}")
+    print("\n  Every one of these is marked 'MEASURE ONCE' in capture_gpr.py.")
+    print("  None has been measured. This is what the rig would record today.\n")
+
+    picam2 = open_camera(as_gpr=True)
+    try:
+        bgr = picam2.capture_array()
+        st, g = report_frame(bgr, "as_gpr")
+    finally:
+        picam2.stop(); picam2.close()
+
+    lp = GPR_CONTROLS["LensPosition"]
+    print(f"\n  LensPosition {lp} focuses at {1.0/lp:.2f} m.")
+    print(f"  Your camera sits about {args.distance:.2f} m from the canopy.")
+    if abs(1.0 / lp - args.distance) > 0.25:
+        print("  ! These disagree. The frame above is out of focus by design.")
+        print("    Run --focus-sweep and put the result into capture_gpr.py.")
+
+
+def cmd_exposure_sweep(args):
+    """Find the ExposureTime to hardcode, the same way --focus-sweep finds
+    LensPosition. Run this at the hour the cron job runs -- noon."""
+    steps = [2000, 4000, 8000, 12000, 16000, 24000, 33000, 50000, 75000]
+    print("EXPOSURE SWEEP -- run this AT NOON, under the light the rig will")
+    print("actually have. An exposure chosen at dusk is wrong by 5-6 stops.\n")
+    print(f"  (capture_gpr.py currently hardcodes {GPR_CONTROLS['ExposureTime']} us)\n")
+
+    picam2 = open_camera(lock=True, distance_m=args.distance,
+                         exposure_us=steps[0], gain=1.0)
+    ensure_out()
+    rows = []
+    try:
+        print("  exposure   shutter    mean   blown%   crushed%   green%")
+        for us in steps:
+            picam2.set_controls({"ExposureTime": int(us), "AnalogueGain": 1.0})
+            time.sleep(1.2)
+            bgr = picam2.capture_array()
+            st = exposure_stats(bgr)
+            g, _ = green_fraction(bgr)
+            rows.append((us, st, g))
+            print(f"  {us:>7} us  1/{1000000//us:<6} {st['mean']:7.1f} "
+                  f"{st['clip_hi']:7.2f} {st['clip_lo']:9.2f} {g:8.2f}")
+            cv2.imwrite(os.path.join(OUT_DIR, f"exp_{us}.jpg"), bgr)
+    finally:
+        picam2.stop(); picam2.close()
+
+    ok = [r for r in rows
+          if 80 <= r[1]["mean"] <= 180 and r[1]["clip_hi"] < 1.0 and r[1]["clip_lo"] < 1.0]
+    print()
+    if ok:
+        best = min(ok, key=lambda r: abs(r[1]["mean"] - 130))
+        print(f"  best: ExposureTime = {best[0]} us   (mean {best[1]['mean']:.1f}, "
+              f"green {best[2]:.2f} %)")
+        print(f"\n  Put this in capture_gpr.py:   \"ExposureTime\": {best[0]},")
+    else:
+        print("  NOTHING in this range lands in the target window.")
+        print("  Too dark everywhere -> add light, or raise AnalogueGain (adds noise).")
+        print("  Too bright everywhere -> the scene is brighter than a 1/500 s")
+        print("  shutter can handle; shade it or extend the sweep downward.")
+    print(f"\n  Frames in {OUT_DIR}/exp_*.jpg -- confirm by eye.")
+    print("  Watch the green% column: if it swings with exposure, your GPR is")
+    print("  sensitive to lighting and the lock is doing real work.")
 
 
 def sharpness(gray):
@@ -396,6 +522,10 @@ def main():
     ap.add_argument("--focus-sweep", action="store_true")
     ap.add_argument("--rois",        action="store_true")
     ap.add_argument("--check",       action="store_true")
+    ap.add_argument("--as-gpr",      action="store_true",
+                    help="capture with capture_gpr.py's hardcoded controls")
+    ap.add_argument("--exposure-sweep", action="store_true",
+                    help="find the ExposureTime to hardcode. RUN AT NOON.")
     ap.add_argument("--auto",        action="store_true",
                     help="--capture with auto exposure/focus, for comparison")
     ap.add_argument("--distance", type=float, default=DEFAULT_SUBJECT_M,
@@ -414,7 +544,9 @@ def main():
         ROI_FILE = os.path.abspath(os.path.expanduser(a.roi_file))
     print(f"[cam_check] images -> {OUT_DIR}")
 
-    if   a.info:        cmd_info()
+    if   a.info:           cmd_info()
+    elif a.as_gpr:         cmd_as_gpr(a)
+    elif a.exposure_sweep: cmd_exposure_sweep(a)
     elif a.capture:     cmd_capture(a)
     elif a.focus_sweep: cmd_focus_sweep(a)
     elif a.rois:        cmd_rois(a)
