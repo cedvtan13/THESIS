@@ -231,7 +231,7 @@ def capture_frame():
 
     cam.set_controls({
         "AfMode": controls.AfModeEnum.Manual,
-        "LensPosition": 2.5,        # MEASURE ONCE on the rig, then never change
+        "LensPosition": 0.42,        # MEASURE ONCE on the rig, then never change
         "AeEnable": False,
         "ExposureTime": 8000,       # MEASURE under the final LED array
         "AnalogueGain": 1.0,
