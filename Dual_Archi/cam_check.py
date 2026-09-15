@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-cam_check.py -- camera acceptance test for the GPR pipeline. Group B thesis rig.
+cam_checkn.py -- camera acceptance test for the GPR pipeline. Group B thesis rig.
 
 This is NOT a live view. cam_stream.py already shows you a picture. This asks a
 different question: is the picture GOOD ENOUGH TO MEASURE FROM?
