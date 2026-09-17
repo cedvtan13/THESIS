@@ -1,4 +1,4 @@
-sudo bash -c 'cat << "EOF" > /etc/systemd/system/pi-link.service
+sudo tee /etc/systemd/system/pi-link.service > /dev/null << 'EOF'
 [Unit]
 Description=AgriSentry ESP32-S3 serial bridge (pi_link)
 After=network.target
@@ -16,4 +16,4 @@ StandardError=append:/home/crk/THESIS/Dual_Archi/pi_link.log
 
 [Install]
 WantedBy=multi-user.target
-EOF'
+EOF
