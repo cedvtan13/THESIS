@@ -80,7 +80,7 @@ ROI_FILE = _find_rois()
 # Must match capture_gpr.py EXACTLY, or this test proves nothing about it.
 HUE_LO, HUE_HI   = 35, 85          # OpenCV hue units (0-179), NOT degrees
 SAT_MIN, VAL_MIN = 40, 40
-CAPTURE_SIZE     = (2304, 1296)    # 2x2 binned from 4608x2592
+CAPTURE_SIZE     = (1296, 1296)    # 2x2 binned from 4608x2592
 
 # Camera height above the CANOPY plane, not the floor. LensPosition is in
 # dioptres = 1 / (distance in metres). Override with --distance.
