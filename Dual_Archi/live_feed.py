@@ -2,18 +2,27 @@ import io
 import time
 from flask import Flask, Response
 from picamera2 import Picamera2
+from libcamera import controls  # Exposes AfMode controls
 
 app = Flask(__name__)
 
-# Choose your higher resolution here (e.g., 1920x1080 or 2304x1296)
 STREAM_WIDTH = 1296
 STREAM_HEIGHT = 1296
 
 picam2 = Picamera2()
 config = picam2.create_video_configuration(main={"size": (STREAM_WIDTH, STREAM_HEIGHT)})
 picam2.configure(config)
+
+# Start camera and enable Continuous Autofocus
 picam2.start()
-time.sleep(1)
+picam2.set_controls({
+    "AfMode": controls.AfModeEnum.Continuous,
+    "AfRange": controls.AfRangeEnum.Normal,
+    "AfSpeed": controls.AfSpeedEnum.Normal
+})
+
+# Allow 2 seconds for sensor exposure, white balance, and lens focus to converge
+time.sleep(2)
 
 def generate_frames():
     buf = io.BytesIO()
@@ -24,7 +33,7 @@ def generate_frames():
         frame = buf.getvalue()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        time.sleep(1.0)  # Locked to strictly 1 frame per second
+        time.sleep(1.0)  # 1 frame per second
 
 @app.route('/')
 def index():
