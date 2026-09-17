@@ -128,7 +128,7 @@ SOWING_FILE = os.path.join(BASE, "sowing_date.txt")
 SOWING_DATE_FALLBACK = "2026-08-15"
 CYCLE_DAYS = 35
 
-CAPTURE_SIZE = (2304, 1296)                  # 2x binned from 4608x2592
+CAPTURE_SIZE = (1296, 1296)                  # 2x binned from 4608x2592
 
 # ---------------------------------------------------------------------------
 # RIG GEOMETRY -- measure these on the finished rig
@@ -233,7 +233,7 @@ def capture_frame():
         "AfMode": controls.AfModeEnum.Manual,
         "LensPosition": 0.42,        # MEASURE ONCE on the rig, then never change
         "AeEnable": False,
-        "ExposureTime": 8000,       # MEASURE under the final LED array
+        "ExposureTime": 64000,       # MEASURE under the final LED array
         "AnalogueGain": 1.0,
         "AwbEnable": False,
         "ColourGains": (1.8, 1.6),  # MEASURE ONCE
