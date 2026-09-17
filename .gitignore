@@ -1,0 +1,19 @@
+# macOS metadata
+.DS_Store
+
+# Calibration and test output
+camcheck/
+*.jfif
+crop.jpg
+frame_check.jpg
+ov.png
+
+# System logs and virtual environments
+*.log
+venv/
+env/
+__pycache__/
+*.pyc
+
+# PlatformIO build artifacts
+.pio/
