@@ -152,8 +152,8 @@ POT_PITCH_MM = 330.0        # centre-to-centre. Territory circle diameter.
 # Do NOT "convert" 35-85 to 18-42 by halving. That returns 0.00 % GPR on a
 # healthy green canopy, because it selects orange-yellow instead of green.
 # Keep these values in OpenCV units. Fix the manuscript text, not the code.
-HUE_LO, HUE_HI = 35, 85                      # OpenCV units == 70-170 deg
-SAT_MIN, VAL_MIN = 40, 40                    # reject grey soil and shadow
+HUE_LO, HUE_HI = 40, 85                      # OpenCV units == 70-170 deg
+SAT_MIN, VAL_MIN = 80, 50                    # reject grey soil and shadow
 
 # Opening kernel, in PIXELS but chosen from a PHYSICAL size. A k x k opening
 # erases anything thinner than k px. At PX_PER_MM = 1.34, k = 3 erases features
@@ -233,7 +233,7 @@ def capture_frame():
         "AfMode": controls.AfModeEnum.Manual,
         "LensPosition": 0.42,        # MEASURE ONCE on the rig, then never change
         "AeEnable": False,
-        "ExposureTime": 64000,       # MEASURE under the final LED array
+        "ExposureTime": 700,       # MEASURE under the final LED array
         "AnalogueGain": 1.0,
         "AwbEnable": False,
         "ColourGains": (1.8, 1.6),  # MEASURE ONCE
