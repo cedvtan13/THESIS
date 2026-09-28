@@ -1,10 +1,9 @@
 /* ===========================================================================
- * ESP32-S3 Autonomous Baseline Telemetry & Irrigation Controller
- * Target: Custom PCB (ESP32-S3-WROOM-1-N4R2)
+ * ESP32-S3 Autonomous Baseline Telemetry, Irrigation & Vision Flash Controller
+ * Target : Custom PCB (ESP32-S3-WROOM-1-N4R2 / N8)
+ * Thesis : Computer Vision-Based Growth Monitoring and Yield Prediction for
+ *          Pechay Under Differential Soil Moisture Treatments in a Greenhouse
  * ========================================================================= */
-
-// Commented out to target your custom ESP32-S3 PCB
-// #define USE_NODEMCU32S
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -17,13 +16,15 @@ const int NUM_PODS = 9;
 /* ---------------------------------------------------------------------------
  * HARDWARE PIN DEFINITIONS (ESP32-S3 Custom PCB)
  * ------------------------------------------------------------------------- */
+// CD74HC4067 16-Channel Analog Multiplexer
 const int MUX_SIG    = 1;                 // ADC1_CH0 (PCB: io1)
 const int MUX_SEL[4] = {2, 3, 4, 5};      // S0->io2, S1->io3, S2->io4, S3->io5
 
-// Relays 1-9: Solenoids P-01 to P-09 (12V)
-const int solenoidPins[NUM_PODS] = {6, 7, 8, 9, 10, 11, 12, 13, 14};
-const int PUMP_PIN      = 15;             // Relay 10: 12V Water Pump (PCB: io15)
-const int FAN_RELAY_PIN = 16;             // Relay 11: 5V Pi Cooling Fans (PCB: io16)
+// Relays (Active-LOW)
+const int solenoidPins[NUM_PODS] = {6, 7, 8, 9, 10, 11, 12, 13, 14}; // Relays 1-9 (12V Solenoids)
+const int PUMP_PIN       = 15;            // Relay 10: 12V Water Pump (PCB: io15)
+const int FAN_RELAY_PIN  = 16;            // Relay 11: 5V Pi Cooling Fans (PCB: io16)
+const int LIGHT_PIN      = 17;            // Relay 12: Grow / Capture Light Flash (PCB: io17)
 
 // BMP388 I2C Interface
 const int BMP_SDA = 41;                   // PCB: io41
@@ -33,6 +34,7 @@ const int BMP_SCL = 40;                   // PCB: io40
 const int PI_UART_TX = 43;                // PCB: U0TXD -> Pi Pin 10 (RXD)
 const int PI_UART_RX = 44;                // PCB: U0RXD <- Pi Pin 8 (TXD)
 
+// UI Peripherals
 const int LED_INDICATOR_PIN = 21;         // PCB: io21
 const int PROG_BUTTON_PIN   = 38;         // PCB: io38
 
@@ -74,7 +76,7 @@ const float GERM_LOWER_BOUND = 50.0f;
 const float GERM_UPPER_BOUND = 60.0f;
 
 /* ---------------------------------------------------------------------------
- * CALIBRATED HARDWARE & HYDRAULIC CONSTANTS
+ * SENSOR CALIBRATION & HYDRAULIC CONSTANTS
  * ------------------------------------------------------------------------- */
 int dryADC[NUM_PODS] = {2483, 2483, 2483, 2483, 2483, 2483, 2483, 2483, 2483};
 int wetADC[NUM_PODS] = {1120, 1120, 1120, 1120, 1120, 1120, 1120, 1120, 1120};
@@ -82,9 +84,9 @@ int wetADC[NUM_PODS] = {1120, 1120, 1120, 1120, 1120, 1120, 1120, 1120, 1120};
 const int ADC_FAULT_LOW  = 150;
 const int ADC_FAULT_HIGH = 4000;
 
-const float ML_PER_PERCENT     = 3.18f;     // Calibrated water capacity per 1%
-const float PUMP_FLOW_ML_PER_S = 20.0f;     // Measured pump flow rate
-const float MAX_DOSE_ML        = 100.0f;    // Max single irrigation volume
+const float ML_PER_PERCENT     = 3.18f;
+const float PUMP_FLOW_ML_PER_S = 20.0f;
+const float MAX_DOSE_ML        = 100.0f;
 
 /* ---------------------------------------------------------------------------
  * THERMAL MANAGEMENT (BMP388)
@@ -97,12 +99,12 @@ const float FAN_ON_TEMP = 35.0f;
 const float FAN_OFF_TEMP= 32.0f;
 
 /* ---------------------------------------------------------------------------
- * TIMING CONSTANTS
+ * TIMING CONSTANTS & LIGHT TRACKING
  * ------------------------------------------------------------------------- */
-const unsigned long SAMPLE_INTERVAL_MS    = 15UL * 60UL * 1000UL;        // 15 min polling
-const unsigned long SM_REPORT_INTERVAL_MS = 30UL * 60UL * 1000UL;        // 30 min telemetry dump
-const unsigned long BMP_POLL_INTERVAL_MS  = 5UL * 1000UL;                // 5 sec temp check
-const unsigned long STABILIZATION_MS      = 2UL * 60UL * 60UL * 1000UL;  // 2 hr lockout
+const unsigned long SAMPLE_INTERVAL_MS    = 15UL * 60UL * 1000UL;
+const unsigned long SM_REPORT_INTERVAL_MS = 30UL * 60UL * 1000UL;
+const unsigned long BMP_POLL_INTERVAL_MS  = 5UL * 1000UL;
+const unsigned long STABILIZATION_MS      = 2UL * 60UL * 60UL * 1000UL;
 const unsigned long MAX_PULSE_MS          = 30000UL;
 const int  ADC_SAMPLES                    = 9;
 const int  MAX_CONSECUTIVE_FAULTS         = 3;
@@ -118,6 +120,10 @@ bool          podQuarantined[NUM_PODS];
 unsigned long lastSampleMs = 0;
 unsigned long lastReportMs = 0;
 unsigned long lastBmpMs    = 0;
+
+// Non-blocking light flash timeout tracker
+unsigned long lightOffAtMs = 0;
+bool          lightActive  = false;
 
 unsigned long epochAtBoot = 0;
 bool          timeSynced  = false;
@@ -346,6 +352,29 @@ void handleCommand(String cmd) {
     prefs.putBool("germ", true);
     emit("ACK,BANDS_OFF," + String(nowEpoch()));
   }
+  else if (cmd == "LIGHT_ON") {
+    lightActive = true;
+    lightOffAtMs = 0;
+    relayOn(LIGHT_PIN);
+    emit("ACK,LIGHT_ON," + String(nowEpoch()));
+  }
+  else if (cmd == "LIGHT_OFF") {
+    lightActive = false;
+    lightOffAtMs = 0;
+    relayOff(LIGHT_PIN);
+    emit("ACK,LIGHT_OFF," + String(nowEpoch()));
+  }
+  else if (cmd.startsWith("LIGHT_PULSE,")) {
+    unsigned long dur = cmd.substring(12).toInt();
+    if (dur > 0 && dur <= 300000UL) { // Cap at 5 mins
+      relayOn(LIGHT_PIN);
+      lightActive = true;
+      lightOffAtMs = millis() + dur;
+      emit("ACK,LIGHT_PULSE," + String(dur));
+    } else {
+      reportError("INVALID_DURATION", cmd);
+    }
+  }
   else if (cmd == "STATUS") {
     for (int i = 0; i < NUM_PODS; i++) {
       float lo, hi; activeBand(i, lo, hi);
@@ -360,6 +389,37 @@ void handleCommand(String cmd) {
            "," + (irrigating ? "IRRIGATING" : "IDLE"));
     }
     reportThermal();
+  }
+  else if (cmd.startsWith("TEST_RELAY,")) {
+    int idx = cmd.substring(11).toInt();
+    if (idx >= 0 && idx < NUM_PODS) {
+      relayOn(solenoidPins[idx]);
+      delay(2000);
+      relayOff(solenoidPins[idx]);
+      emit("ACK,TEST_RELAY,P-0" + String(idx + 1));
+    } else if (idx == 9) { // 9 = Pump
+      relayOn(PUMP_PIN);
+      delay(2000);
+      relayOff(PUMP_PIN);
+      emit("ACK,TEST_RELAY,PUMP");
+    } else if (idx == 10) { // 10 = Pi Fans
+      relayOn(FAN_RELAY_PIN);
+      delay(2000);
+      relayOff(FAN_RELAY_PIN);
+      emit("ACK,TEST_RELAY,FANS");
+    } else if (idx == 11) { // 11 = Light Relay
+      relayOn(LIGHT_PIN);
+      delay(2000);
+      relayOff(LIGHT_PIN);
+      emit("ACK,TEST_RELAY,LIGHT");
+    } else {
+      reportError("INVALID_RELAY_INDEX", String(idx));
+    }
+  }
+  else if (cmd == "REBOOT") {
+    emit("ACK,REBOOT," + String(nowEpoch()));
+    delay(100);
+    esp_restart();
   }
   else {
     reportError("UNKNOWN_CMD", cmd);
@@ -391,7 +451,7 @@ void pollPiLink() {
 }
 
 void setup() {
-  // Bind UART0 strictly to GPIO 44 (RX) and GPIO 43 (TX)
+  // Bind physical UART0 strictly to GPIO 44 (RX) and GPIO 43 (TX)
   Serial.begin(115200, SERIAL_8N1, 44, 43);
   delay(200);
 
@@ -400,7 +460,7 @@ void setup() {
   digitalWrite(LED_INDICATOR_PIN, LOW);
   pinMode(PROG_BUTTON_PIN, INPUT_PULLUP);
 
-  // Initialize Relays to safe OFF state before enabling pin output
+  // Initialize Relays OFF (Active-LOW safety)
   for (int i = 0; i < NUM_PODS; i++) {
     digitalWrite(solenoidPins[i], RELAY_ACTIVE_LOW ? HIGH : LOW);
     pinMode(solenoidPins[i], OUTPUT);
@@ -415,18 +475,22 @@ void setup() {
   pinMode(FAN_RELAY_PIN, OUTPUT);
   relayOff(FAN_RELAY_PIN);
 
-  // MUX Address Select Lines
+  digitalWrite(LIGHT_PIN, RELAY_ACTIVE_LOW ? HIGH : LOW);
+  pinMode(LIGHT_PIN, OUTPUT);
+  relayOff(LIGHT_PIN);
+
+  // MUX Select Lines
   for (int i = 0; i < 4; i++) {
     pinMode(MUX_SEL[i], OUTPUT);
     digitalWrite(MUX_SEL[i], LOW);
   }
 
-  // ADC Configuration
+  // ADC Configuration (GPIO 1)
   analogReadResolution(12);
   pinMode(MUX_SIG, INPUT);
   analogSetPinAttenuation(MUX_SIG, ADC_11db);
 
-  // I2C BMP388
+  // BMP388 (I2C)
   Wire.begin(BMP_SDA, BMP_SCL);
   if (bmp.begin_I2C(0x76, &Wire)) {
     bmpAvailable = true;
@@ -441,12 +505,11 @@ void setup() {
   prefs.begin("irrigation", false);
   loadState();
 
-  emit("BOOT," + String(millis()) + ",ESP32S3_PCB_IRRIGATION,v4,pods=" + String(NUM_PODS));
+  emit("BOOT," + String(millis()) + ",ESP32S3_PCB_IRRIGATION,v5,relays=12");
   emit(String("BOOT,bmp388=") + (bmpAvailable ? "ONLINE" : "OFFLINE"));
   emit(String("BOOT,germination_mode=") + (germinationMode ? "ON" : "OFF"));
   emit("BOOT,awaiting TIME sync from Pi");
 
-  // Visual confirmation that boot initialized
   digitalWrite(LED_INDICATOR_PIN, HIGH);
 }
 
@@ -454,6 +517,13 @@ void loop() {
   pollPiLink();
 
   unsigned long now = millis();
+
+  // Fail-safe auto-shutoff for light pulse
+  if (lightActive && lightOffAtMs > 0 && now >= lightOffAtMs) {
+    relayOff(LIGHT_PIN);
+    lightActive = false;
+    lightOffAtMs = 0;
+  }
 
   // 1. Enclosure Temperature Regulation (every 5 seconds)
   if (now - lastBmpMs >= BMP_POLL_INTERVAL_MS || lastBmpMs == 0) {
@@ -472,7 +542,6 @@ void loop() {
       lastVWC[i] = vwc;
       if (vwc < 0) continue;
 
-      // Fail-safe: Never irrigate unless time has synced from the Pi
       if (!timeSynced) continue;
 
       unsigned long sinceLast = nowEpoch() - lastIrrigationEpoch[i];
@@ -497,5 +566,5 @@ void loop() {
     reportSM();
   }
 
-  delay(100);
+  delay(50);
 }
