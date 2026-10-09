@@ -152,8 +152,8 @@ POT_PITCH_MM = 330.0        # centre-to-centre. Territory circle diameter.
 # Do NOT "convert" 35-85 to 18-42 by halving. That returns 0.00 % GPR on a
 # healthy green canopy, because it selects orange-yellow instead of green.
 # Keep these values in OpenCV units. Fix the manuscript text, not the code.
-HUE_LO, HUE_HI = 40, 85                      # OpenCV units == 70-170 deg
-SAT_MIN, VAL_MIN = 80, 50                    # reject grey soil and shadow
+HUE_LO, HUE_HI = 38, 85         # Standard green leaf band
+SAT_MIN, VAL_MIN = 95, 60       # Raised from 80, 50 to eliminate fabric/soil glare
 
 # Opening kernel, in PIXELS but chosen from a PHYSICAL size. A k x k opening
 # erases anything thinner than k px. At PX_PER_MM = 1.34, k = 3 erases features
