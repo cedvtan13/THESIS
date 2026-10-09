@@ -97,6 +97,7 @@ ERR_CSV = os.path.join(DATA_DIR, "error_log.csv")
 PID_FILE = os.path.join(DATA_DIR, "pi_link.pid")
 REQ_FILE = os.path.join(DATA_DIR, "request_sm")
 SNAP_FILE = os.path.join(DATA_DIR, "sm_snapshot.json")
+LIGHT_FILE = os.path.join(DATA_DIR, "request_light")
 
 SM_HEADER = ["wall_time", "esp_epoch"] + [f"P-0{i}" for i in range(1, 10)]
 EVT_HEADER = ["wall_time", "esp_epoch", "pot_id", "group", "vwc_before",
@@ -206,7 +207,6 @@ def get_sm_snapshot(timeout=25):
         return _snapshot_via_daemon(timeout)
     return _snapshot_direct(timeout)
 
-
 def _snapshot_via_daemon(timeout):
     os.makedirs(DATA_DIR, exist_ok=True)
     before = os.path.getmtime(SNAP_FILE) if os.path.exists(SNAP_FILE) else 0
@@ -271,6 +271,42 @@ def _snapshot_direct(timeout):
         print(f"[pi_link] direct snapshot failed: {exc}", file=sys.stderr)
     return None
 
+def set_light_state(on: bool, timeout=5) -> bool:
+    """Turn Relay 12 (Flash / Grow Light) ON or OFF.
+    
+    Routes through the daemon via a request file if running,
+    otherwise sends the UART command directly.
+    """
+    if daemon_pid():
+        return _set_light_via_daemon(on, timeout)
+    return _set_light_direct(on)
+
+
+def _set_light_via_daemon(on: bool, timeout=5) -> bool:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    val = "ON" if on else "OFF"
+    with open(LIGHT_FILE, "w") as f:
+        f.write(val)
+
+    # Wait for the daemon to process and delete the file
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if not os.path.exists(LIGHT_FILE):
+            return True
+        time.sleep(0.05)
+    return False
+
+
+def _set_light_direct(on: bool) -> bool:
+    cmd = b"LIGHT_ON\n" if on else b"LIGHT_OFF\n"
+    try:
+        with open_link() as ser:
+            ser.write(cmd)
+            resp = ser.readline().decode(errors="replace").strip()
+            return "ACK,LIGHT" in resp
+    except Exception as exc:
+        print(f"[pi_link] direct light toggle failed: {exc}", file=sys.stderr)
+        return False
 
 def simple_command(cmd, expect, timeout=8):
     """One-shot command. Refuses to run while the daemon owns the port."""
@@ -320,6 +356,17 @@ def daemon():
                             ser.write(b"GET_SM\n")
                             pending_req = True
 
+                        # A light toggle request from capture_gpr.py
+                        if os.path.exists(LIGHT_FILE):
+                            try:
+                                with open(LIGHT_FILE, "r") as f:
+                                    target_state = f.read().strip()
+                                cmd = b"LIGHT_ON\n" if target_state == "ON" else b"LIGHT_OFF\n"
+                                ser.write(cmd)
+                                os.remove(LIGHT_FILE)
+                            except Exception:
+                                pass
+
                         raw = ser.readline().decode(errors="replace").strip()
                         if raw:
                             print(f"  < {raw}")
@@ -361,5 +408,9 @@ if __name__ == "__main__":
         sys.exit(0 if simple_command("BANDS_ON", "ACK,BANDS_ON") else 1)
     elif "--clear-faults" in sys.argv:
         sys.exit(0 if simple_command("CLEAR_FAULTS", "ACK,CLEAR_FAULTS") else 1)
+    elif "--light-on" in sys.argv:
+        sys.exit(0 if set_light_state(True) else 1)
+    elif "--light-off" in sys.argv:
+        sys.exit(0 if set_light_state(False) else 1)
     else:
         daemon()

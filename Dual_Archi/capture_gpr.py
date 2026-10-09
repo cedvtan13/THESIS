@@ -233,8 +233,8 @@ def capture_frame():
         "AfMode": controls.AfModeEnum.Manual,
         "LensPosition": 0.42,        # MEASURE ONCE on the rig, then never change
         "AeEnable": False,
-        "ExposureTime": 700,       # MEASURE under the final LED array
-        "AnalogueGain": 1.0,
+        "ExposureTime": 3000,       # MEASURE under the final LED array
+        "AnalogueGain": 4.0,
         "AwbEnable": False,
         "ColourGains": (1.8, 1.6),  # MEASURE ONCE
     })

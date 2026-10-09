@@ -95,8 +95,8 @@ Adafruit_BMP3XX bmp;
 bool  bmpAvailable      = false;
 float currentTemp       = 0.0f;
 float currentPressure   = 0.0f;
-const float FAN_ON_TEMP = 35.0f;
-const float FAN_OFF_TEMP= 32.0f;
+const float FAN_ON_TEMP  = 35.0f;
+const float FAN_OFF_TEMP = 32.0f;
 
 /* ---------------------------------------------------------------------------
  * TIMING CONSTANTS & LIGHT TRACKING
@@ -121,7 +121,6 @@ unsigned long lastSampleMs = 0;
 unsigned long lastReportMs = 0;
 unsigned long lastBmpMs    = 0;
 
-// Non-blocking light flash timeout tracker
 unsigned long lightOffAtMs = 0;
 bool          lightActive  = false;
 
@@ -303,9 +302,45 @@ void reportThermal() {
 
 void handleCommand(String cmd) {
   cmd.trim();
+  // Strip out any non-printable / garbage UART line bytes (e.g. 0xFF / framing noise)
+  while (cmd.length() > 0 && ((uint8_t)cmd[0] < 32 || (uint8_t)cmd[0] > 126)) {
+    cmd.remove(0, 1);
+  }
+  cmd.trim();
   if (cmd.length() == 0) return;
 
-  if (cmd.startsWith("TIME,")) {
+  if (cmd.startsWith("MANUAL_WATER,")) {
+    int firstComma = cmd.indexOf(',');
+    int secondComma = cmd.indexOf(',', firstComma + 1);
+    
+    if (secondComma != -1) {
+      int idx = cmd.substring(firstComma + 1, secondComma).toInt();
+      unsigned long duration = cmd.substring(secondComma + 1).toInt();
+      
+      if (idx >= 0 && idx < NUM_PODS && duration > 0 && duration <= 15000) {
+        irrigating = true;
+        relayOn(solenoidPins[idx]);
+        delay(250);
+        relayOn(PUMP_PIN);
+        
+        unsigned long t0 = millis();
+        while (millis() - t0 < duration) {
+          drainPiLink();
+          delay(20);
+        }
+        
+        relayOff(PUMP_PIN);
+        delay(250);
+        relayOff(solenoidPins[idx]);
+        irrigating = false;
+        
+        emit("ACK,MANUAL_WATER,P-0" + String(idx + 1) + "," + String(duration) + "ms");
+      } else {
+        reportError("INVALID_PARAMS", cmd);
+      }
+    }
+  }
+  else if (cmd.startsWith("TIME,")) {
     unsigned long e = strtoul(cmd.substring(5).c_str(), NULL, 10);
     if (e > 1700000000UL) {
       epochAtBoot = e - (millis() / 1000UL);
@@ -366,7 +401,7 @@ void handleCommand(String cmd) {
   }
   else if (cmd.startsWith("LIGHT_PULSE,")) {
     unsigned long dur = cmd.substring(12).toInt();
-    if (dur > 0 && dur <= 300000UL) { // Cap at 5 mins
+    if (dur > 0 && dur <= 300000UL) {
       relayOn(LIGHT_PIN);
       lightActive = true;
       lightOffAtMs = millis() + dur;
@@ -397,17 +432,17 @@ void handleCommand(String cmd) {
       delay(2000);
       relayOff(solenoidPins[idx]);
       emit("ACK,TEST_RELAY,P-0" + String(idx + 1));
-    } else if (idx == 9) { // 9 = Pump
+    } else if (idx == 9) {
       relayOn(PUMP_PIN);
       delay(2000);
       relayOff(PUMP_PIN);
       emit("ACK,TEST_RELAY,PUMP");
-    } else if (idx == 10) { // 10 = Pi Fans
+    } else if (idx == 10) {
       relayOn(FAN_RELAY_PIN);
       delay(2000);
       relayOff(FAN_RELAY_PIN);
       emit("ACK,TEST_RELAY,FANS");
-    } else if (idx == 11) { // 11 = Light Relay
+    } else if (idx == 11) {
       relayOn(LIGHT_PIN);
       delay(2000);
       relayOff(LIGHT_PIN);
@@ -451,16 +486,13 @@ void pollPiLink() {
 }
 
 void setup() {
-  // Bind physical UART0 strictly to GPIO 44 (RX) and GPIO 43 (TX)
   Serial.begin(115200, SERIAL_8N1, 44, 43);
   delay(200);
 
-  // Status LED & Programmable Button
   pinMode(LED_INDICATOR_PIN, OUTPUT);
   digitalWrite(LED_INDICATOR_PIN, LOW);
   pinMode(PROG_BUTTON_PIN, INPUT_PULLUP);
 
-  // Initialize Relays OFF (Active-LOW safety)
   for (int i = 0; i < NUM_PODS; i++) {
     digitalWrite(solenoidPins[i], RELAY_ACTIVE_LOW ? HIGH : LOW);
     pinMode(solenoidPins[i], OUTPUT);
@@ -479,18 +511,15 @@ void setup() {
   pinMode(LIGHT_PIN, OUTPUT);
   relayOff(LIGHT_PIN);
 
-  // MUX Select Lines
   for (int i = 0; i < 4; i++) {
     pinMode(MUX_SEL[i], OUTPUT);
     digitalWrite(MUX_SEL[i], LOW);
   }
 
-  // ADC Configuration (GPIO 1)
   analogReadResolution(12);
   pinMode(MUX_SIG, INPUT);
   analogSetPinAttenuation(MUX_SIG, ADC_11db);
 
-  // BMP388 (I2C)
   Wire.begin(BMP_SDA, BMP_SCL);
   if (bmp.begin_I2C(0x76, &Wire)) {
     bmpAvailable = true;
@@ -518,20 +547,17 @@ void loop() {
 
   unsigned long now = millis();
 
-  // Fail-safe auto-shutoff for light pulse
   if (lightActive && lightOffAtMs > 0 && now >= lightOffAtMs) {
     relayOff(LIGHT_PIN);
     lightActive = false;
     lightOffAtMs = 0;
   }
 
-  // 1. Enclosure Temperature Regulation (every 5 seconds)
   if (now - lastBmpMs >= BMP_POLL_INTERVAL_MS || lastBmpMs == 0) {
     lastBmpMs = now;
     checkEnclosureThermal();
   }
 
-  // 2. Closed-Loop Irrigation Execution (every 15 minutes)
   if (now - lastSampleMs >= SAMPLE_INTERVAL_MS || lastSampleMs == 0) {
     lastSampleMs = now;
 
@@ -560,7 +586,6 @@ void loop() {
     }
   }
 
-  // 3. Periodic SM Telemetry Report to Pi (every 30 minutes)
   if (now - lastReportMs >= SM_REPORT_INTERVAL_MS) {
     lastReportMs = now;
     reportSM();
