@@ -231,10 +231,10 @@ def capture_frame():
 
     cam.set_controls({
         "AfMode": controls.AfModeEnum.Manual,
-        "LensPosition": 0.42,        # Locked focus
+        "LensPosition": 0.42,
         "AeEnable": False,
-        "ExposureTime": 45000,       # 45 ms (15x brighter than 3000 µs!)
-        "AnalogueGain": 6.0,         # Clean boost for 12V LED illumination
+        "ExposureTime": 22000,      # 22 ms (balanced: well-lit without overexposing fabric)
+        "AnalogueGain": 3.0,
         "AwbEnable": False,
         "ColourGains": (1.8, 1.6),
     })
