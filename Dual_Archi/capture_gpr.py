@@ -231,12 +231,12 @@ def capture_frame():
 
     cam.set_controls({
         "AfMode": controls.AfModeEnum.Manual,
-        "LensPosition": 0.42,        # MEASURE ONCE on the rig, then never change
+        "LensPosition": 0.42,        # Locked focus
         "AeEnable": False,
-        "ExposureTime": 3000,       # MEASURE under the final LED array
-        "AnalogueGain": 4.0,
+        "ExposureTime": 45000,       # 45 ms (15x brighter than 3000 µs!)
+        "AnalogueGain": 6.0,         # Clean boost for 12V LED illumination
         "AwbEnable": False,
-        "ColourGains": (1.8, 1.6),  # MEASURE ONCE
+        "ColourGains": (1.8, 1.6),
     })
 
     time.sleep(2)                   # let the locked settings take effect
