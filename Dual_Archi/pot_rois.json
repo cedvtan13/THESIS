@@ -1,7 +1,7 @@
 {
   "_comment": "Fine-tuned alignment for 13cm pots (1296x1296)",
   "circular": true,
-  "frame_size": [1296, 1296],
+  "frame_size":,
   "rois": {
     "P-07": {"x": 235, "y": 325, "w": 130, "h": 130},
     "P-04": {"x": 525, "y": 325, "w": 130, "h": 130},
