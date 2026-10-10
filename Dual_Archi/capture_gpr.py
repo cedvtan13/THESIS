@@ -233,8 +233,8 @@ def capture_frame():
         "AfMode": controls.AfModeEnum.Manual,
         "LensPosition": 0.42,
         "AeEnable": False,
-        "ExposureTime": 2500,       # 2.5 ms (cut from 20 ms down to 2.5 ms)
-        "AnalogueGain": 1.0,        # Drop gain to 1.0 (eliminates digital amplification blowout)
+        "ExposureTime": 33000,      # Calibrated via cam_check.py exposure sweep
+        "AnalogueGain": 1.0,         # Minimum gain = lowest noise
         "AwbEnable": False,
         "ColourGains": (1.8, 1.6),
     })
