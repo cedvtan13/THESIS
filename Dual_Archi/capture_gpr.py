@@ -233,8 +233,8 @@ def capture_frame():
         "AfMode": controls.AfModeEnum.Manual,
         "LensPosition": 0.42,
         "AeEnable": False,
-        "ExposureTime": 33000,      # Calibrated via cam_check.py exposure sweep
-        "AnalogueGain": 1.0,         # Minimum gain = lowest noise
+        "ExposureTime": 24000,      # 24 ms: eliminates blown leaf highlights
+        "AnalogueGain": 1.0,
         "AwbEnable": False,
         "ColourGains": (1.8, 1.6),
     })
