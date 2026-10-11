@@ -19,7 +19,7 @@ cd ~/Desktop/THESIS
    ```
    - `PING/PONG` should say **5/5**.
    - Every pot (P-01 to P-09) should **PASS**: raw ADC between about 1120 (wet) and 2483 (dry). If all nine read about 550 and show WARN, the sensors aren't connected.
-   - The camera photo with the pot circles opens on your Mac. Check that every pot sits inside its cyan circle.
+   - The camera photo with the pot circles is saved to **Desktop → AgriSentry Bench Photos** and opens by itself. Check that every pot sits inside its cyan circle.
 3. **Start the system:**
    ```bash
    ./system.sh start
@@ -40,11 +40,12 @@ cd ~/Desktop/THESIS
 | Is everything running? Day number? Row counts? | `./system.sh status` |
 | Start the system (logging + noon photo) | `./system.sh start` |
 | Stop the system (testing mode) | `./system.sh stop` |
-| Test sensors + camera, photo opens on the Mac | `./bench_test.sh` |
+| Test sensors + camera, photo saved to Desktop → AgriSentry Bench Photos | `./bench_test.sh` |
 | Same, but skip the photo | `./bench_test.sh --no-camera` |
 | Same, plus click every relay | `./bench_test.sh --relays` |
 | Test relays one at a time (interactive) | `./actuator_test.sh` |
-| Build + flash firmware to the ESP32 | `./flash_esp.sh` |
+| Build + flash the **system firmware** (`Dual_Archi_Firmware/src/main.cpp`) | `./flash_esp.sh` |
+| Flash a different ESP32-S3 project instead (replaces the system firmware) | `./flash_esp.sh Test/TestBench` |
 | Send code edits from the Mac to the Pi | `./sync_pi.sh push` |
 | Copy the Pi's data (CSVs, logs) to the Mac | `./sync_pi.sh pull` (lands in `THESIS/_pi_data/`) |
 | Archive all data and start empty CSVs | `./system.sh reset-data` (asks first) |
@@ -60,6 +61,14 @@ cd ~/Desktop/THESIS
 ~/thesis/tools/agrisentry.sh stop
 tail -f ~/thesis/pi_link.log            # live ESP32 messages (Ctrl+C to exit)
 ```
+
+---
+
+## What `./flash_esp.sh` flashes
+
+- With no argument it builds and flashes **`Dual_Archi/Dual_Archi_Firmware/src/main.cpp`**, the real system firmware, using that folder's `platformio.ini`.
+- The bench test and actuator test **don't need their own firmware**. They're Pi-side scripts that talk to that same system firmware.
+- `./flash_esp.sh <folder>` flashes another PlatformIO project, for example `Test/TestBench`. It only accepts ESP32-S3 projects (the `nodemcu-32s` ones are for a different chip and are refused). Afterwards, run `./flash_esp.sh` to put the system firmware back.
 
 ---
 
