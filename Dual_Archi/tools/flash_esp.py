@@ -37,6 +37,20 @@ def main():
 
     was_running = stop_daemon()
 
+    # Something else (bench/actuator test left open, a serial monitor...) may
+    # still hold the port. Find out now, before touching EN/BOOT.
+    try:
+        serial.Serial(PORT, 115200, exclusive=True).close()
+    except serial.SerialException:
+        holders = subprocess.run(["ps", "-o", "pid=,args=", "-p",
+                                  ",".join(subprocess.run(["fuser", PORT], capture_output=True,
+                                                          text=True).stdout.split()) or "0"],
+                                 capture_output=True, text=True).stdout.strip()
+        print(f"\nFLASH ABORTED: {PORT} is in use by another program:\n  {holders or '(unknown)'}\n"
+              "Close it first (an open ./actuator_test.sh or ./bench_test.sh? press q / Ctrl-C there),\n"
+              "or end it on the Pi with:  kill <pid>")
+        sys.exit(1)
+
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     GPIO.setup(EN, GPIO.OUT, initial=GPIO.HIGH)
