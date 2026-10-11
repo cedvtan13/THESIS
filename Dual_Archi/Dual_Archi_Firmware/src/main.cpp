@@ -1,6 +1,6 @@
 /* ===========================================================================
  * ESP32-S3 Autonomous Baseline Telemetry, Irrigation & Vision Flash Controller
- * Target : Custom PCB (ESP32-S3-WROOM-1-N4R2 / N8)
+ * Target : Custom PCB (ESP32-S3-WROOM-1-N4R2 / 4MB Flash + 2MB PSRAM)
  * Thesis : Computer Vision-Based Growth Monitoring and Yield Prediction for
  *          Pechay Under Differential Soil Moisture Treatments in a Greenhouse
  * ========================================================================= */
@@ -10,6 +10,20 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP3XX.h>
 #include <Preferences.h>
+#include "esp_task_wdt.h"
+
+/* ---------------------------------------------------------------------------
+ * ACTUATOR MASTER SWITCH  <-- the only line to change when the 12V side is ready
+ *
+ *   false : relays (9 solenoids, pump, fans, light) are NEVER energised.
+ *           Irrigation decisions are still computed and reported as
+ *           "LOG,ACTUATORS_OFF,..." lines so the logic can be verified.
+ *   true  : normal operation -- irrigation, fan and light control drive relays.
+ *
+ * Rebuild + reflash after changing. The current state is announced on boot as
+ * "BOOT,actuators=ENABLED|DISABLED".
+ * ------------------------------------------------------------------------- */
+const bool ACTUATORS_ENABLED = false;
 
 const int NUM_PODS = 9;
 
@@ -31,11 +45,11 @@ const int BMP_SDA = 41;                   // PCB: io41
 const int BMP_SCL = 40;                   // PCB: io40
 
 // Raspberry Pi UART Interface (Hardware UART0)
-const int PI_UART_TX = 43;                // PCB: U0TXD -> Pi Pin 10 (RXD)
 const int PI_UART_RX = 44;                // PCB: U0RXD <- Pi Pin 8 (TXD)
+const int PI_UART_TX = 43;                // PCB: U0TXD -> Pi Pin 10 (RXD)
 
 // UI Peripherals
-const int LED_INDICATOR_PIN = 21;         // PCB: io21
+const int LED_INDICATOR_PIN = 21;         // PCB: io21 (Active-LOW)
 const int PROG_BUTTON_PIN   = 38;         // PCB: io38
 
 const bool RELAY_ACTIVE_LOW = true;
@@ -120,6 +134,8 @@ bool          podQuarantined[NUM_PODS];
 unsigned long lastSampleMs = 0;
 unsigned long lastReportMs = 0;
 unsigned long lastBmpMs    = 0;
+unsigned long lastLedBlinkMs = 0;
+bool          ledState     = false;
 
 unsigned long lightOffAtMs = 0;
 bool          lightActive  = false;
@@ -142,8 +158,13 @@ unsigned long nowEpoch() {
   return epochAtBoot + (unsigned long)(millis64() / 1000ULL); 
 }
 
-inline void relayOn(int pin)  { digitalWrite(pin, RELAY_ACTIVE_LOW ? LOW  : HIGH); }
-inline void relayOff(int pin) { digitalWrite(pin, RELAY_ACTIVE_LOW ? HIGH : LOW ); }
+inline void relayOn(int pin) {
+  if (!ACTUATORS_ENABLED) return;
+  digitalWrite(pin, RELAY_ACTIVE_LOW ? LOW : HIGH);
+}
+inline void relayOff(int pin) { 
+  digitalWrite(pin, RELAY_ACTIVE_LOW ? HIGH : LOW); 
+}
 
 void emit(const String& line) {
   Serial.println(line);
@@ -257,6 +278,13 @@ void irrigatePod(int pod, float vwcBefore) {
     reportError("PULSE_CLAMPED", "P-0" + String(pod + 1));
   }
 
+  if (!ACTUATORS_ENABLED) {
+    emit("LOG,ACTUATORS_OFF,P-0" + String(pod + 1) +
+         ",would_dose_ml=" + String(doseMl, 1) +
+         ",vwc=" + String(vwcBefore, 1));
+    return;
+  }
+
   irrigating = true;
   relayOn(solenoidPins[pod]);
   delay(250);
@@ -302,12 +330,19 @@ void reportThermal() {
 
 void handleCommand(String cmd) {
   cmd.trim();
-  // Strip out any non-printable / garbage UART line bytes (e.g. 0xFF / framing noise)
   while (cmd.length() > 0 && ((uint8_t)cmd[0] < 32 || (uint8_t)cmd[0] > 126)) {
     cmd.remove(0, 1);
   }
   cmd.trim();
   if (cmd.length() == 0) return;
+
+  // Actuator commands fail loudly when the master switch is off, instead of
+  // ACKing a relay that never moved.
+  if (!ACTUATORS_ENABLED &&
+      (cmd.startsWith("MANUAL_WATER,") || cmd.startsWith("TEST_RELAY,"))) {
+    reportError("ACTUATORS_DISABLED", cmd);
+    return;
+  }
 
   if (cmd.startsWith("MANUAL_WATER,")) {
     int firstComma = cmd.indexOf(',');
@@ -426,30 +461,43 @@ void handleCommand(String cmd) {
     reportThermal();
   }
   else if (cmd.startsWith("TEST_RELAY,")) {
-    int idx = cmd.substring(11).toInt();
-    if (idx >= 0 && idx < NUM_PODS) {
-      relayOn(solenoidPins[idx]);
-      delay(2000);
-      relayOff(solenoidPins[idx]);
-      emit("ACK,TEST_RELAY,P-0" + String(idx + 1));
-    } else if (idx == 9) {
-      relayOn(PUMP_PIN);
-      delay(2000);
-      relayOff(PUMP_PIN);
-      emit("ACK,TEST_RELAY,PUMP");
-    } else if (idx == 10) {
-      relayOn(FAN_RELAY_PIN);
-      delay(2000);
-      relayOff(FAN_RELAY_PIN);
-      emit("ACK,TEST_RELAY,FANS");
-    } else if (idx == 11) {
-      relayOn(LIGHT_PIN);
-      delay(2000);
-      relayOff(LIGHT_PIN);
-      emit("ACK,TEST_RELAY,LIGHT");
-    } else {
+    // TEST_RELAY,<idx>[,<ms>]  idx 0-8 solenoids, 9 pump, 10 fans, 11 light.
+    // ms defaults to 2000, capped at 10000.
+    int c2 = cmd.indexOf(',', 11);
+    int idx = (c2 == -1 ? cmd.substring(11) : cmd.substring(11, c2)).toInt();
+    unsigned long ms = (c2 == -1) ? 2000UL : (unsigned long)cmd.substring(c2 + 1).toInt();
+    if (ms == 0 || ms > 10000UL) ms = 2000UL;
+
+    int pin = -1;
+    String name;
+    if (idx >= 0 && idx < NUM_PODS) { pin = solenoidPins[idx]; name = "P-0" + String(idx + 1); }
+    else if (idx == 9)              { pin = PUMP_PIN;          name = "PUMP"; }
+    else if (idx == 10)             { pin = FAN_RELAY_PIN;     name = "FANS"; }
+    else if (idx == 11)             { pin = LIGHT_PIN;         name = "LIGHT"; }
+
+    if (pin < 0) {
       reportError("INVALID_RELAY_INDEX", String(idx));
+    } else {
+      relayOn(pin);
+      unsigned long t0 = millis();
+      while (millis() - t0 < ms) { drainPiLink(); delay(20); }
+      relayOff(pin);
+      emit("ACK,TEST_RELAY," + name + "," + String(ms));
     }
+  }
+  else if (cmd == "GET_RAW") {
+    // Raw median ADC per pot, no calibration. For bench checks: a disconnected
+    // probe reads very differently from one sitting in soil.
+    String line = "RAW," + String(nowEpoch());
+    for (int i = 0; i < NUM_PODS; i++) line += "," + String(readMuxMedian(i));
+    emit(line);
+  }
+  else if (cmd == "INFO") {
+    emit(String("INFO,actuators=") + (ACTUATORS_ENABLED ? "ENABLED" : "DISABLED") +
+         ",bmp388=" + (bmpAvailable ? "ONLINE" : "OFFLINE") +
+         ",germination_mode=" + (germinationMode ? "ON" : "OFF") +
+         ",time_synced=" + (timeSynced ? "YES" : "NO") +
+         ",uptime_s=" + String(millis() / 1000UL));
   }
   else if (cmd == "REBOOT") {
     emit("ACK,REBOOT," + String(nowEpoch()));
@@ -486,31 +534,31 @@ void pollPiLink() {
 }
 
 void setup() {
-  Serial.begin(115200, SERIAL_8N1, 44, 43);
+  // Bind hardware UART0: RX = GPIO 44, TX = GPIO 43
+  Serial.begin(115200, SERIAL_8N1, PI_UART_RX, PI_UART_TX);
   delay(200);
 
+  // Status LED (Active-LOW: start OFF)
   pinMode(LED_INDICATOR_PIN, OUTPUT);
-  digitalWrite(LED_INDICATOR_PIN, LOW);
+  digitalWrite(LED_INDICATOR_PIN, HIGH);
   pinMode(PROG_BUTTON_PIN, INPUT_PULLUP);
 
+  // Initialize Relays OFF (Active-LOW: HIGH = OFF)
   for (int i = 0; i < NUM_PODS; i++) {
-    digitalWrite(solenoidPins[i], RELAY_ACTIVE_LOW ? HIGH : LOW);
+    digitalWrite(solenoidPins[i], HIGH);
     pinMode(solenoidPins[i], OUTPUT);
-    relayOff(solenoidPins[i]);
   }
   
-  digitalWrite(PUMP_PIN, RELAY_ACTIVE_LOW ? HIGH : LOW);
+  digitalWrite(PUMP_PIN, HIGH);
   pinMode(PUMP_PIN, OUTPUT);
-  relayOff(PUMP_PIN);
 
-  digitalWrite(FAN_RELAY_PIN, RELAY_ACTIVE_LOW ? HIGH : LOW);
+  digitalWrite(FAN_RELAY_PIN, HIGH);
   pinMode(FAN_RELAY_PIN, OUTPUT);
-  relayOff(FAN_RELAY_PIN);
 
-  digitalWrite(LIGHT_PIN, RELAY_ACTIVE_LOW ? HIGH : LOW);
+  digitalWrite(LIGHT_PIN, HIGH);
   pinMode(LIGHT_PIN, OUTPUT);
-  relayOff(LIGHT_PIN);
 
+  // Multiplexer Address Select Lines
   for (int i = 0; i < 4; i++) {
     pinMode(MUX_SEL[i], OUTPUT);
     digitalWrite(MUX_SEL[i], LOW);
@@ -520,7 +568,9 @@ void setup() {
   pinMode(MUX_SIG, INPUT);
   analogSetPinAttenuation(MUX_SIG, ADC_11db);
 
+  // Initialize I2C with bus timeout protection to prevent locking the CPU
   Wire.begin(BMP_SDA, BMP_SCL);
+  Wire.setTimeOut(25);
   if (bmp.begin_I2C(0x76, &Wire)) {
     bmpAvailable = true;
     bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
@@ -534,12 +584,15 @@ void setup() {
   prefs.begin("irrigation", false);
   loadState();
 
+  // Startup announcements to Pi
   emit("BOOT," + String(millis()) + ",ESP32S3_PCB_IRRIGATION,v5,relays=12");
   emit(String("BOOT,bmp388=") + (bmpAvailable ? "ONLINE" : "OFFLINE"));
   emit(String("BOOT,germination_mode=") + (germinationMode ? "ON" : "OFF"));
+  emit(String("BOOT,actuators=") + (ACTUATORS_ENABLED ? "ENABLED" : "DISABLED"));
   emit("BOOT,awaiting TIME sync from Pi");
 
-  digitalWrite(LED_INDICATOR_PIN, HIGH);
+  // Indicate successful setup complete (Turn LED ON)
+  digitalWrite(LED_INDICATOR_PIN, LOW);
 }
 
 void loop() {
@@ -547,17 +600,27 @@ void loop() {
 
   unsigned long now = millis();
 
+  // Heartbeat LED: Toggles every 1 second to confirm the loop is running
+  if (now - lastLedBlinkMs >= 1000UL) {
+    lastLedBlinkMs = now;
+    ledState = !ledState;
+    digitalWrite(LED_INDICATOR_PIN, ledState ? LOW : HIGH);
+  }
+
+  // Auto-shutoff for camera light flash
   if (lightActive && lightOffAtMs > 0 && now >= lightOffAtMs) {
     relayOff(LIGHT_PIN);
     lightActive = false;
     lightOffAtMs = 0;
   }
 
+  // 1. Enclosure Temperature Regulation (every 5 seconds)
   if (now - lastBmpMs >= BMP_POLL_INTERVAL_MS || lastBmpMs == 0) {
     lastBmpMs = now;
     checkEnclosureThermal();
   }
 
+  // 2. Closed-Loop Irrigation Execution (every 15 minutes)
   if (now - lastSampleMs >= SAMPLE_INTERVAL_MS || lastSampleMs == 0) {
     lastSampleMs = now;
 
@@ -586,10 +649,11 @@ void loop() {
     }
   }
 
+  // 3. Periodic SM Telemetry Report to Pi (every 30 minutes)
   if (now - lastReportMs >= SM_REPORT_INTERVAL_MS) {
     lastReportMs = now;
     reportSM();
   }
 
-  delay(50);
+  delay(20);
 }

@@ -4,8 +4,24 @@
 			"path": "../.."
 		},
 		{
+			"name": "Sensor Readings",
+			"path": "../../Test/Sensor Readings"
+		},
+		{
+			"name": "Bench Test",
+			"path": "../../Test/Bench Test"
+		},
+		{
 			"name": "Dual_Archi_Firmware",
 			"path": "."
+		},
+		{
+			"name": "firmware_test",
+			"path": "../firmware_test"
+		},
+		{
+			"name": "TestBench",
+			"path": "../../../../Documents/PlatformIO/Projects/TestBench"
 		}
 	],
 	"settings": {}
