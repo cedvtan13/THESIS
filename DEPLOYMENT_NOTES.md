@@ -133,6 +133,20 @@ While `ACTUATORS_ENABLED = false`, relay commands answer `ACTUATORS_DISABLED` an
 
 ---
 
+## Bench photos when running on the Pi
+
+`./bench_test.sh` works from **either** machine, and the photo always ends up on the **Mac** in Desktop → AgriSentry Bench Photos.
+
+- **From the Mac:** works out of the box.
+- **On the Pi** (after you `ssh` in): the Pi sends the photo back to the Mac you connected from. This needs a **one-time setup** on the Mac so it trusts the Pi's key:
+  ```bash
+  ssh -o HostKeyAlias=groupb.local crk@192.168.1.16 'cat ~/.ssh/id_ed25519.pub' >> ~/.ssh/authorized_keys
+  ```
+  Use the Pi's current IP; `arp -a | grep groupb` shows it. Remote Login is already on for this Mac. Afterwards the Pi can log into the Mac as you. To undo that, delete the line ending in `thesis-mac` from `~/.ssh/authorized_keys` on the Mac.
+- If the Pi can't reach the Mac, the photo stays on the Pi at `/tmp/agrisentry_bench/bench_overlay.png`.
+
+---
+
 ## Troubleshooting
 
 **"Pi not found" / `groupb.local` doesn't work.** This happens on home Wi-Fi. The scripts look up the IP by themselves. If that fails, find the IP and pass it in:
