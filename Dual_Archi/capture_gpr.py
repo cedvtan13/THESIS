@@ -210,8 +210,27 @@ def day_index(allow_any=False):
 # ---------------------------------------------------------------------------
 # CAPTURE
 # ---------------------------------------------------------------------------
-def capture_frame():
-    """One stabilised frame with every automatic control locked.
+# Capture light (relay 12). On for every capture so illumination is identical
+# day to day. The ESP32 turns it off by itself after LIGHT_PULSE_MS even if this
+# script dies; we also switch it off explicitly as soon as the frame is taken.
+LIGHT_PULSE_MS = 20000
+LIGHT_SETTLE_S = 1.5        # let the light reach full, steady output first
+
+
+def _light(on):
+    """Capture light on (as a self-expiring pulse) or off. Returns success."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import pi_link                                # lazy: needs pyserial
+    ok = pi_link.light_pulse(LIGHT_PULSE_MS) if on else pi_link.set_light_state(False)
+    if not ok and on:                             # one retry before giving up
+        time.sleep(0.5)
+        ok = pi_link.light_pulse(LIGHT_PULSE_MS)
+    return ok
+
+
+def capture_frame(use_light=True):
+    """One stabilised frame with every automatic control locked, under the
+    capture light.
 
     Locking matters more than it looks. The methodology treats lighting as a
     strict control variable, but auto-exposure and auto-white-balance actively
@@ -224,25 +243,38 @@ def capture_frame():
     from picamera2 import Picamera2
     from libcamera import controls
 
-    cam = Picamera2()
-    cfg = cam.create_still_configuration(main={"size": CAPTURE_SIZE})
-    cam.configure(cfg)
-    cam.start()
+    if use_light:
+        if _light(True):
+            print("[capture_gpr] capture light ON")
+            time.sleep(LIGHT_SETTLE_S)
+        else:
+            print("[capture_gpr] WARNING: capture light did NOT switch on -- this "
+                  "frame is lit differently from the others", file=sys.stderr)
 
-    cam.set_controls({
-        "AfMode": controls.AfModeEnum.Manual,
-        "LensPosition": 0.42,
-        "AeEnable": False,
-        "ExposureTime": 24000,      # 24 ms
-        "AnalogueGain": 1.0,         # Minimum gain
-        "AwbEnable": False,
-        "ColourGains": (1.8, 1.6),
-    })
+    try:
+        cam = Picamera2()
+        cfg = cam.create_still_configuration(main={"size": CAPTURE_SIZE})
+        cam.configure(cfg)
+        cam.start()
 
-    time.sleep(2)                   # let the locked settings take effect
-    frame = cam.capture_array()
-    cam.stop()
-    cam.close()
+        cam.set_controls({
+            "AfMode": controls.AfModeEnum.Manual,
+            "LensPosition": 0.42,
+            "AeEnable": False,
+            "ExposureTime": 24000,      # 24 ms
+            "AnalogueGain": 1.0,         # Minimum gain
+            "AwbEnable": False,
+            "ColourGains": (1.8, 1.6),
+        })
+
+        time.sleep(2)                   # let the locked settings take effect
+        frame = cam.capture_array()
+        cam.stop()
+        cam.close()
+    finally:
+        if use_light:
+            _light(False)
+            print("[capture_gpr] capture light OFF")
     return cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
 
@@ -391,6 +423,8 @@ def main():
     ap.add_argument("--test-image", help="use this image instead of the camera")
     ap.add_argument("--no-write", action="store_true", help="do not touch the CSV")
     ap.add_argument("--no-sm", action="store_true", help="skip the ESP32 read")
+    ap.add_argument("--no-light", action="store_true",
+                    help="do not switch the capture light on (testing only)")
     ap.add_argument("--debug-overlay", help="write an annotated PNG here")
     ap.add_argument("--roi-file", default=ROI_FILE)
     ap.add_argument("--allow-any-day", action="store_true",
@@ -412,7 +446,7 @@ def main():
         print(f"[capture_gpr] TEST MODE on {args.test_image} "
               f"{frame.shape[1]}x{frame.shape[0]}")
     else:
-        frame = capture_frame()
+        frame = capture_frame(use_light=not args.no_light)
 
     problems = validate_rois(rois, frame.shape[:2], circular)
     if problems:

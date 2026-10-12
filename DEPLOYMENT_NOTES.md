@@ -81,13 +81,25 @@ tail -f ~/thesis/pi_link.log            # live ESP32 messages (Ctrl+C to exit)
 
 ---
 
-## Turning the actuators on (when the relays and diodes are ready)
+## Capture light
 
-1. Open `Dual_Archi/Dual_Archi_Firmware/src/main.cpp`. At the very top, under **ACTUATOR MASTER SWITCH**, change:
+Every capture (the noon cron job **and** `./bench_test.sh`) now does: **light ON → wait 1.5 s → photo → light OFF**. The light is sent as a 20 s pulse, so the ESP32 switches it off by itself even if the script crashes. If the light fails to turn on, `cron.log` says `WARNING: capture light did NOT switch on`.
+
+⚠️ The camera exposure (24 ms, gain 1.0) was set **without** the light. Before D1 data matters, check the photos aren't overexposed. On the Pi:
+```bash
+cd ~/thesis && python3 cam_check.py --exposure-sweep
+```
+Then set the exposure you pick in `capture_gpr.py` (`ExposureTime`) and push with `./sync_pi.sh push`.
+
+---
+
+## Actuators (ENABLED since Oct 12)
+
+1. The switch is at the very top of `Dual_Archi/Dual_Archi_Firmware/src/main.cpp`, under **ACTUATOR MASTER SWITCH**. It's currently **`true`**: automatic watering, fans and the capture light are live. Set it to `false` and reflash to disable them all.
    ```cpp
-   const bool ACTUATORS_ENABLED = false;   // -> true
+   const bool ACTUATORS_ENABLED = true;
    ```
-2. Flash it:
+2. After changing it, flash:
    ```bash
    ./flash_esp.sh
    ```

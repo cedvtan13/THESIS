@@ -308,6 +308,39 @@ def _set_light_direct(on: bool) -> bool:
         print(f"[pi_link] direct light toggle failed: {exc}", file=sys.stderr)
         return False
 
+def light_pulse(ms, timeout=5) -> bool:
+    """Turn the capture light ON for ms milliseconds. The ESP32 switches it off
+    by itself when the time is up, so a crashed caller can't leave it on.
+
+    Routes through the daemon when one is running (it confirms the daemon took
+    the request; the ESP32's ACK lands in pi_link.log), otherwise talks to the
+    ESP32 directly and waits for its ACK."""
+    if daemon_pid():
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(LIGHT_FILE, "w") as f:
+            f.write(f"PULSE,{int(ms)}")
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            if not os.path.exists(LIGHT_FILE):
+                return True
+            time.sleep(0.05)
+        return False
+    try:
+        with open_link() as ser:
+            ser.write(f"LIGHT_PULSE,{int(ms)}\n".encode())
+            deadline = time.time() + timeout
+            while time.time() < deadline:
+                raw = ser.readline().decode(errors="replace").strip()
+                if raw.startswith("ACK,LIGHT_PULSE"):
+                    return True
+                if raw.startswith("ERR,"):
+                    print(f"[pi_link] light pulse refused: {raw}", file=sys.stderr)
+                    return False
+    except Exception as exc:
+        print(f"[pi_link] light pulse failed: {exc}", file=sys.stderr)
+    return False
+
+
 def simple_command(cmd, expect, timeout=8):
     """One-shot command. Refuses to run while the daemon owns the port."""
     if daemon_pid():
@@ -361,7 +394,12 @@ def daemon():
                             try:
                                 with open(LIGHT_FILE, "r") as f:
                                     target_state = f.read().strip()
-                                cmd = b"LIGHT_ON\n" if target_state == "ON" else b"LIGHT_OFF\n"
+                                if target_state.startswith("PULSE,"):
+                                    cmd = f"LIGHT_{target_state}\n".encode()
+                                elif target_state == "ON":
+                                    cmd = b"LIGHT_ON\n"
+                                else:
+                                    cmd = b"LIGHT_OFF\n"
                                 ser.write(cmd)
                                 os.remove(LIGHT_FILE)
                             except Exception:
