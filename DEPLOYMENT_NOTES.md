@@ -98,15 +98,17 @@ Move each pot until its rim sits inside its green circle. **Ctrl+C** stops it. O
 
 ---
 
-## Capture light
+## Capture light (currently OFF)
 
-Every capture (the noon cron job **and** `./bench_test.sh`) now does: **light ON → wait 1.5 s → photo → light OFF**. The light is sent as a 20 s pulse, so the ESP32 switches it off by itself even if the script crashes. If the light fails to turn on, `cron.log` says `WARNING: capture light did NOT switch on`.
-
-⚠️ The camera exposure (24 ms, gain 1.0) was set **without** the light. Before D1 data matters, check the photos aren't overexposed. On the Pi:
-```bash
-cd ~/thesis && python3 cam_check.py --exposure-sweep
+The capture light is controlled by one setting at the top of `Dual_Archi/capture_gpr.py`:
+```python
+USE_CAPTURE_LIGHT = False   # True = light ON for every capture
 ```
-Then set the exposure you pick in `capture_gpr.py` (`ExposureTime`) and push with `./sync_pi.sh push`.
+- **Off since Oct 12.** Light + live camera rebooted the Pi once (suspected brownout), and noon daylight is enough. Captures run in daylight only.
+- When it's `True`, every capture goes: light ON → 1.5 s → photo → light OFF. The light is sent as a self-expiring 20 s pulse.
+- One-off override for a test, on the Pi: `python3 capture_gpr.py --no-write --no-sm --allow-any-day --light --debug-overlay /tmp/t.png`
+- After changing it, run `./sync_pi.sh push`. **Pick one setting and keep it for the whole 35 days**, because switching mid-cycle changes the lighting in the GPR data.
+- If you turn it on, check the exposure first (the 24 ms exposure was chosen without it): `cd ~/thesis && python3 cam_check.py --exposure-sweep`
 
 ---
 
@@ -242,6 +244,6 @@ Done for the Oct 6 planting on Oct 12.
   - Actuators **enabled** (flyback diodes fixed).
   - New tests: `m` (several relays at once, with reboot detection) in the actuator tester, and `./flow_test.sh`.
   - Pump flow set to the measured **18 mL/s**.
-  - Capture light now comes on for every photo.
+  - Capture light wired into every photo, then switched OFF (`USE_CAPTURE_LIGHT = False`) after a suspected brownout. Daylight only for now.
   - Wiped the old irrigation counts and quarantines left in the ESP32's flash (`--reset-state`).
   - `./live_feed.sh` runs at 3 fps with the same camera settings as the real capture.

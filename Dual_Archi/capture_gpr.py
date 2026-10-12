@@ -210,8 +210,12 @@ def day_index(allow_any=False):
 # ---------------------------------------------------------------------------
 # CAPTURE
 # ---------------------------------------------------------------------------
-# Capture light (relay 12). On for every capture so illumination is identical
-# day to day. The ESP32 turns it off by itself after LIGHT_PULSE_MS even if this
+# Capture light (relay 12). When USE_CAPTURE_LIGHT is True it is switched on for
+# every capture so illumination is identical day to day. OFF since 2026-10-12:
+# the light plus camera load was suspected of browning out the Pi, and noon
+# daylight is used instead. Flip back to True once the light is proven safe.
+USE_CAPTURE_LIGHT = False
+# The ESP32 turns it off by itself after LIGHT_PULSE_MS even if this
 # script dies; we also switch it off explicitly as soon as the frame is taken.
 LIGHT_PULSE_MS = 20000
 LIGHT_SETTLE_S = 1.5        # let the light reach full, steady output first
@@ -256,7 +260,7 @@ def open_locked_camera():
     return cam
 
 
-def capture_frame(use_light=True):
+def capture_frame(use_light=USE_CAPTURE_LIGHT):
     """One stabilised frame from open_locked_camera(), under the capture light.
 
     Picamera2's format names are inverted -- the default still config hands back
@@ -429,7 +433,9 @@ def main():
     ap.add_argument("--no-write", action="store_true", help="do not touch the CSV")
     ap.add_argument("--no-sm", action="store_true", help="skip the ESP32 read")
     ap.add_argument("--no-light", action="store_true",
-                    help="do not switch the capture light on (testing only)")
+                    help="force the capture light OFF for this run")
+    ap.add_argument("--light", action="store_true",
+                    help="force the capture light ON for this run")
     ap.add_argument("--debug-overlay", help="write an annotated PNG here")
     ap.add_argument("--roi-file", default=ROI_FILE)
     ap.add_argument("--allow-any-day", action="store_true",
@@ -451,7 +457,8 @@ def main():
         print(f"[capture_gpr] TEST MODE on {args.test_image} "
               f"{frame.shape[1]}x{frame.shape[0]}")
     else:
-        frame = capture_frame(use_light=not args.no_light)
+        use_light = (USE_CAPTURE_LIGHT or args.light) and not args.no_light
+        frame = capture_frame(use_light=use_light)
 
     problems = validate_rois(rois, frame.shape[:2], circular)
     if problems:
