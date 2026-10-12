@@ -47,6 +47,32 @@ Optional hardware fix: a **DS3231 RTC module** (cheap, I2C) keeps the time throu
 
 ---
 
+## Clock buddy + power log (automatic)
+
+The Pi and ESP32 keep each other's time while `pi-link` runs:
+- **The Pi reboots without internet:** it asks the ESP32 for the time (the ESP32 didn't lose power) and sets its own clock. You'll see `Pi clock was not synced -- set from the ESP32` in `pi_link.log`.
+- **The ESP32 restarts:** the Pi sends it the time immediately.
+- **Both lose power:** neither knows the time until the hotspot sync, but the log still records **when** it happened.
+
+Every unclean shutdown and every ESP32 restart is written to **`~/agrisentry_data/power_log.csv`**, also shown by `./system.sh status`:
+
+| column | meaning |
+|---|---|
+| `down_since` | last heartbeat (written every minute) = when the Pi went down |
+| `back_at`, `downtime_h` | when it came back, and for how long it was down |
+| `esp_last_alive` | the ESP32's last saved time (every 10 min) before *it* went down |
+| `note` | "Pi-only outage: the ESP32 kept running", "ESP32 restarted too (full power loss?)", or "ESP32 rebooted while the Pi stayed up" |
+
+A normal `./system.sh stop` or reboot is **not** logged as an outage. This log is good evidence for the reliability deliverable (D7).
+
+## UPS runtime test
+```bash
+./system.sh ups-test
+```
+(The Pi clock must be synced, i.e. hotspot on.) This starts **only** the logger (no noon capture) and records the start time. Unplug mains and leave it running. When power returns and the Pi boots, the power log gets a row whose note ends with **`UPS TEST: started …, last alive … -> lasted X.XX h`**. Check it with `./system.sh status` or `./daily_checkin.sh`.
+
+---
+
 ## Everyday commands
 
 | What you want | Command |
@@ -66,6 +92,7 @@ Optional hardware fix: a **DS3231 RTC module** (cheap, I2C) keeps the time throu
 | Send code edits from the Mac to the Pi | `./sync_pi.sh push` |
 | Copy the Pi's data (CSVs, logs) to the Mac | `./sync_pi.sh pull` (lands in `THESIS/_pi_data/`) |
 | Archive all data and start empty CSVs | `./system.sh reset-data` (asks first) |
+| Start a UPS runtime test (logger only) | `./system.sh ups-test` |
 | Log into the Pi | `ssh crk@groupb.local` (or `ssh crk@<ip>`, see Troubleshooting) |
 
 > `bench_test.sh` and `actuator_test.sh` **stop** the system so they can use the serial port.

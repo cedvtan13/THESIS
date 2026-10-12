@@ -142,6 +142,14 @@ bool          lightActive  = false;
 
 unsigned long epochAtBoot = 0;
 bool          timeSynced  = false;
+
+// Clock "buddy" for the Pi: once synced, the ESP32 keeps time and can hand it
+// back to a Pi that rebooted without internet (GET_TIME). Every 10 min the
+// synced time is saved to flash, so after a total power loss the last saved
+// value says roughly when this board went down.
+unsigned long prevAliveEpoch = 0;     // last saved "alive" time from BEFORE this boot
+unsigned long lastAliveSaveMs = 0;
+const unsigned long ALIVE_SAVE_MS = 10UL * 60UL * 1000UL;
 volatile bool irrigating  = false;
 
 void drainPiLink();
@@ -417,6 +425,11 @@ void handleCommand(String cmd) {
     loadState();
     emit("ACK,RESET_STATE," + String(nowEpoch()));
   }
+  else if (cmd == "GET_TIME") {
+    // CLOCK,<epoch now>,<synced 1/0>,<uptime_s>,<last alive epoch before this boot>
+    emit("CLOCK," + String(timeSynced ? nowEpoch() : 0UL) + "," + String(timeSynced ? 1 : 0) +
+         "," + String(millis() / 1000UL) + "," + String(prevAliveEpoch));
+  }
   else if (cmd == "PING") {
     emit("PONG," + String(nowEpoch()) + "," + String(millis() / 1000UL));
   }
@@ -633,6 +646,7 @@ void setup() {
 
   prefs.begin("irrigation", false);
   loadState();
+  prevAliveEpoch = prefs.getULong("alive", 0);
 
   // Startup announcements to Pi
   emit("BOOT," + String(millis()) + ",ESP32S3_PCB_IRRIGATION,v5,relays=12");
@@ -697,6 +711,12 @@ void loop() {
 
       delay(200);
     }
+  }
+
+  // Alive stamp for power-loss forensics (only meaningful once time-synced)
+  if (timeSynced && (lastAliveSaveMs == 0 || now - lastAliveSaveMs >= ALIVE_SAVE_MS)) {
+    lastAliveSaveMs = now;
+    prefs.putULong("alive", nowEpoch());
   }
 
   // 3. Periodic SM Telemetry Report to Pi (every 30 minutes)

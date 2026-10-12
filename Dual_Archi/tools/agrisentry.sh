@@ -5,6 +5,9 @@
 #   agrisentry.sh stop        stop + disable both (testing mode)
 #   agrisentry.sh status      what's running, today's day number, CSV row counts, last log lines
 #   agrisentry.sh reset-data  archive all data CSVs/logs and start empty ones (asks first)
+#   agrisentry.sh ups-test    start ONLY the logger (no noon capture) and mark the start
+#                             of a UPS runtime test; the result is written to
+#                             ~/agrisentry_data/power_log.csv after power comes back
 #
 # From the Mac:  ./system.sh start|stop|status
 set -uo pipefail
@@ -47,6 +50,13 @@ status() {
   echo "data rows       : growth_dataset=$(rows "$DUAL/growth_dataset.csv")" \
        " sm_log=$(rows "$DATA/sm_log.csv") irrigation=$(rows "$DATA/irrigation_log.csv")" \
        " errors=$(rows "$DATA/error_log.csv")"
+  if [[ -f $DATA/ups_test_start ]]; then
+    echo "UPS test        : RUNNING since $(date -d @"$(cat "$DATA/ups_test_start")" '+%Y-%m-%d %H:%M')"
+  fi
+  if [[ -f $DATA/power_log.csv ]]; then
+    echo "--- power events (power_log.csv)"
+    tail -n 3 "$DATA/power_log.csv" | cut -d, -f2,3,4,5,9
+  fi
   if [[ -f $DUAL/pi_link.log ]]; then
     echo "--- last pi_link.log lines"; tail -n 6 "$DUAL/pi_link.log"
   fi
@@ -69,6 +79,17 @@ case "${1:-status}" in
     status ;;
   status)
     status ;;
+  ups-test)
+    if [[ $(timedatectl show -p NTPSynchronized --value) != yes ]]; then
+      echo "Pi clock is not internet-synced -- connect the hotspot first so the start time is right"; exit 1
+    fi
+    date +%s > "$DATA/ups_test_start"
+    sudo -n systemctl enable --now pi-link
+    sleep 4
+    echo "UPS test started $(date '+%Y-%m-%d %H:%M'). Logger running (noon capture NOT enabled)."
+    echo "Unplug mains now and leave it. After power returns and the Pi boots, run:"
+    echo "  ./system.sh status      (or: cat ~/agrisentry_data/power_log.csv)"
+    status ;;
   reset-data)
     A="$DATA/archive_$(date +%Y%m%d_%H%M%S)"
     read -r -p "Archive all current CSVs/logs to $A and start fresh? [y/N] " ok
@@ -82,5 +103,5 @@ case "${1:-status}" in
     [[ $was == active ]] && sudo -n systemctl start pi-link
     echo "archived to $A"; status ;;
   *)
-    echo "usage: $0 start|stop|status|reset-data"; exit 1 ;;
+    echo "usage: $0 start|stop|status|reset-data|ups-test"; exit 1 ;;
 esac

@@ -4,6 +4,7 @@
 #   ./system.sh stop         both OFF                                (testing)
 #   ./system.sh status       what's running, day number, CSV row counts
 #   ./system.sh reset-data   archive current CSVs and start empty ones (asks first)
+#   ./system.sh ups-test     logger only + mark the start of a UPS runtime test
 # On the Pi itself:  ~/thesis/tools/agrisentry.sh start|stop|status|reset-data
 set -uo pipefail
 cd "$(dirname "$0")"
