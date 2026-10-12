@@ -174,10 +174,16 @@ PI_HOST=192.168.1.16 ./system.sh status
 
 **`./system.sh status` shows no `ACK,TIME`, or the ESP32 doesn't answer.** Run `./bench_test.sh --no-camera`. If PING fails, reflash with `./flash_esp.sh`, then `./system.sh start`.
 
-**A pot's SM reads `NaN`.** The pot was quarantined after 3 out-of-range readings in a row. Fix the probe, then clear it (on the Pi, with the system stopped):
+**A pot's SM reads `NaN`.** The pot was quarantined after 3 out-of-range readings in a row (raw below 150 or above 4000, e.g. while a probe was unplugged). Quarantine is **saved in the ESP32's flash** and survives reboots and reflashing. `./bench_test.sh` marks those pots WARN with "QUARANTINED". Fix the probe, then clear it (on the Pi, with the system stopped):
 ```bash
 python3 ~/thesis/pi_link.py --clear-faults
 ```
+
+**Starting a new planting:** wipe what the ESP32 keeps in flash (irrigation counts, last-watered times, quarantines, germination mode back to ON). On the Pi, with the system stopped:
+```bash
+python3 ~/thesis/pi_link.py --reset-state
+```
+Done for the Oct 6 planting on Oct 12.
 
 **Noon capture didn't write a row.** Check `tail ~/thesis/cron.log` on the Pi. It refuses to write the same day twice, and it refuses days outside D1–D35.
 

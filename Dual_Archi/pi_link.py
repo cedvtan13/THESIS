@@ -54,6 +54,7 @@ Run:
     python3 pi_link.py --status     per-pot configuration dump
     python3 pi_link.py --bands-on   end germination mode
     python3 pi_link.py --clear-faults   un-quarantine all pots after repair
+    python3 pi_link.py --reset-state    new planting: wipe counts, quarantines, germ flag
 """
 
 import csv
@@ -444,6 +445,10 @@ if __name__ == "__main__":
         simple_command("STATUS", "STAT", timeout=12)
     elif "--bands-on" in sys.argv:
         sys.exit(0 if simple_command("BANDS_ON", "ACK,BANDS_ON") else 1)
+    elif "--reset-state" in sys.argv:
+        # New planting: irrigation counts, last-watered times, quarantines,
+        # germination mode -> defaults.
+        sys.exit(0 if simple_command("RESET_STATE", "ACK,RESET_STATE") else 1)
     elif "--clear-faults" in sys.argv:
         sys.exit(0 if simple_command("CLEAR_FAULTS", "ACK,CLEAR_FAULTS") else 1)
     elif "--light-on" in sys.argv:

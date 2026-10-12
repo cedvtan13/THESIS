@@ -410,6 +410,13 @@ void handleCommand(String cmd) {
     }
     emit("ACK,CLEAR_FAULTS," + String(nowEpoch()));
   }
+  else if (cmd == "RESET_STATE") {
+    // New planting: wipe everything kept in flash (irrigation counts, last
+    // irrigation times, quarantines, germination flag) back to defaults.
+    prefs.clear();
+    loadState();
+    emit("ACK,RESET_STATE," + String(nowEpoch()));
+  }
   else if (cmd == "PING") {
     emit("PONG," + String(nowEpoch()) + "," + String(millis() / 1000UL));
   }

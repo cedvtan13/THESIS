@@ -96,9 +96,17 @@ def main():
             raws = [int(v) for v in raw.split(",")[2:]]
             pcts = sm.split(",")[2:] if sm and sm.startswith("SM") else ["?"] * 9
             print("         pot    raw ADC   moisture")
+            quarantined = 0
             for i, (r, pct) in enumerate(zip(raws, pcts)):
                 ok, why = sensor_verdict(r)
+                if pct == "NaN":
+                    quarantined += 1
+                    ok, why = None, why + ", but pot is QUARANTINED (no % reading, no watering)"
                 check(f"P-0{i + 1}   {r:5d}   {pct:>6}%", ok, why)
+            if quarantined:
+                print(f"         {quarantined} pot(s) quarantined after repeated bad readings. Once the\n"
+                      "         probes read sensibly, clear it on the Pi:\n"
+                      "             python3 ~/thesis/pi_link.py --clear-faults")
             if len(set(raws)) == 1 or max(raws) - min(raws) < 20:
                 print("         note: all pots read nearly the same -- typical of the MUX "
                       "with no probes plugged in")
