@@ -99,7 +99,7 @@ const int ADC_FAULT_LOW  = 150;
 const int ADC_FAULT_HIGH = 4000;
 
 const float ML_PER_PERCENT     = 3.18f;
-const float PUMP_FLOW_ML_PER_S = 20.0f;
+const float PUMP_FLOW_ML_PER_S = 18.0f;   // measured 2026-10-12: 90 mL in 5 s, all 9 valves
 const float MAX_DOSE_ML        = 100.0f;
 
 /* ---------------------------------------------------------------------------

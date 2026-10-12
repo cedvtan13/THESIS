@@ -228,21 +228,40 @@ def _light(on):
     return ok
 
 
-def capture_frame(use_light=True):
-    """One stabilised frame with every automatic control locked, under the
-    capture light.
+def open_locked_camera():
+    """Started Picamera2 with the exact configuration and locked controls used
+    for every GPR capture. live_feed.py uses this too, so what the alignment
+    stream shows is framed, focused and exposed like the real capture.
 
     Locking matters more than it looks. The methodology treats lighting as a
     strict control variable, but auto-exposure and auto-white-balance actively
     fight that: if the camera compensates for a duller day the HSV values shift
-    and the GPR moves without the plant changing.
+    and the GPR moves without the plant changing."""
+    from picamera2 import Picamera2
+    from libcamera import controls
+
+    cam = Picamera2()
+    cfg = cam.create_still_configuration(main={"size": CAPTURE_SIZE})
+    cam.configure(cfg)
+    cam.start()
+    cam.set_controls({
+        "AfMode": controls.AfModeEnum.Manual,
+        "LensPosition": 0.42,
+        "AeEnable": False,
+        "ExposureTime": 24000,      # 24 ms
+        "AnalogueGain": 1.0,         # Minimum gain
+        "AwbEnable": False,
+        "ColourGains": (1.8, 1.6),
+    })
+    return cam
+
+
+def capture_frame(use_light=True):
+    """One stabilised frame from open_locked_camera(), under the capture light.
 
     Picamera2's format names are inverted -- the default still config hands back
     an array OpenCV can use directly. Verify once with a known-red object: if it
     photographs as blue, drop the cvtColor below."""
-    from picamera2 import Picamera2
-    from libcamera import controls
-
     if use_light:
         if _light(True):
             print("[capture_gpr] capture light ON")
@@ -252,21 +271,7 @@ def capture_frame(use_light=True):
                   "frame is lit differently from the others", file=sys.stderr)
 
     try:
-        cam = Picamera2()
-        cfg = cam.create_still_configuration(main={"size": CAPTURE_SIZE})
-        cam.configure(cfg)
-        cam.start()
-
-        cam.set_controls({
-            "AfMode": controls.AfModeEnum.Manual,
-            "LensPosition": 0.42,
-            "AeEnable": False,
-            "ExposureTime": 24000,      # 24 ms
-            "AnalogueGain": 1.0,         # Minimum gain
-            "AwbEnable": False,
-            "ColourGains": (1.8, 1.6),
-        })
-
+        cam = open_locked_camera()
         time.sleep(2)                   # let the locked settings take effect
         frame = cam.capture_array()
         cam.stop()

@@ -45,6 +45,7 @@ cd ~/Desktop/THESIS
 | Same, plus click every relay | `./bench_test.sh --relays` |
 | Test relays one at a time (interactive) | `./actuator_test.sh` |
 | Measure each valve's flow rate | `./flow_test.sh` (see below) |
+| Live camera view for arranging pots | `./live_feed.sh` (see below) |
 | Build + flash the **system firmware** (`Dual_Archi_Firmware/src/main.cpp`) | `./flash_esp.sh` |
 | Flash a different ESP32-S3 project instead (replaces the system firmware) | `./flash_esp.sh Test/TestBench` |
 | Send code edits from the Mac to the Pi | `./sync_pi.sh push` |
@@ -79,6 +80,21 @@ tail -f ~/thesis/pi_link.log            # live ESP32 messages (Ctrl+C to exit)
 - It's stored in `Dual_Archi/sowing_date.txt` on the Pi. `./system.sh status` prints today's D.
 - The 35-day cycle runs **D1 to D35** (Oct 6 to Nov 9). `capture_gpr.py` refuses to write outside that range.
 - Manual data from Oct 6–12 uses the same numbering (Oct 6 = D1). Send it over and it'll be merged into `growth_dataset.csv`.
+
+---
+
+## Arranging the pots: live feed
+
+```bash
+./live_feed.sh              # 3 fps, opens http://<pi>:5000 in your browser
+./live_feed.sh --fps 2
+./live_feed.sh --light      # capture light on while you align
+```
+Move each pot until its rim sits inside its green circle. **Ctrl+C** stops it. On the Pi directly: `cd ~/thesis && python3 live_feed.py`.
+
+- Circles come from **`pot_rois.json`**, using the same math the GPR measurement uses.
+- The camera uses the **exact same settings as the noon capture**: still mode, fixed focus, locked exposure and white balance (shared from `capture_gpr.open_locked_camera()`). What you line up is what gets measured.
+- Only one program can use the camera at a time. **Stop the live feed before 12:00** and before running `./bench_test.sh`.
 
 ---
 
@@ -130,7 +146,7 @@ While `ACTUATORS_ENABLED = false`, relay commands answer `ACTUATORS_DISABLED` an
 
 ## Flow rate test
 
-The firmware converts each watering dose (mL) into pump time using **`PUMP_FLOW_ML_PER_S`** (currently 20.0) in `main.cpp`. If that number is wrong, every dose is wrong.
+The firmware converts each watering dose (mL) into pump time using **`PUMP_FLOW_ML_PER_S`** (currently **18.0**, measured Oct 12: 90 mL in 5 s on all 9 valves) in `main.cpp`. If that number is wrong, every dose is wrong.
 
 ```bash
 ./flow_test.sh                          # all 9 valves, 5 s each
