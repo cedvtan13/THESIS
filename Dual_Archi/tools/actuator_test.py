@@ -6,6 +6,7 @@ nothing runs on its own.
 
   Relays:  1-9 solenoids P-01..P-09 | 10 pump | 11 fans | 12 light
   Water:   w <pot> <ms>  opens that pot's solenoid THEN the pump (real dose path)
+  Multi:   m 1,2,10 <ms> several relays ON together (load / power-supply test)
   Cycle:   all           each relay in turn, Enter between each
   Quit:    q
 
@@ -15,6 +16,10 @@ nothing switches.
 
 SAFETY: running the pump alone (10) pushes against closed valves. Keep it short,
 or use "w" which opens a valve first.
+
+After every action the ESP32's uptime is checked. If it went DOWN, the board
+rebooted during the switching: a power problem (supply sag / inductive spike),
+not a software one.
 """
 import os
 import sys
@@ -32,15 +37,39 @@ def menu():
     for i, n in enumerate(NAMES, 1):
         print(f"  {i:<3} {n}")
     print("  w <pot 1-9> <ms>   water test (valve + pump)")
+    print("  m 1,2,10 <ms>      several relays ON at the same time, e.g. P-01 + P-02 + pump")
     print("  all                cycle every relay (Enter between each)")
     print("  q                  quit")
 
 
+def uptime(esp):
+    try:
+        return int(info_dict(esp.ask("INFO", "INFO", 3)).get("uptime_s", -1))
+    except ValueError:
+        return -1
+
+
+def watched(esp, cmd, expect, timeout):
+    """Send an actuator command and report whether the ESP32 survived it."""
+    before = uptime(esp)
+    r = esp.ask(cmd, expect, timeout)
+    print(f"  <- {r}" if r else "  <- no reply")
+    time.sleep(0.3)
+    after = uptime(esp)
+    if after < 0:
+        print("  !! ESP32 not answering after the test -- it may have crashed or browned out")
+    elif before >= 0 and after < before:
+        print(f"  !! ESP32 REBOOTED during the test (uptime {before}s -> {after}s).\n"
+              "     Power problem: the 12V/5V supply sagged or an inductive spike reached the\n"
+              "     ESP32. Check flyback diodes, supply current rating, and grounding.")
+    else:
+        print(f"  ok: ESP32 stayed up (uptime {after}s)")
+    return bool(r) and r.startswith("ACK")
+
+
 def pulse(esp, idx, ms):
     print(f"  -> {NAMES[idx]} ON for {ms} ms ...", flush=True)
-    r = esp.ask(f"TEST_RELAY,{idx},{ms}", "ACK,TEST_RELAY", ms / 1000 + 3)
-    print(f"  <- {r}" if r else "  <- no reply")
-    return bool(r) and r.startswith("ACK")
+    return watched(esp, f"TEST_RELAY,{idx},{ms}", "ACK,TEST_RELAY", ms / 1000 + 3)
 
 
 def main():
@@ -78,8 +107,18 @@ def main():
                         raise ValueError
                     ms = min(ms, 15000)
                     print(f"  -> water P-0{pot}: valve, then pump, {ms} ms")
-                    r = esp.ask(f"MANUAL_WATER,{pot - 1},{ms}", "ACK,MANUAL_WATER", ms / 1000 + 4)
-                    print(f"  <- {r}" if r else "  <- no reply")
+                    watched(esp, f"MANUAL_WATER,{pot - 1},{ms}", "ACK,MANUAL_WATER", ms / 1000 + 4)
+                elif parts[0] == "m":
+                    nums = sorted({int(n) for n in parts[1].split(",")})
+                    if not nums or not all(1 <= n <= len(NAMES) for n in nums):
+                        raise ValueError
+                    ms = max(50, min(int(parts[2]) if len(parts) > 2 else 3000, MAX_MS))
+                    print("  -> ON together for %d ms: %s" % (ms, ", ".join(NAMES[n - 1] for n in nums)))
+                    if 10 in nums and not any(n <= 9 for n in nums):
+                        print("     (pump with no valve open -- keep it short)")
+                    idxs = ",".join(str(n - 1) for n in nums)
+                    watched(esp, f"TEST_MULTI,{ms},{idxs}", "ACK,TEST_MULTI",
+                            ms / 1000 + 0.25 * len(nums) + 4)
                 else:
                     idx = int(parts[0]) - 1
                     if not 0 <= idx < len(NAMES):
@@ -88,7 +127,7 @@ def main():
                         input(f"  how long (ms, max {MAX_MS}) [1000]: ") or 1000)
                     pulse(esp, idx, max(50, min(ms, MAX_MS)))
             except (ValueError, IndexError):
-                print("  ? try: 3   |   3 1500   |   w 4 2000   |   all   |   q")
+                print("  ? try: 3   |   3 1500   |   w 4 2000   |   m 1,2,10 3000   |   all   |   q")
             except KeyboardInterrupt:
                 print("\n  stopped")
     print("done. pi-link is still stopped; start the system with tools/agrisentry.sh start")

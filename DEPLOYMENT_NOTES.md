@@ -102,10 +102,13 @@ tail -f ~/thesis/pi_link.log            # live ESP32 messages (Ctrl+C to exit)
    | `3 1500` | solenoid P-03 for 1.5 s |
    | `10` / `11` / `12` | pump / fans / light |
    | `w 4 2000` | real watering: P-04 valve opens, then the pump, for 2 s |
+   | `m 1,2,10 3000` | **several at once**: P-01 + P-02 + pump together for 3 s (turned on 0.25 s apart, valves first; off in reverse, pump first) |
    | `all` | each relay in turn, press Enter between each |
    | `q` | quit |
 
    ⚠️ Don't run the pump (`10`) alone for long, because it pushes against closed valves. Use `w` instead.
+
+   After **every** test the tool checks whether the ESP32 rebooted. If you see `!! ESP32 REBOOTED during the test`, the switching caused a power dip or spike (flyback diodes, supply current, grounding). That's a hardware problem, not code. Build up step by step: `m 1,10`, then `m 1,2,10`, then `m 1,2,3,10`, and so on.
 4. Run `./system.sh start` again afterwards.
 
 While `ACTUATORS_ENABLED = false`, relay commands answer `ACTUATORS_DISABLED` and nothing switches. Irrigation decisions still show up as `LOG,ACTUATORS_OFF,...` lines, so you can check the logic.

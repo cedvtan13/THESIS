@@ -23,7 +23,7 @@
  * Rebuild + reflash after changing. The current state is announced on boot as
  * "BOOT,actuators=ENABLED|DISABLED".
  * ------------------------------------------------------------------------- */
-const bool ACTUATORS_ENABLED = false;
+const bool ACTUATORS_ENABLED = true;
 
 const int NUM_PODS = 9;
 
@@ -339,7 +339,8 @@ void handleCommand(String cmd) {
   // Actuator commands fail loudly when the master switch is off, instead of
   // ACKing a relay that never moved.
   if (!ACTUATORS_ENABLED &&
-      (cmd.startsWith("MANUAL_WATER,") || cmd.startsWith("TEST_RELAY,"))) {
+      (cmd.startsWith("MANUAL_WATER,") || cmd.startsWith("TEST_RELAY,") ||
+       cmd.startsWith("TEST_MULTI,"))) {
     reportError("ACTUATORS_DISABLED", cmd);
     return;
   }
@@ -483,6 +484,48 @@ void handleCommand(String cmd) {
       while (millis() - t0 < ms) { drainPiLink(); delay(20); }
       relayOff(pin);
       emit("ACK,TEST_RELAY," + name + "," + String(ms));
+    }
+  }
+  else if (cmd.startsWith("TEST_MULTI,")) {
+    // TEST_MULTI,<ms>,<idx>,<idx>,...  several relays ON together (load test).
+    // idx as TEST_RELAY: 0-8 solenoids, 9 pump, 10 fans, 11 light.
+    // Switched on in ascending idx order 250 ms apart (valves before the pump),
+    // held for ms (max 10000), then off in reverse order (pump first).
+    int RELAY_PINS[12];
+    for (int i = 0; i < NUM_PODS; i++) RELAY_PINS[i] = solenoidPins[i];
+    RELAY_PINS[9] = PUMP_PIN; RELAY_PINS[10] = FAN_RELAY_PIN; RELAY_PINS[11] = LIGHT_PIN;
+    bool want[12] = {false};
+    int c = cmd.indexOf(',');
+    int c2 = cmd.indexOf(',', c + 1);
+    unsigned long ms = (unsigned long)cmd.substring(c + 1, c2 == -1 ? cmd.length() : c2).toInt();
+    if (ms == 0 || ms > 10000UL) ms = 2000UL;
+    int count = 0;
+    bool bad = (c2 == -1);
+    while (c2 != -1) {
+      int next = cmd.indexOf(',', c2 + 1);
+      int idx = cmd.substring(c2 + 1, next == -1 ? cmd.length() : next).toInt();
+      if (idx < 0 || idx > 11) bad = true;
+      else if (!want[idx]) { want[idx] = true; count++; }
+      c2 = next;
+    }
+    if (bad || count == 0) {
+      reportError("INVALID_RELAY_LIST", cmd);
+    } else {
+      String names;
+      for (int i = 0; i < 12; i++) {
+        if (!want[i]) continue;
+        relayOn(RELAY_PINS[i]);
+        names += (names.length() ? "+" : "") + String(i);
+        delay(250);
+      }
+      unsigned long t0 = millis();
+      while (millis() - t0 < ms) { drainPiLink(); delay(20); }
+      for (int i = 11; i >= 0; i--) {
+        if (!want[i]) continue;
+        relayOff(RELAY_PINS[i]);
+        delay(100);
+      }
+      emit("ACK,TEST_MULTI," + names + "," + String(ms));
     }
   }
   else if (cmd == "GET_RAW") {
