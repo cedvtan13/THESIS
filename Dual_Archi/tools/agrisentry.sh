@@ -64,6 +64,10 @@ status() {
 
 case "${1:-status}" in
   start)
+    if [[ -f $DATA/ups_test_start ]]; then
+      echo "Ending the UPS test that started $(date -d @"$(cat "$DATA/ups_test_start")" '+%Y-%m-%d %H:%M') (no power loss recorded for it)"
+      rm -f "$DATA/ups_test_start"
+    fi
     sudo -n systemctl enable --now pi-link
     cron_set on
     sleep 4
