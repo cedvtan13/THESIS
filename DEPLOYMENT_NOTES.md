@@ -225,7 +225,7 @@ Done for the Oct 6 planting on Oct 12.
 
 ---
 
-## What was done (Oct 10–11)
+## What was done (Oct 10–12)
 
 - **SSH key login** from the Mac to the Pi, so no more passwords.
 - **Old board:** found GPIO2 (MUX S0) interfering with the ESP32's UART TX, which caused the `0x00` garbage in the logs. **The new PCB doesn't have this problem**: PING/PONG works 10/10.
@@ -238,3 +238,10 @@ Done for the Oct 6 planting on Oct 12.
 - **Data reset for the new planting:** all CSVs are empty (headers only). The old data is archived in `~/agrisentry_data/archive_20261011_*`. Sowing date is set to 2026-10-06.
 - **Cleanup:** unused files moved to `THESIS/_archive/2026-10-11/` on both machines, nothing deleted.
 - **System is currently STOPPED** (testing mode). Run `./system.sh start` to deploy.
+- **Oct 12:**
+  - Actuators **enabled** (flyback diodes fixed).
+  - New tests: `m` (several relays at once, with reboot detection) in the actuator tester, and `./flow_test.sh`.
+  - Pump flow set to the measured **18 mL/s**.
+  - Capture light now comes on for every photo.
+  - Wiped the old irrigation counts and quarantines left in the ESP32's flash (`--reset-state`).
+  - `./live_feed.sh` runs at 3 fps with the same camera settings as the real capture.
