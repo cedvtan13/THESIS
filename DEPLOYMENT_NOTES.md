@@ -33,10 +33,25 @@ cd ~/Desktop/THESIS
 
 ---
 
+## Daily check-in (hotspot, a few minutes)
+
+The Pi runs **offline** all day: logging, watering and the noon capture don't need the network. Once a day, turn on the hotspot so the Pi connects, then on the Mac (joined to the same hotspot):
+```bash
+./daily_checkin.sh
+```
+It waits for the Pi's clock to sync over the internet, shows the clock offset, shows the status, and backs up all data to `THESIS/_pi_data/`. Then you can turn the hotspot off again.
+
+**Why the clock matters:** the Pi has **no battery clock**. If it reboots while offline (power blip), it restarts with the last hourly-saved time, so it can be behind until the next hotspot sync. That shifts the noon capture and the timestamps, and the day number too if it crosses midnight. `./system.sh status` shows `clock : NOT SYNCED since boot` when that happens, and the capture writes a WARNING in `cron.log`. **If you see it, connect the hotspot right away.**
+
+Optional hardware fix: a **DS3231 RTC module** (cheap, I2C) keeps the time through reboots without internet.
+
+---
+
 ## Everyday commands
 
 | What you want | Command |
 |---|---|
+| Daily: sync clock + status + back up data | `./daily_checkin.sh` |
 | Is everything running? Day number? Row counts? | `./system.sh status` |
 | Start the system (logging + noon photo) | `./system.sh start` |
 | Stop the system (testing mode) | `./system.sh stop` |

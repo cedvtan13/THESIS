@@ -111,6 +111,7 @@ import argparse
 import csv
 import json
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -468,6 +469,19 @@ def main():
                  "(see make_rois.py)")
 
     d = day_index(args.allow_any_day)
+
+    # No RTC on the Pi: after a reboot without internet the clock resumes from
+    # the last hourly save and can be behind. Say so in cron.log, so a wrong D or
+    # timestamp can be traced later.
+    try:
+        synced = subprocess.run(["timedatectl", "show", "-p", "NTPSynchronized", "--value"],
+                                capture_output=True, text=True, timeout=5).stdout.strip()
+        if synced == "no":
+            print(f"[capture_gpr] WARNING: system clock not internet-synced since boot "
+                  f"(now {datetime.now():%Y-%m-%d %H:%M}, D={d}); time/D may be off",
+                  file=sys.stderr)
+    except (OSError, subprocess.SubprocessError):
+        pass
 
     # refuse BEFORE doing the expensive work, unless we are not writing anyway
     if not args.no_write and not args.force and already_written(d):

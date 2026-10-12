@@ -37,6 +37,12 @@ status() {
   else
     echo "12:00 GPR cron  : OFF"
   fi
+  if [[ $(timedatectl show -p NTPSynchronized --value) == yes ]]; then
+    echo "clock           : OK, internet-synced ($(date '+%Y-%m-%d %H:%M'))"
+  else
+    echo "clock           : NOT SYNCED since boot ($(date '+%Y-%m-%d %H:%M')) -- rebooted offline?"
+    echo "                  connect the hotspot for a minute so the time corrects"
+  fi
   echo "$(day_info)"
   echo "data rows       : growth_dataset=$(rows "$DUAL/growth_dataset.csv")" \
        " sm_log=$(rows "$DATA/sm_log.csv") irrigation=$(rows "$DATA/irrigation_log.csv")" \
