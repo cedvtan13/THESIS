@@ -44,6 +44,7 @@ cd ~/Desktop/THESIS
 | Same, but skip the photo | `./bench_test.sh --no-camera` |
 | Same, plus click every relay | `./bench_test.sh --relays` |
 | Test relays one at a time (interactive) | `./actuator_test.sh` |
+| Measure each valve's flow rate | `./flow_test.sh` (see below) |
 | Build + flash the **system firmware** (`Dual_Archi_Firmware/src/main.cpp`) | `./flash_esp.sh` |
 | Flash a different ESP32-S3 project instead (replaces the system firmware) | `./flash_esp.sh Test/TestBench` |
 | Send code edits from the Mac to the Pi | `./sync_pi.sh push` |
@@ -124,6 +125,23 @@ Then set the exposure you pick in `capture_gpr.py` (`ExposureTime`) and push wit
 4. Run `./system.sh start` again afterwards.
 
 While `ACTUATORS_ENABLED = false`, relay commands answer `ACTUATORS_DISABLED` and nothing switches. Irrigation decisions still show up as `LOG,ACTUATORS_OFF,...` lines, so you can check the logic.
+
+---
+
+## Flow rate test
+
+The firmware converts each watering dose (mL) into pump time using **`PUMP_FLOW_ML_PER_S`** (currently 20.0) in `main.cpp`. If that number is wrong, every dose is wrong.
+
+```bash
+./flow_test.sh                          # all 9 valves, 5 s each
+./flow_test.sh --pots 1,4,7 --runs 3    # chosen valves, 3 runs each (better average)
+./flow_test.sh --seconds 10             # longer runs (max 15 s)
+```
+For each valve: put a measuring cup under the emitter → press Enter → valve opens, pump runs 5 s, then both stop → type the **mL collected** (`r` = redo, Enter = skip).
+
+At the end it shows mL/s per valve, the average, how much the valves differ, and whether `PUMP_FLOW_ML_PER_S` needs changing. Results are saved on the Pi in `~/thesis/flow_calibration.csv` (copy them with `./sync_pi.sh pull`). To change the value: edit `main.cpp`, then run `./flash_esp.sh`.
+
+Quick one-off without the script: `./actuator_test.sh`, then `w 1 5000` (valve P-01 + pump, 5 s).
 
 ---
 
