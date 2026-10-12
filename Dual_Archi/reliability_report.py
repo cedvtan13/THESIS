@@ -20,7 +20,7 @@ run so a silent failure surfaces in days rather than in October.
 
 USAGE
     python3 reliability_report.py
-    python3 reliability_report.py --days 35 --out reliability_summary.txt
+    python3 reliability_report.py --days 30 --out reliability_summary.txt
 """
 
 import argparse
@@ -62,7 +62,9 @@ def section(out, title):
 
 def main():
     ap = argparse.ArgumentParser(description="System reliability summary")
-    ap.add_argument("--days", type=int, default=35)
+    ap.add_argument("--days", type=int, default=30, help="last day of the cycle (harvest day)")
+    ap.add_argument("--first-day", type=int, default=8,
+                    help="first day of automated capture (D1-D7 were hardware commissioning)")
     ap.add_argument("--out")
     args = ap.parse_args()
 
@@ -76,12 +78,13 @@ def main():
         out.append(f"  growth_dataset.csv not found at {GROWTH_CSV}")
     else:
         days = sorted({int(r["day"]) for r in growth})
-        expected = set(range(1, args.days + 1))
+        expected = set(range(args.first_day, args.days + 1))
+        n_sched = len(expected)
         missing = sorted(expected - set(days))
-        out.append(f"  scheduled captures       : {args.days}")
-        out.append(f"  captures recorded        : {len(days)}")
+        out.append(f"  scheduled captures       : {n_sched} (D{args.first_day}-D{args.days})")
+        out.append(f"  captures recorded        : {len(set(days) & expected)}")
         out.append(f"  completeness             : "
-                   f"{len(days) / args.days * 100:.1f}%")
+                   f"{len(set(days) & expected) / n_sched * 100:.1f}%")
         if missing:
             out.append(f"  MISSED DAYS              : {missing}")
             out.append("    each missed day is an unrecoverable gap in the "
@@ -89,7 +92,7 @@ def main():
         else:
             out.append("  no missed days")
 
-        rows_expected = args.days * 9
+        rows_expected = n_sched * 9
         out.append(f"  rows written             : {len(growth)} "
                    f"of {rows_expected} expected")
 
@@ -102,7 +105,7 @@ def main():
             pct = nan_sm / len(growth) * 100
             out.append(f"  NaN rate                 : {pct:.1f}%")
             out.append("    NaN rows drop out of the regression, reducing the "
-                       "effective dataset below 315")
+                       f"effective dataset below {rows_expected}")
             per_pot = Counter(r["pot_id"] for r in growth
                               if r.get("sm_pct", "").strip() == "NaN")
             for pid, n in sorted(per_pot.items()):

@@ -11,7 +11,7 @@ moisture pulled from the ESP32-S3. The raw frame is discarded afterwards to
 enforce storage autonomy.
 
 Deliverable 3 (per-pot GPR time-series) and Deliverable 5 (the SM column of the
-315-row training dataset) both come out of this script.
+training dataset, 9 pots x D8-D30 = 207 rows) both come out of this script.
 
 -----------------------------------------------------------------------------
 CHANGES FROM v4 -- read these before running
@@ -126,7 +126,7 @@ SOWING_FILE = os.path.join(BASE, "sowing_date.txt")
 # Fallback only. Prefer writing the real date into ~/thesis/sowing_date.txt on
 # sowing day so nobody has to edit source on a live rig.
 SOWING_DATE_FALLBACK = "2026-08-15"
-CYCLE_DAYS = 35
+CYCLE_DAYS = 30          # grow-out shortened to 30 days (harvest on D30)
 
 CAPTURE_SIZE = (1296, 1296)                  # 2x binned from 4608x2592
 
@@ -439,7 +439,7 @@ def main():
     ap.add_argument("--debug-overlay", help="write an annotated PNG here")
     ap.add_argument("--roi-file", default=ROI_FILE)
     ap.add_argument("--allow-any-day", action="store_true",
-                    help="permit D outside 1..35 (testing only)")
+                    help=f"permit D outside 1..{CYCLE_DAYS} (testing only)")
     ap.add_argument("--force", action="store_true",
                     help="write even if this day is already in the CSV "
                          "(you almost never want this)")

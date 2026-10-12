@@ -78,8 +78,9 @@ tail -f ~/thesis/pi_link.log            # live ESP32 messages (Ctrl+C to exit)
 
 - Sowing date is **2026-10-06 = Day 1**. So Oct 12 = D7, Oct 13 = D8, and so on.
 - It's stored in `Dual_Archi/sowing_date.txt` on the Pi. `./system.sh status` prints today's D.
-- The 35-day cycle runs **D1 to D35** (Oct 6 to Nov 9). `capture_gpr.py` refuses to write outside that range.
-- Manual data from Oct 6–12 uses the same numbering (Oct 6 = D1). Send it over and it'll be merged into `growth_dataset.csv`.
+- The cycle is **30 days: D1 to D30 (Oct 6 to Nov 4)**. **Harvest is D30 = Nov 4**, right after that day's noon capture. `capture_gpr.py` refuses to write outside D1–D30 (`CYCLE_DAYS = 30`).
+- **Automated capture starts at D8 (Oct 13).** D1–D7 were hardware commissioning, so the dataset is D8–D30: **23 days × 9 pots = 207 rows**. `reliability_report.py` scores completeness against D8–D30.
+- Any real manual data from Oct 6–12 uses the same numbering (Oct 6 = D1) and is kept **separate** from the training dataset, as supplementary data.
 
 ---
 
