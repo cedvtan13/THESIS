@@ -289,4 +289,12 @@ Done for the Oct 6 planting on Oct 12.
   - Pump flow set to the measured **18 mL/s**.
   - Capture light wired into every photo, then switched OFF (`USE_CAPTURE_LIGHT = False`) after a suspected brownout. Daylight only for now.
   - Wiped the old irrigation counts and quarantines left in the ESP32's flash (`--reset-state`).
-  - `./live_feed.sh` runs at 3 fps with the same camera settings as the real capture.
+  - `./live_feed.sh` runs with the same camera settings as the real capture (now 1 fps).
+- **Oct 13 (D8), deployed 11:56:**
+  - UPS test: 10.8 h on battery.
+  - Pi rebooted repeatedly while the UPS recharged (sudden 5V cut-outs).
+  - Pots relabelled row by row, right to left (top P-03 P-02 P-01).
+  - Exposure 24 → 6 ms.
+  - Treatment bands ON.
+  - Test data cleared.
+  - Noon capture with retries at 12:10, 12:20 and 12:30.

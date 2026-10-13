@@ -253,7 +253,9 @@ def open_locked_camera():
         "AfMode": controls.AfModeEnum.Manual,
         "LensPosition": 0.42,
         "AeEnable": False,
-        "ExposureTime": 24000,      # 24 ms
+        "ExposureTime": 6000,       # 6 ms. Sweep 2026-10-13 11:54 (noon daylight, no capture
+                                    # light): 24 ms washed seedlings out (57 green px total);
+                                    # 4-8 ms all ~1500 px, seedlings only, <1% clipped
         "AnalogueGain": 1.0,         # Minimum gain
         "AwbEnable": False,
         "ColourGains": (1.8, 1.6),
