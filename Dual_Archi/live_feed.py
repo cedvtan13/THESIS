@@ -10,8 +10,8 @@ balance as the daily GPR capture, and the circles come from the same
 pot_rois.json through the same roi_geometry(). What you line up here is what
 gets measured.
 
-    python3 live_feed.py              3 fps
-    python3 live_feed.py --fps 2
+    python3 live_feed.py              1 fps (light on the Pi's power supply)
+    python3 live_feed.py --fps 3
     python3 live_feed.py --light      capture light ON while streaming
                                       (re-sent every 15 s; goes off by itself
                                        within 20 s after you quit)
@@ -110,7 +110,7 @@ def video_feed():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Live ROI alignment stream")
-    ap.add_argument("--fps", type=float, default=3.0, help="frames per second (default 3)")
+    ap.add_argument("--fps", type=float, default=1.0, help="frames per second (default 1)")
     ap.add_argument("--light", action="store_true", help="keep the capture light on while streaming")
     ap.add_argument("--port", type=int, default=5000)
     args = ap.parse_args()

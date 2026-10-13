@@ -129,8 +129,8 @@ tail -f ~/thesis/pi_link.log            # live ESP32 messages (Ctrl+C to exit)
 ## Arranging the pots: live feed
 
 ```bash
-./live_feed.sh              # 3 fps, opens http://<pi>:5000 in your browser
-./live_feed.sh --fps 2
+./live_feed.sh              # 1 fps, opens http://<pi>:5000 in your browser
+./live_feed.sh --fps 3       # smoother, but heavier on the Pi's power supply
 ./live_feed.sh --light      # capture light on while you align
 ```
 Move each pot until its rim sits inside its green circle. **Ctrl+C** stops it. On the Pi directly: `cd ~/thesis && python3 live_feed.py`.
