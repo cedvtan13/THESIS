@@ -14,7 +14,9 @@ set -uo pipefail
 
 DUAL="$HOME/THESIS/Dual_Archi"
 DATA="$HOME/agrisentry_data"
-CRON_LINE="0 12 * * * /usr/bin/python3 $DUAL/capture_gpr.py >> $DUAL/cron.log 2>&1"
+# 12:00, with retries at 12:10/12:20/12:30 in case the Pi was rebooting or the camera
+# was busy. The duplicate-day guard makes every run after the first successful one a no-op.
+CRON_LINE="0,10,20,30 12 * * * /usr/bin/python3 $DUAL/capture_gpr.py >> $DUAL/cron.log 2>&1"
 
 cron_set() {   # cron_set on|off
   local cur; cur=$(crontab -l 2>/dev/null | grep -v 'capture_gpr.py')
