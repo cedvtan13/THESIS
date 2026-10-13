@@ -87,6 +87,7 @@ A normal `./system.sh stop` or reboot is **not** logged as an outage. This log i
 | Test relays one at a time (interactive) | `./actuator_test.sh` |
 | Measure each valve's flow rate | `./flow_test.sh` (see below) |
 | Live camera view for arranging pots | `./live_feed.sh` (see below) |
+| **See what GPR measures right now** (photo + mask, per pot) | `./gpr_view.sh` (opens from Desktop → AgriSentry GPR Views) |
 | Build + flash the **system firmware** (`Dual_Archi_Firmware/src/main.cpp`) | `./flash_esp.sh` |
 | Flash a different ESP32-S3 project instead (replaces the system firmware) | `./flash_esp.sh Test/TestBench` |
 | Send code edits from the Mac to the Pi | `./sync_pi.sh push` |
@@ -138,6 +139,16 @@ Move each pot until its rim sits inside its green circle. **Ctrl+C** stops it. O
 - Circles come from **`pot_rois.json`**, using the same math the GPR measurement uses.
 - The camera uses the **exact same settings as the noon capture**: still mode, fixed focus, locked exposure and white balance (shared from `capture_gpr.open_locked_camera()`). What you line up is what gets measured.
 - Only one program can use the camera at a time. **Stop the live feed before 12:00** and before running `./bench_test.sh`.
+
+---
+
+## Seeing the GPR (`./gpr_view.sh`)
+
+The noon photo is never stored (it's discarded to save storage). `./gpr_view.sh` takes a **fresh** frame with the same locked camera, ROIs and mask, and opens a picture on the Mac:
+- **Top:** the whole bed. **Magenta** = pixels counted as plant, **yellow** = specks removed by the 3×3 opening, **cyan** = pot circles with GPR %.
+- **Bottom:** a close-up of each pot in bed layout: the photo next to what was counted, with "now %" and today's "noon %".
+
+It writes no data. Don't run it while the live feed is on. Expect "now" to differ a little from "noon" when the daylight has changed; small seedlings are most sensitive to that.
 
 ---
 

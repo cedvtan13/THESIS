@@ -453,23 +453,6 @@ def main():
     rois = cfg.get("rois", cfg)                    # tolerate the flat v3 layout
     circular = bool(cfg.get("circular", True))
 
-    if args.test_image:
-        frame = cv2.imread(args.test_image)
-        if frame is None:
-            sys.exit(f"could not read {args.test_image}")
-        print(f"[capture_gpr] TEST MODE on {args.test_image} "
-              f"{frame.shape[1]}x{frame.shape[0]}")
-    else:
-        use_light = (USE_CAPTURE_LIGHT or args.light) and not args.no_light
-        frame = capture_frame(use_light=use_light)
-
-    problems = validate_rois(rois, frame.shape[:2], circular)
-    if problems:
-        for p in problems:
-            print(f"[capture_gpr] ROI ERROR: {p}", file=sys.stderr)
-        sys.exit("refusing to run on invalid ROIs -- fix pot_rois.json "
-                 "(see make_rois.py)")
-
     d = day_index(args.allow_any_day)
 
     # No RTC on the Pi: after a reboot without internet the clock resumes from
@@ -491,6 +474,23 @@ def main():
                  f"duplicate.\n  Duplicated plant-days corrupt the LOOCV result. "
                  f"If today's rows are genuinely bad, delete them by hand and "
                  f"re-run, or pass --force deliberately.")
+
+    if args.test_image:
+        frame = cv2.imread(args.test_image)
+        if frame is None:
+            sys.exit(f"could not read {args.test_image}")
+        print(f"[capture_gpr] TEST MODE on {args.test_image} "
+              f"{frame.shape[1]}x{frame.shape[0]}")
+    else:
+        use_light = (USE_CAPTURE_LIGHT or args.light) and not args.no_light
+        frame = capture_frame(use_light=use_light)
+
+    problems = validate_rois(rois, frame.shape[:2], circular)
+    if problems:
+        for p in problems:
+            print(f"[capture_gpr] ROI ERROR: {p}", file=sys.stderr)
+        sys.exit("refusing to run on invalid ROIs -- fix pot_rois.json "
+                 "(see make_rois.py)")
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     green_all = green_mask(hsv)          # computed once, not nine times
