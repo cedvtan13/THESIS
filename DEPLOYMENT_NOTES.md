@@ -151,7 +151,7 @@ USE_CAPTURE_LIGHT = False   # True = light ON for every capture
 - When it's `True`, every capture goes: light ON → 1.5 s → photo → light OFF. The light is sent as a self-expiring 20 s pulse.
 - One-off override for a test, on the Pi: `python3 capture_gpr.py --no-write --no-sm --allow-any-day --light --debug-overlay /tmp/t.png`
 - After changing it, run `./sync_pi.sh push`. **Pick one setting and keep it for the whole 35 days**, because switching mid-cycle changes the lighting in the GPR data.
-- If you turn it on, check the exposure first (the 24 ms exposure was chosen without it): `cd ~/thesis && python3 cam_check.py --exposure-sweep`
+- **Camera exposure is 6 ms** (set Oct 13 from a noon-daylight sweep; 24 ms washed the seedlings out). If you turn the light on, re-check it first: `cd ~/thesis && python3 cam_check.py --exposure-sweep`
 
 ---
 
