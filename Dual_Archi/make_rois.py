@@ -38,7 +38,7 @@ import argparse
 import json
 import math
 
-POT_IDS = [f"P-0{i}" for i in range(1, 10)]     # row-major: P-01..P-03 = top row
+POT_IDS = [f"P-0{i}" for i in range(1, 10)]     # row by row, RIGHT to left: top row = P-03 P-02 P-01
 
 
 def from_centers(tl, br, pot_px, guard):
@@ -50,7 +50,7 @@ def from_centers(tl, br, pot_px, guard):
         for c in range(3):
             cx = round(x0 + (x1 - x0) * c / 2.0)
             cy = round(y0 + (y1 - y0) * r / 2.0)
-            rois[POT_IDS[r * 3 + c]] = {"x": int(cx - side // 2),
+            rois[POT_IDS[r * 3 + (2 - c)]] = {"x": int(cx - side // 2),   # c=0 is the left column
                                         "y": int(cy - side // 2),
                                         "w": side, "h": side}
     return rois
