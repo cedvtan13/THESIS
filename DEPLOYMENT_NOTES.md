@@ -33,6 +33,18 @@ cd ~/Desktop/THESIS
 
 ---
 
+## Wi-Fi & stability settings (installed Oct 13)
+
+`Dual_Archi/tools/install_stability.sh` was run on the Pi; re-run it if the SD card is ever replaced:
+- **The Pi never gives up on Wi-Fi.** By default it stopped trying after 4 failed attempts, so a hotspot switched on later was ignored until a reboot. That's what happened on Oct 13. Wi-Fi power saving is off too.
+- **Wi-Fi watchdog:** every 2 min, if the Pi isn't connected, it rescans and reconnects. Turn on the hotspot and the Pi should join within about 2 min. Events go to `~/agrisentry_data/wifi_watchdog.log`.
+- **Logs survive reboots** (persistent journal, capped at 50 MB).
+- **The clock is saved every 10 min** (was hourly), so after a power loss it restarts less far behind.
+
+**iPhone hotspot tips:** turn **Maximize Compatibility** ON (the Pi only does 2.4 GHz), and keep the **Personal Hotspot** screen open for a minute while the Pi joins. iPhones hide the hotspot from non-Apple devices when that screen isn't open.
+
+---
+
 ## Daily check-in (hotspot, a few minutes)
 
 The Pi runs **offline** all day: logging, watering and the noon capture don't need the network. Once a day, turn on the hotspot so the Pi connects, then on the Mac (joined to the same hotspot):
