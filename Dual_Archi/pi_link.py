@@ -253,8 +253,9 @@ def check_previous_shutdown(esp, source):
     down_s = now - last
     if esp is None:
         note = "ESP32 did not answer"
-    elif esp["uptime"] > down_s:
-        # the ESP32 has been up longer than the Pi was down -> it never lost power
+    elif esp["synced"] and esp["uptime"] > down_s:
+        # still synced (a restarted ESP32 has no time) and up longer than the Pi
+        # was down -> it never lost power
         note = "Pi-only outage: the ESP32 kept running"
     else:
         note = "ESP32 restarted too (full power loss?)"
