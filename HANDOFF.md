@@ -18,7 +18,7 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
   - `pi-link` systemd service: ESP32 logger, soil moisture every 30 min.
   - Cron runs `capture_gpr.py` at 12:00, with retries every 10 min until 12:50. A duplicate-day guard means only the first successful run writes.
 - **`growth_dataset.csv`** has D8 + D9 (18 rows), all with soil moisture.
-  - D9 was replaced twice, both documented in `field_log.csv` and `cron.log`, with backups in `~/agrisentry_data/`. The rows kept are from 12:50, taken after the leaning seedlings were firmed with soil.
+  - D9 was replaced twice, both documented in `field_log.csv` and `cron.log`, with backups in `~/agrisentry_data/`. The rows kept are from 12:50. The soil trick was done before that capture on P-01, P-03, P-04, P-08 and P-09 (confirmed); other pots possibly too.
 - **Firmware:** `ACTUATORS_ENABLED = true`, `PUMP_FLOW_ML_PER_S = 18.0` (measured 90 mL / 5 s on all valves), treatment bands ON.
   - Every pot is currently above its band (soil still wet), so no automatic irrigation has happened yet (`irrigation_log.csv` is empty).
 - **Exposure:** brightness-matched on every capture. It starts at 6 ms and rescales until the frame's mean V ≈ 73, the reference Oct 13 noon frame. Gain 1.0 and white balance are locked.
@@ -83,5 +83,4 @@ The user may send **real** manual D1–D7 measurements. Add them only as clearly
 
 ## Open questions
 - Camera height above the pot rims and pot centre-to-centre spacing (cm): needed for the manuscript, not yet measured.
-- Whether all the leaning seedlings were firmed **before** the 12:50 D9 re-capture [unconfirmed]. All pots rose 20–100% between 12:35 and 12:50, which would be explained if they were.
 - The pilot was described as "13 days", but the archived pilot CSV has days 1–15 [unconfirmed].
