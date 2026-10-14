@@ -174,7 +174,7 @@ USE_CAPTURE_LIGHT = False   # True = light ON for every capture
 - When it's `True`, every capture goes: light ON → 1.5 s → photo → light OFF. The light is sent as a self-expiring 20 s pulse.
 - One-off override for a test, on the Pi: `python3 capture_gpr.py --no-write --no-sm --allow-any-day --light --debug-overlay /tmp/t.png`
 - After changing it, run `./sync_pi.sh push`. **Pick one setting and keep it for the whole 35 days**, because switching mid-cycle changes the lighting in the GPR data.
-- **Camera exposure is 6 ms** (set Oct 13 from a noon-daylight sweep; 24 ms washed the seedlings out). If you turn the light on, re-check it first: `cd ~/thesis && python3 cam_check.py --exposure-sweep`
+- **Exposure is brightness-matched every capture** (since Oct 14). It starts at 6 ms and adjusts until the frame's mean brightness (V) matches the calibrated Oct 13 noon frame (V = 73). Gain and white balance stay locked. One fixed exposure failed both ways: 24 ms washed out a sunny noon (Oct 13), 6 ms was far too dark on a cloudy noon (Oct 14, V = 13). The exposure used each day is in `~/thesis/exposure_log.csv`. Set `AUTO_EXPOSURE = False` in `capture_gpr.py` to go back to a fixed 6 ms.
 
 ---
 
@@ -321,3 +321,8 @@ Done for the Oct 6 planting on Oct 12.
   - Treatment bands ON.
   - Test data cleared.
   - Noon capture with retries at 12:10, 12:20 and 12:30.
+- **Oct 14 (D9):**
+  - UPS ran out at ~07:00; mains back 12:21.
+  - The 12:30 capture was underexposed (cloudy, fixed 6 ms). The rows were replaced by a brightness-matched re-capture at 12:35 (49.8 ms); the backup is in `~/agrisentry_data/`.
+  - Brightness matching is now on for every capture.
+  - Retries now run until 12:50.
