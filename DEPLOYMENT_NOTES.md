@@ -174,7 +174,8 @@ USE_CAPTURE_LIGHT = False   # True = light ON for every capture
 - When it's `True`, every capture goes: light ON → 1.5 s → photo → light OFF. The light is sent as a self-expiring 20 s pulse.
 - One-off override for a test, on the Pi: `python3 capture_gpr.py --no-write --no-sm --allow-any-day --light --debug-overlay /tmp/t.png`
 - After changing it, run `./sync_pi.sh push`. **Pick one setting and keep it for the whole 35 days**, because switching mid-cycle changes the lighting in the GPR data.
-- **Exposure is brightness-matched every capture** (since Oct 14). It starts at 6 ms and adjusts until the frame's mean brightness (V) matches the calibrated Oct 13 noon frame (V = 73). Gain and white balance stay locked. One fixed exposure failed both ways: 24 ms washed out a sunny noon (Oct 13), 6 ms was far too dark on a cloudy noon (Oct 14, V = 13). The exposure used each day is in `~/thesis/exposure_log.csv`. Set `AUTO_EXPOSURE = False` in `capture_gpr.py` to go back to a fixed 6 ms.
+- **Exposure is brightness-matched every capture** (since Oct 14). It starts at 6 ms and adjusts until the frame's mean brightness (V) matches the calibrated Oct 13 noon frame (V = 73). Gain and white balance stay locked. One fixed exposure failed both ways: 24 ms washed out a sunny noon (Oct 13), 6 ms was far too dark on a cloudy noon (Oct 14, V = 13). The exposure used each day is in `~/thesis/exposure_log.csv`.
+- **Light only when it's really dark:** if even the longest exposure (100 ms) leaves the frame more than 20% too dark, the capture light switches on for that capture (`AUTO_LIGHT_WHEN_DARK = True`). Those days get `light_used = 1` in `exposure_log.csv`. Check them in the analysis, because lit frames read noticeably higher GPR (light test Oct 14: +40–100%). The light test passed: no Pi reboot during 20 s of light or a full capture with the light on. Set `AUTO_EXPOSURE = False` in `capture_gpr.py` to go back to a fixed 6 ms.
 
 ---
 
@@ -226,6 +227,16 @@ For each valve: put a measuring cup under the emitter → press Enter → valve 
 At the end it shows mL/s per valve, the average, how much the valves differ, and whether `PUMP_FLOW_ML_PER_S` needs changing. Results are saved on the Pi in `~/thesis/flow_calibration.csv` (copy them with `./sync_pi.sh pull`). To change the value: edit `main.cpp`, then run `./flash_esp.sh`.
 
 Quick one-off without the script: `./actuator_test.sh`, then `w 1 5000` (valve P-01 + pump, 5 s).
+
+---
+
+## Field log
+
+Write down anything you do to the plants or setup (bent seedling, soil firmed, pot nudged, sensor reseated) in `~/thesis/field_log.csv` on the Pi. The columns are `date,day,pot_id,note`. For example:
+```bash
+echo "2026-10-15,10,P-04,Removed a weed near the stem" >> ~/thesis/field_log.csv
+```
+It explains dips or jumps in the data later. `./sync_pi.sh pull` copies it to the Mac.
 
 ---
 

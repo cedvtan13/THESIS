@@ -233,6 +233,14 @@ EXPOSURE_START_US = 6000
 EXPOSURE_MIN_US, EXPOSURE_MAX_US = 1000, 100000
 LAST_EXPOSURE = {}          # filled by capture_frame(): exposure_us, mean_v, steps
 EXPOSURE_LOG = os.path.join(BASE, "exposure_log.csv")
+
+# Light only when it is really dark: if even the longest exposure cannot bring the
+# frame within 20 % of the target brightness, the capture light is switched on and
+# the brightness is matched again. Light days are marked light_used=1 in
+# exposure_log.csv, because lit frames read higher GPR (more saturated green) --
+# flag/check those days in the analysis.
+AUTO_LIGHT_WHEN_DARK = True
+DARK_V = 0.8 * TARGET_MEAN_V
 LIGHT_SETTLE_S = 1.5        # let the light reach full, steady output first
 
 
@@ -301,7 +309,7 @@ def _match_brightness(cam, frame):
         cam.capture_array()            # flush a frame taken with the old setting
         frame = cam.capture_array()
         v = _mean_v(frame)
-    LAST_EXPOSURE.update(exposure_us=exp, mean_v=round(v, 1), steps=steps)
+    LAST_EXPOSURE.update(exposure_us=exp, mean_v=round(v, 1), steps=steps)  # keeps light_used
     print(f"[capture_gpr] exposure {exp / 1000:.1f} ms -> mean V {v:.1f} "
           f"(target {TARGET_MEAN_V:.0f}; steps {steps})")
     return frame
@@ -321,16 +329,34 @@ def capture_frame(use_light=USE_CAPTURE_LIGHT):
             print("[capture_gpr] WARNING: capture light did NOT switch on -- this "
                   "frame is lit differently from the others", file=sys.stderr)
 
+    light_on = use_light
+    LAST_EXPOSURE["light_used"] = int(bool(use_light))
     try:
         cam = open_locked_camera()
         time.sleep(2)                   # let the locked settings take effect
         frame = cam.capture_array()
         if AUTO_EXPOSURE:
             frame = _match_brightness(cam, frame)
+            too_dark = (LAST_EXPOSURE["exposure_us"] >= EXPOSURE_MAX_US
+                        and LAST_EXPOSURE["mean_v"] < DARK_V)
+            if too_dark and AUTO_LIGHT_WHEN_DARK and not light_on:
+                print(f"[capture_gpr] too dark even at {EXPOSURE_MAX_US / 1000:.0f} ms "
+                      f"(mean V {LAST_EXPOSURE['mean_v']}) -- switching the capture light on")
+                if _light(True):
+                    light_on = True
+                    LAST_EXPOSURE["light_used"] = 1
+                    time.sleep(LIGHT_SETTLE_S)
+                    cam.set_controls({"ExposureTime": EXPOSURE_START_US})
+                    time.sleep(0.6)
+                    cam.capture_array()
+                    frame = _match_brightness(cam, cam.capture_array())
+                else:
+                    print("[capture_gpr] WARNING: capture light did NOT switch on",
+                          file=sys.stderr)
         cam.stop()
         cam.close()
     finally:
-        if use_light:
+        if light_on:
             _light(False)
             print("[capture_gpr] capture light OFF")
     return cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -644,9 +670,10 @@ def main():
         with open(EXPOSURE_LOG, "a", newline="") as f:
             w = csv.writer(f)
             if new_log:
-                w.writerow(["day", "timestamp", "exposure_us", "mean_v", "target_v"])
+                w.writerow(["day", "timestamp", "exposure_us", "mean_v", "target_v",
+                            "light_used"])
             w.writerow([d, stamp, LAST_EXPOSURE["exposure_us"], LAST_EXPOSURE["mean_v"],
-                        TARGET_MEAN_V])
+                        TARGET_MEAN_V, LAST_EXPOSURE.get("light_used", 0)])
 
 
 if __name__ == "__main__":
