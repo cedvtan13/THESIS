@@ -8,6 +8,10 @@
 # On the Pi itself:  ~/thesis/tools/agrisentry.sh start|stop|status|reset-data
 set -uo pipefail
 cd "$(dirname "$0")"
+# Typed on the Pi itself? Run it locally instead of ssh-ing to ourselves.
+if [[ "$(uname)" != Darwin ]]; then
+  exec bash Dual_Archi/tools/agrisentry.sh "${1:-status}"
+fi
 source .pi_host.sh
 ./sync_pi.sh push >/dev/null || true
 $SSH -t "$PI" "bash ~/THESIS/Dual_Archi/tools/agrisentry.sh ${1:-status}"

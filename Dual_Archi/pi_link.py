@@ -96,6 +96,9 @@ DATA_DIR = os.path.expanduser("~/agrisentry_data")
 SM_CSV = os.path.join(DATA_DIR, "sm_log.csv")
 EVT_CSV = os.path.join(DATA_DIR, "irrigation_log.csv")
 ERR_CSV = os.path.join(DATA_DIR, "error_log.csv")
+# "pot is wetter than its band, no water needed" notices -- normal, frequent
+# (every 15 min per pot), so kept out of error_log.csv, which is for real faults.
+BAND_CSV = os.path.join(DATA_DIR, "band_log.csv")
 
 PID_FILE = os.path.join(DATA_DIR, "pi_link.pid")
 REQ_FILE = os.path.join(DATA_DIR, "request_sm")
@@ -106,6 +109,7 @@ SM_HEADER = ["wall_time", "esp_epoch"] + [f"P-0{i}" for i in range(1, 10)]
 EVT_HEADER = ["wall_time", "esp_epoch", "pot_id", "group", "vwc_before",
               "vwc_target", "dose_ml", "pulse_ms", "event_count", "status"]
 ERR_HEADER = ["wall_time", "esp_epoch", "code", "detail"]
+BAND_HEADER = ["wall_time", "esp_epoch", "pot_id", "vwc"]
 
 # A snapshot older than this is not good enough to pair with a GPR row.
 SNAPSHOT_MAX_AGE_S = 45 * 60
@@ -298,6 +302,10 @@ def handle_line(line):
         append_row(SM_CSV, SM_HEADER, [now] + parts[1:])
     elif kind == "EVT" and len(parts) == 10:
         append_row(EVT_CSV, EVT_HEADER, [now] + parts[1:])
+    elif kind == "ERR" and len(parts) >= 4 and parts[2] == "ABOVE_BAND":
+        # ERR,<epoch>,ABOVE_BAND,P-04;vwc=86.4
+        pot, _, vwc = parts[3].partition(";vwc=")
+        append_row(BAND_CSV, BAND_HEADER, [now, parts[1], pot, vwc])
     elif kind == "ERR" and len(parts) >= 4:
         append_row(ERR_CSV, ERR_HEADER,
                    [now, parts[1], parts[2], ",".join(parts[3:])])

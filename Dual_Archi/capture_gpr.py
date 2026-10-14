@@ -219,6 +219,20 @@ USE_CAPTURE_LIGHT = False
 # The ESP32 turns it off by itself after LIGHT_PULSE_MS even if this
 # script dies; we also switch it off explicitly as soon as the frame is taken.
 LIGHT_PULSE_MS = 20000
+
+# Brightness normalisation (since 2026-10-14). One fixed exposure fails across
+# weather: 24 ms washed seedlings out on a sunny noon (Oct 13), 6 ms left them too
+# dark to pass V >= VAL_MIN on an overcast noon (Oct 14, mean V 13 vs 73). So each
+# capture starts at 6 ms and rescales the exposure until the frame's mean V matches
+# the calibrated reference frame (Oct 13 12:00, 6 ms, mean V = 73). Gain and white
+# balance stay locked, so colour/hue are unchanged -- only brightness is matched.
+# The exposure used is logged to exposure_log.csv every day.
+AUTO_EXPOSURE = True
+TARGET_MEAN_V = 73.0
+EXPOSURE_START_US = 6000
+EXPOSURE_MIN_US, EXPOSURE_MAX_US = 1000, 100000
+LAST_EXPOSURE = {}          # filled by capture_frame(): exposure_us, mean_v, steps
+EXPOSURE_LOG = os.path.join(BASE, "exposure_log.csv")
 LIGHT_SETTLE_S = 1.5        # let the light reach full, steady output first
 
 
@@ -263,6 +277,36 @@ def open_locked_camera():
     return cam
 
 
+def _mean_v(frame):
+    small = cv2.resize(frame, (324, 324), interpolation=cv2.INTER_AREA)
+    # capture_array() gives RGB here; V (= max channel) is the same either way
+    return float(small.max(axis=2).mean())
+
+
+def _match_brightness(cam, frame):
+    """Rescale ExposureTime until mean V is within 5 % of TARGET_MEAN_V."""
+    exp = EXPOSURE_START_US
+    v = _mean_v(frame)
+    steps = []
+    for _ in range(5):
+        steps.append((exp, round(v, 1)))
+        if abs(v - TARGET_MEAN_V) <= 0.05 * TARGET_MEAN_V or v <= 0:
+            break
+        new = int(min(max(exp * TARGET_MEAN_V / v, EXPOSURE_MIN_US), EXPOSURE_MAX_US))
+        if new == exp:
+            break
+        exp = new
+        cam.set_controls({"ExposureTime": exp})
+        time.sleep(0.6)
+        cam.capture_array()            # flush a frame taken with the old setting
+        frame = cam.capture_array()
+        v = _mean_v(frame)
+    LAST_EXPOSURE.update(exposure_us=exp, mean_v=round(v, 1), steps=steps)
+    print(f"[capture_gpr] exposure {exp / 1000:.1f} ms -> mean V {v:.1f} "
+          f"(target {TARGET_MEAN_V:.0f}; steps {steps})")
+    return frame
+
+
 def capture_frame(use_light=USE_CAPTURE_LIGHT):
     """One stabilised frame from open_locked_camera(), under the capture light.
 
@@ -281,6 +325,8 @@ def capture_frame(use_light=USE_CAPTURE_LIGHT):
         cam = open_locked_camera()
         time.sleep(2)                   # let the locked settings take effect
         frame = cam.capture_array()
+        if AUTO_EXPOSURE:
+            frame = _match_brightness(cam, frame)
         cam.stop()
         cam.close()
     finally:
@@ -593,6 +639,14 @@ def main():
     # The raw frame was never written to disk in the first place -- it lives in
     # memory only and dies with the process. Storage autonomy by construction.
     print(f"[capture_gpr] day {d} written to {OUT_CSV}")
+    if LAST_EXPOSURE:
+        new_log = not os.path.exists(EXPOSURE_LOG)
+        with open(EXPOSURE_LOG, "a", newline="") as f:
+            w = csv.writer(f)
+            if new_log:
+                w.writerow(["day", "timestamp", "exposure_us", "mean_v", "target_v"])
+            w.writerow([d, stamp, LAST_EXPOSURE["exposure_us"], LAST_EXPOSURE["mean_v"],
+                        TARGET_MEAN_V])
 
 
 if __name__ == "__main__":

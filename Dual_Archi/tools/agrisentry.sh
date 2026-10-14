@@ -14,9 +14,9 @@ set -uo pipefail
 
 DUAL="$HOME/THESIS/Dual_Archi"
 DATA="$HOME/agrisentry_data"
-# 12:00, with retries at 12:10/12:20/12:30 in case the Pi was rebooting or the camera
+# 12:00, with retries every 10 min until 12:50 in case the Pi was rebooting or the camera
 # was busy. The duplicate-day guard makes every run after the first successful one a no-op.
-CRON_LINE="0,10,20,30 12 * * * /usr/bin/python3 $DUAL/capture_gpr.py >> $DUAL/cron.log 2>&1"
+CRON_LINE="0,10,20,30,40,50 12 * * * /usr/bin/python3 $DUAL/capture_gpr.py >> $DUAL/cron.log 2>&1"
 
 cron_set() {   # cron_set on|off
   local cur; cur=$(crontab -l 2>/dev/null | grep -v 'capture_gpr.py')
@@ -51,7 +51,23 @@ status() {
   echo "$(day_info)"
   echo "data rows       : growth_dataset=$(rows "$DUAL/growth_dataset.csv")" \
        " sm_log=$(rows "$DATA/sm_log.csv") irrigation=$(rows "$DATA/irrigation_log.csv")" \
-       " errors=$(rows "$DATA/error_log.csv")"
+       " errors=$(rows "$DATA/error_log.csv") above-band notices=$(rows "$DATA/band_log.csv")"
+  if [[ -f $DATA/sm_log.csv ]] && (( $(wc -l < "$DATA/sm_log.csv") > 1 )); then
+    python3 - "$DATA/sm_log.csv" <<'EOF'
+import csv, sys
+rows = list(csv.DictReader(open(sys.argv[1])))
+r = rows[-1]
+band = {1: "30-40", 2: "30-40", 3: "30-40", 4: "50-60", 5: "50-60", 6: "50-60",
+        7: "70-80", 8: "70-80", 9: "70-80"}
+print(f"latest moisture : {r['wall_time'].replace('T', ' ')[:16]}  (logged every 30 min)")
+for i in range(1, 10):
+    v = r[f"P-0{i}"]
+    lo, hi = (float(x) for x in band[i].split("-"))
+    note = "" if v == "NaN" else ("  below band -> will water" if float(v) < lo else
+                                   "  above band (no water)" if float(v) > hi else "  in band")
+    print(f"   P-0{i}  {v:>6}%   band {band[i]}%{note}")
+EOF
+  fi
   if [[ -f $DATA/ups_test_start ]]; then
     echo "UPS test        : RUNNING since $(date -d @"$(cat "$DATA/ups_test_start")" '+%Y-%m-%d %H:%M')"
   fi
@@ -60,7 +76,8 @@ status() {
     tail -n 3 "$DATA/power_log.csv" | cut -d, -f2,3,4,5,9
   fi
   if [[ -f $DUAL/pi_link.log ]]; then
-    echo "--- last pi_link.log lines"; tail -n 6 "$DUAL/pi_link.log"
+    echo "--- last pi_link.log lines (above-band notices hidden)"
+    grep -v "ABOVE_BAND" "$DUAL/pi_link.log" | tail -n 6
   fi
 }
 
