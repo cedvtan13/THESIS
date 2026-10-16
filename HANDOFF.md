@@ -1,4 +1,4 @@
-Picking up work in progress (handoff written 2026-10-14, 13:00). Context below — you have no prior history with this.
+Picking up work in progress (handoff written 2026-10-16, 12:45). Context below — you have no prior history with this.
 
 ## Project
 AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse"). 9 pechay pots under 3 soil-moisture bands. Each day at noon, a top-down camera measures canopy Green Pixel Ratio (GPR). After harvest, OLS regression + LOOCV predict harvest weight.
@@ -8,79 +8,103 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
   - The two talk over UART (`/dev/ttyAMA0`, 115200).
 - **People:** the adviser is **Engr. Alvin Joseph Macapagal**. Students: Cedric Vince Tan (the user), Kent Vincent Godinez, Rey Emmanuel Adag.
 - **Grow-out schedule:**
-  - Sown 2026-10-06 = **D1** (sowing day counts as D1). 30-day cycle, **harvest D30 = 2026-11-04**. Checking: 1st week of November.
+  - Sown 2026-10-06 = **D1** (sowing day counts as D1). 30-day cycle, **harvest D30 = 2026-11-04**.
   - Automated data runs **D8–D30 = 207 rows**. D1–D7 were hardware commissioning, so no automated data exists for them.
-- **Network:** the Pi runs offline. It connects only to an iPhone hotspot ("Cvtan") for a few minutes a day; school Wi-Fi blocks SSH.
-- **Power:** a UPS gives ~10.8 h on battery. Mains is unplugged every night (the lab closes), so the Pi usually dies around 07:00 and comes back when someone plugs it in. A permanent outdoor outlet is planned.
+- **Network:** the Pi runs offline and connects only to an iPhone hotspot ("Cvtan") for a few minutes a day; school Wi-Fi blocks SSH.
+- **Power:** a UPS gives ~10.8 h on battery. Mains is unplugged every night, so the Pi usually dies around 07:00 and comes back when someone plugs it in.
 
 ## Where things stand
-- **Deployed and running since 2026-10-13 11:56:**
+- **Running:**
   - `pi-link` systemd service: ESP32 logger, soil moisture every 30 min.
-  - Cron runs `capture_gpr.py` at 12:00, with retries every 10 min until 12:50. A duplicate-day guard means only the first successful run writes.
-- **`growth_dataset.csv`** has D8 + D9 (18 rows), all with soil moisture.
-  - D9 was replaced twice, both documented in `field_log.csv` and `cron.log`, with backups in `~/agrisentry_data/`. The rows kept are from 12:50. The soil trick was done before that capture on P-01, P-03, P-04, P-08 and P-09 (confirmed); other pots possibly too.
-- **Firmware:** `ACTUATORS_ENABLED = true`, `PUMP_FLOW_ML_PER_S = 18.0` (measured 90 mL / 5 s on all valves), treatment bands ON.
-  - Every pot is currently above its band (soil still wet), so no automatic irrigation has happened yet (`irrigation_log.csv` is empty).
-- **Exposure:** brightness-matched on every capture. It starts at 6 ms and rescales until the frame's mean V ≈ 73, the reference Oct 13 noon frame. Gain 1.0 and white balance are locked.
-  - The capture light is used only if even 100 ms is >20% too dark. Light days get `light_used = 1` in `exposure_log.csv`.
-- **Progress report (Oct 13)** is in Canva: https://www.canva.com/d/h0rLqS0UtsIH032 (17 slides, saved). The original Oct 5 deck was left untouched. Still to fill on the slides: camera height and pot spacing `[ __ cm ]` (slide 15), and a Pi-enclosure photo or render (slide 10).
-- **Code:** all in GitHub `cedvtan13/THESIS` (`main`, last commit `4ed2fcc`) and synced to the Pi.
+  - Cron runs `capture_gpr.py` at 12:00, retrying every 10 min until 12:50. A duplicate-day guard means only the first successful run writes.
+- **`growth_dataset.csv`** has D8–D11 (36 rows). D11 (12:00 Oct 16) is the first day with the re-fitted ROIs.
+- **Pump:** it was unplugged from ~10:35 Oct 16 for the probe work. The user was told it is safe to plug back in after the remap; **confirm with the user that it is plugged in.** At 12:29 every pot was above its band.
+- **Firmware** (commit `1beedcf`, flashed 12:28 Oct 16):
+  - Pot → MUX remap: `POD_MUX_CH = {8,7,6,5,4,3,2,1,0}`.
+  - `ACTUATORS_ENABLED = true`, `PUMP_FLOW_ML_PER_S = 18.0`, treatment bands ON.
+  - The ESP32 has its own 15-min irrigation check. It waters on a single below-band reading, then locks that pot out for 2 h.
+- **Exposure:** brightness-matched on every capture. It starts at 6 ms and rescales until the frame's mean V ≈ 73. Gain 1.0 and white balance are locked. The capture light is used only if even 100 ms is >20% too dark (logged as `light_used` in `exposure_log.csv`).
+- **Raw noon frames are kept from D12** as lossless PNGs in `~/agrisentry_data/frames/` (commit `9546229`). An 11:44 Oct 16 pre-noon reference frame is saved there too.
+- **Code:** GitHub `cedvtan13/THESIS` `main` @ `9546229`, pushed, and synced to the Pi.
+- **Progress-report slides (Canva):** https://www.canva.com/d/h0rLqS0UtsIH032. Still to fill: camera height and pot spacing (slide 15), and a Pi-enclosure photo (slide 10).
+
+## What happened on 2026-10-16 (all in `field_log.csv` with times)
+1. **P-02 soil moisture had read 100% since ≥ Oct 12.** Diagnosis found the real cause, which had nothing to do with P-02 itself.
+2. **The soil probes were wired rotated 180°:** the probe in pot P-0n sat on MUX channel 10−n.
+   - Proven by `tools/map_probes.py` (pull one probe at a time), a hand-over-pot camera frame, and a valve spray test (`tools/valve_sequence.py`).
+   - Camera ROI labels, valves and the team's own pot numbers all agree with each other. Only the probes were rotated.
+3. **Fix:**
+   - Firmware remap, flashed 12:28.
+   - `sm_pct` swapped P-0k ↔ P-0(10−k) in `growth_dataset.csv` (D8–D11) and `~/agrisentry_data/sm_log.csv` (rows before 12:28:30). P-05 is unchanged.
+   - Backups: `*_before_probe_remap_20261016.csv` (Pi `~/agrisentry_data/` and `~/thesis/`).
+   - `band_log`, `error_log` and `irrigation_log` entries before 12:28 were **not** rewritten (explained in `field_log`).
+4. **The stuck-100% probe was in pot P-08** (raw ~1056, below the shared `wetADC` 1120, so clamped).
+   - Spare probes were put into pot P-02 (~10:40) and pot P-08 (~10:45).
+   - **P-08's `sm_pct` before Oct 16 is unreliable.**
+   - All 9 probes were pulled and reinserted 11:00–11:25, so every pot's SM steps at that time.
+5. **The 07:50 auto-dose** (20 mL into pot P-08) was triggered by P-02's probe under the old mapping. The 10:50 event was NOT delivered (pump unplugged); the row was added to `irrigation_log` by hand. The ESP32 irrigation count for P-08 is 2.
+6. **ROIs re-fitted at 11:46** (commit `4b0ad2c`, user request).
+   - The old circles (r = 70 px) sat ~45 px left of the pots and missed rim seedlings.
+   - The D10 zeros for P-01 and P-06 were ROI misses, not dead plants.
+   - New circles are centred on Hough-detected rims, r = 85 px, so the denominator goes 15373 → 22701 px. Applies from D11. D8–D10 can't be recomputed.
+   - Old geometry: `Dual_Archi/pot_rois_before_20261016.json`. Pots were **not** moved; the user refuses to move hardware.
+7. **P-06 read wet (raw ~1108) after the valve spray test**, probably water from its hose. Watch it.
 
 ## Next action
-Nothing urgent. The system runs on its own. Each day:
+Daily routine:
 1. Plug mains back in early. If the Pi is still off at 12:50, that day is lost.
-2. Hotspot on, then on the Mac: `cd ~/Desktop/THESIS && ./daily_checkin.sh`. It syncs the Pi clock, shows status, and backs up data to `_pi_data/`.
-3. After 12:00, `./system.sh status`: confirm 9 new rows for the day.
+2. Hotspot on, then: `cd ~/Desktop/THESIS && ./daily_checkin.sh`. It syncs the clock, shows status and backs up to `_pi_data/`.
+3. After 12:00, `./system.sh status`: confirm 9 new rows, and that the new frame exists in `~/agrisentry_data/frames/`.
 
-The user may send **real** manual D1–D7 measurements. Add them only as clearly labelled supplementary data, never into the training rows.
+Pending with the user:
+- **Tell the adviser** about the three methodology events: the SM probe mapping fixed for D8–D11, the ROIs re-fitted from D11, and probes replaced in P-02 and P-08.
+- **Manuscript Appendix G** says the raw frame is discarded ("storage autonomy"). Frames are now kept from D12, so the text needs updating, or switch saving off if the adviser objects.
+- **Harvest weights** must be recorded with the pot IDs (P-01…P-09). The team's numbering matches the system's.
+- `DEPLOYMENT_NOTES.md` doesn't mention the new tools yet.
 
 ## Decisions already made
-- **Brightness-matched exposure, not a fixed exposure.** 24 ms washed seedlings out on a sunny noon (57 vs ~1,500 px detected). 6 ms was far too dark on a cloudy noon (mean V 13 vs 73). Auto-exposure was rejected because it would also move colour; only brightness is matched, with gain and white balance locked.
-- **Capture light OFF by default; on only when it's really dark.** A lit test frame read +40–100% higher GPR (more saturated green), and daylight still dominates the scene. Switching mid-cycle would create a fake growth jump.
-- **Outer "territory" circles left as they are** (radius 221 px), even though they overlap neighbours. The user declined a non-overlapping radius. Only the `terr_*` columns are affected; `raw_gpr` is the main metric.
-- **Day numbering: sowing day = D1** (`capture_gpr.day_index`). The user's notes had used "day 0 = Oct 6" before agreeing to this.
-- **The dataset starts at D8.** A user-supplied D1–D7 CSV looked generated (its D7 values equalled a live reading taken at 19:30; it used an old `total_px` of 14073). It was **refused** as measured data. The honest panel wording is: commissioning on D1–D7, dataset D8–D30 = 207 rows, planned 270.
-- **Pot labels go row by row, right to left:** top row P-03 P-02 P-01, middle P-06 P-05 P-04, bottom P-09 P-08 P-07. Bands by row: P-01–03 = 30–40%, P-04–06 = 50–60%, P-07–09 = 70–80%. Sensors and valves were already wired that way; only the camera labels were fixed. **Don't change `pot_rois.json` geometry**; the ROIs are locked.
-- **One capture per day.** Re-capture only after a technical or measurement fault, and log it. Never re-capture because the numbers look low (that's cherry-picking).
-- **Sync Mac → Pi with `./sync_pi.sh push`** (rsync, code only, never CSVs, logs or images). Never `git pull` on the Pi.
+- **Brightness-matched exposure, not a fixed exposure.** Auto-exposure was rejected because it also moves colour.
+- **Capture light OFF by default; on only when it's really dark.** A lit frame read +40–100% higher GPR.
+- **ROI circles = pot soil openings (r = 85) from D11.** This replaces the older "ROIs locked" rule. Don't change them again without a reason, and log any change. The territory circles (r = 221 px, the `terr_*` columns) are unchanged.
+- **Day numbering: sowing day = D1.**
+- **The dataset starts at D8.** A user-supplied D1–D7 CSV looked generated and was **refused** as measured data. Real manual D1–D7 data may only go in as clearly labelled supplementary data.
+- **Pot labels:** row by row, right to left: top row P-03 P-02 P-01, middle P-06 P-05 P-04, bottom P-09 P-08 P-07. Bands: P-01–03 = 30–40%, P-04–06 = 50–60%, P-07–09 = 70–80%.
+- **One capture per day.** Re-capture only after a technical fault, and log it. Never re-capture because the numbers look low.
+- **No physical changes to the rig** (the user's rule): fix alignment and mapping in software.
+- **Sync Mac → Pi with `./sync_pi.sh push`.** Never `git pull` on the Pi.
 
 ## Gotchas — don't repeat these
-- **SSH from Claude's Bash needs `dangerouslyDisableSandbox: true`**, because the sandbox blocks the LAN. On home Wi-Fi `groupb.local` may not resolve: use `arp -a | grep groupb` and `ssh -o HostKeyAlias=groupb.local crk@<ip>`. In zsh, `$SSH` from `.pi_host.sh` doesn't word-split, so wrap commands in `bash -c '...'`.
-- **`pkill -f live_feed.py` over SSH kills your own SSH session**, because the pattern is in the command line. Use `pkill -f "python3 -u [l]ive_feed.py"`.
-- **`pi-link` holds `/dev/ttyAMA0` exclusively.** Bench, actuator and flow tests stop it, so run `./system.sh start` afterwards. `agrisentry.sh start` does **not** restart an already-running service; use `sudo -n systemctl restart pi-link` after changing `pi_link.py`.
+- **SSH from Claude's Bash:**
+  - It needs `dangerouslyDisableSandbox: true`.
+  - `groupb.local` does **not** resolve from Claude's shell, even though it works in the user's terminal. On the hotspot the Pi is **`172.20.10.7`**, or IPv6 link-local `fe80::3ec2:74a:7085:10f9%en0` (scp form: `crk@[fe80::...%en0]`).
+  - Always pass `-o HostKeyAlias=groupb.local`.
+  - For the Mac scripts: `PI_HOST=172.20.10.7 ./sync_pi.sh push`. `flash_esp.sh` fails at host discovery, so build with `pio run`, scp the `.bin`s to `~/fw_main/`, and run `tools/flash_esp.py ~/fw_main` on the Pi under `nohup`.
+- **The hotspot link drops every few minutes.** Run anything longer than ~10 s on the Pi under `nohup ... > ~/file.txt &` and read the file afterwards, or the job hangs when SSH dies.
+- **The user acts fast.** For any "do X while I watch" test, say explicitly "wait for my READY". Twice the user did the action before the logger was running.
+- **Serial-port tools (`raw_watch.py`, `map_probes.py`, `bench_check.py`, `actuator_test.py`) stop `pi-link` and swallow ESP32 event lines** while they run. An irrigation EVT during that window is not logged. Restart with `sudo -n systemctl restart pi-link`. Avoid running them across the ESP32's 15-min checks.
+- **Pulling a probe into air reads ~0%**, which triggers a dose at the next 15-min check. Unplug the pump for probe work.
+- **`pkill -f live_feed.py` over SSH kills your own session.** Use `pkill -f "python3 -u [l]ive_feed.py"`.
 - **Only one program can use the camera at a time.** Never leave `live_feed.py` running near 12:00.
-- **The Pi rebooted repeatedly** (sudden 5V cuts, `throttled=0x0`) while the UPS recharged from empty, under live-feed load. A 20 s light pulse plus a capture passed on Oct 14. Keep the live feed at 1 fps.
-- **The Pi has no RTC.** After a total power loss it boots with a stale clock until the hotspot syncs it. `pi_link` borrows time from the ESP32 if the ESP32 stayed up. `power_log.csv` records every unplanned shutdown.
-- **NetworkManager used to give up after 4 failed Wi-Fi attempts.** That's fixed (`autoconnect-retries 0` plus a Wi-Fi watchdog timer, installed by `tools/install_stability.sh`).
-- **Quarantine and irrigation counts persist in ESP32 flash** across reflashes. Use `python3 ~/thesis/pi_link.py --reset-state` only for a new planting, or `--clear-faults` to clear a quarantine.
-- **The capture light browned out the Pi once** with a continuous live feed. That's the source of the caution above.
-- **Canva tool quirks:** `copy-design` with `page_numbers` errors ("design not found"); `recolor_element` on the status-card graphics recolours the whole card.
+- **The Pi has no RTC.** After a total power loss it boots with a stale clock until the hotspot syncs it.
+- **Quarantine and irrigation counts persist in ESP32 flash** across reflashes. Use `pi_link.py --reset-state` only for a new planting, or `--clear-faults` to clear a quarantine.
+- **All 9 probes share one calibration** (`dryADC` 2483 / `wetADC` 1120). Probe-to-probe offsets of ~5–10% are normal. A spare probe in the same soil read ~150 counts higher than the old P-08 probe.
 
 ## Files
-- `/Users/moapilaw/Desktop/THESIS/DEPLOYMENT_NOTES.md` — **user-facing command cheat sheet** (current). Read this first.
-- `/Users/moapilaw/Desktop/THESIS/*.sh`, run on the Mac, all current:
-  - `system.sh start|stop|status|reset-data|ups-test`
-  - `daily_checkin.sh`
-  - `bench_test.sh` (sensors and camera; photo goes to the Desktop)
-  - `gpr_view.sh` (visual of what GPR counts)
-  - `live_feed.sh` (1 fps alignment stream)
-  - `flash_esp.sh` (builds and flashes `Dual_Archi/Dual_Archi_Firmware/src/main.cpp`)
-  - `actuator_test.sh`, `flow_test.sh`, `sync_pi.sh push|pull`
-  - `.pi_host.sh` (finds the Pi)
-- `Dual_Archi/capture_gpr.py` — noon capture. Exposure matching, `USE_CAPTURE_LIGHT = False`, `AUTO_LIGHT_WHEN_DARK`, `CYCLE_DAYS = 30`. ROI and HSV mask: H 38–85, S ≥ 100, V ≥ 55, 3×3 opening.
-- `Dual_Archi/pi_link.py` — `pi-link` daemon. CSV routing, ESP32↔Pi clock backup, heartbeat and power log.
-- `Dual_Archi/pot_rois.json` — 9 circular ROIs, 140 px, 1296×1296 frame. **Locked.**
-- `Dual_Archi/Dual_Archi_Firmware/src/main.cpp` — ESP32 firmware. `ACTUATORS_ENABLED` switch at the top.
-- `Dual_Archi/tools/` — Pi-side helpers: `agrisentry.sh`, `bench_check.py`, `esp_link.py`, `flash_esp.py`, `gpr_view.py`, `actuator_test.py`, `flow_test.py`, `wifi_watchdog.sh`, `install_stability.sh`, `init_csvs.py`.
-- On the Pi, `~/thesis` = `~/THESIS/Dual_Archi`:
-  - `growth_dataset.csv` — main dataset.
-  - `exposure_log.csv`, `field_log.csv` (`date,day,pot_id,note`), `cron.log`, `pi_link.log`, `sowing_date.txt` (2026-10-06).
-- `~/agrisentry_data/` on the Pi:
-  - `sm_log.csv`, `irrigation_log.csv`, `error_log.csv` (real faults only), `band_log.csv` (routine "above band" notices), `power_log.csv`, `wifi_watchdog.log`.
-  - `archive_*/` — old and test data. Never deleted.
-- `/Users/moapilaw/Desktop/THESIS/_pi_data/` — Mac backup copy from `sync_pi.sh pull`. Can be stale; re-pull.
-- `/Users/moapilaw/Desktop/THESIS/_archive/2026-10-11/` — files archived during cleanup (old datasets, Gemini notes). Stale.
+- `/Users/moapilaw/Desktop/THESIS/DEPLOYMENT_NOTES.md`: user-facing command cheat sheet.
+- Mac scripts in `/Users/moapilaw/Desktop/THESIS/`: `system.sh`, `daily_checkin.sh`, `bench_test.sh`, `gpr_view.sh`, `live_feed.sh`, `flash_esp.sh`, `actuator_test.sh`, `flow_test.sh`, `sync_pi.sh`, `.pi_host.sh`.
+- `Dual_Archi/capture_gpr.py`: noon capture. Exposure matching, frame saving (`FRAME_DIR`), HSV mask H 38–85, S ≥ 100, V ≥ 55, 3×3 opening.
+- `Dual_Archi/pi_link.py`: `pi-link` daemon.
+- `Dual_Archi/pot_rois.json`: 9 circles, r = 85, from D11. `pot_rois_before_20261016.json` is the old geometry.
+- `Dual_Archi/Dual_Archi_Firmware/src/main.cpp`: ESP32 firmware. `POD_MUX_CH` remap, `ACTUATORS_ENABLED`.
+- `Dual_Archi/tools/` (Pi-side), new on Oct 16:
+  - `raw_watch.py`: raw ADC once a second.
+  - `map_probes.py`: which channel moves when a probe is pulled.
+  - `valve_sequence.py`: valves P-01→P-09 with the pump, for hose checks.
+- On the Pi, `~/thesis` = `~/THESIS/Dual_Archi`: `growth_dataset.csv`, `exposure_log.csv`, `field_log.csv` (`date,day,pot_id,note`), `cron.log`, `pi_link.log`.
+- `~/agrisentry_data/` on the Pi: `sm_log.csv`, `irrigation_log.csv`, `error_log.csv`, `band_log.csv`, `power_log.csv`, `frames/`, the remap backups, and `archive_*/` (old test data, never deleted).
+- `/Users/moapilaw/Desktop/THESIS/_pi_data/`: Mac backup from `sync_pi.sh pull`. **Stale since Oct 15**; re-pull.
 
 ## Open questions
+- Is the pump plugged back in? (Unconfirmed at 12:45 Oct 16.)
 - Camera height above the pot rims and pot centre-to-centre spacing (cm): needed for the manuscript, not yet measured.
 - The pilot was described as "13 days", but the archived pilot CSV has days 1–15 [unconfirmed].
