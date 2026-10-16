@@ -7,8 +7,9 @@ Thesis: Computer Vision-Based Growth Monitoring and Yield Prediction for
 
 Implements Appendix G. One frame at 12:00, HSV threshold inside each pot's ROI,
 Green Pixel Ratio per pot, appended to growth_dataset.csv together with the soil
-moisture pulled from the ESP32-S3. The raw frame is discarded afterwards to
-enforce storage autonomy.
+moisture pulled from the ESP32-S3. From D12 (2026-10-17) the raw noon frame is
+also kept as a lossless PNG in ~/agrisentry_data/frames/ (~3 MB/day), so the GPR
+can be recomputed if the ROIs or mask ever change; before that it was discarded.
 
 Deliverable 3 (per-pot GPR time-series) and Deliverable 5 (the SM column of the
 training dataset, 9 pots x D8-D30 = 207 rows) both come out of this script.
@@ -123,6 +124,7 @@ BASE = os.path.expanduser("~/thesis")
 ROI_FILE = os.path.join(BASE, "pot_rois.json")
 OUT_CSV = os.path.join(BASE, "growth_dataset.csv")
 SOWING_FILE = os.path.join(BASE, "sowing_date.txt")
+FRAME_DIR = os.path.expanduser("~/agrisentry_data/frames")   # daily raw noon frames
 
 # Fallback only. Prefer writing the real date into ~/thesis/sowing_date.txt on
 # sowing day so nobody has to edit source on a live rig.
@@ -662,9 +664,20 @@ def main():
             w.writerow(CSV_HEADER)
         w.writerows(rows)
 
-    # The raw frame was never written to disk in the first place -- it lives in
-    # memory only and dies with the process. Storage autonomy by construction.
     print(f"[capture_gpr] day {d} written to {OUT_CSV}")
+
+    # Keep the raw frame (lossless, so HSV is unchanged) for recomputation. The
+    # rows are already written; a failed save must not cost the day.
+    if not args.test_image:
+        try:
+            os.makedirs(FRAME_DIR, exist_ok=True)
+            fp = os.path.join(FRAME_DIR, f"D{d:02d}_{datetime.now():%Y-%m-%d_%H%M}.png")
+            if cv2.imwrite(fp, frame):
+                print(f"[capture_gpr] frame -> {fp}")
+            else:
+                print(f"[capture_gpr] WARNING: could not save frame to {fp}", file=sys.stderr)
+        except OSError as e:
+            print(f"[capture_gpr] WARNING: frame not saved ({e})", file=sys.stderr)
     if LAST_EXPOSURE:
         new_log = not os.path.exists(EXPOSURE_LOG)
         with open(EXPOSURE_LOG, "a", newline="") as f:
