@@ -33,6 +33,11 @@ const int NUM_PODS = 9;
 // CD74HC4067 16-Channel Analog Multiplexer
 const int MUX_SIG    = 1;                 // ADC1_CH0 (PCB: io1)
 const int MUX_SEL[4] = {2, 3, 4, 5};      // S0->io2, S1->io3, S2->io4, S3->io5
+// Pot -> MUX channel. The probes are wired rotated 180 deg against the pot
+// numbering used by the camera ROIs and the valves (found 2026-10-16 with
+// tools/map_probes.py + a hand-over-pot camera frame + a valve spray test):
+// the probe in pot P-0n sits on MUX channel 10-n.
+const int POD_MUX_CH[9] = {8, 7, 6, 5, 4, 3, 2, 1, 0};
 
 // Relays (Active-LOW)
 const int solenoidPins[NUM_PODS] = {6, 7, 8, 9, 10, 11, 12, 13, 14}; // Relays 1-9 (12V Solenoids)
@@ -221,7 +226,7 @@ int readMuxMedian(int channel) {
 }
 
 float readMoisturePercent(int pod) {
-  int raw = readMuxMedian(pod);
+  int raw = readMuxMedian(POD_MUX_CH[pod]);
 
   if (raw < ADC_FAULT_LOW || raw > ADC_FAULT_HIGH) {
     consecutiveFaults[pod]++;
@@ -552,7 +557,7 @@ void handleCommand(String cmd) {
     // Raw median ADC per pot, no calibration. For bench checks: a disconnected
     // probe reads very differently from one sitting in soil.
     String line = "RAW," + String(nowEpoch());
-    for (int i = 0; i < NUM_PODS; i++) line += "," + String(readMuxMedian(i));
+    for (int i = 0; i < NUM_PODS; i++) line += "," + String(readMuxMedian(POD_MUX_CH[i]));
     emit(line);
   }
   else if (cmd == "INFO") {
