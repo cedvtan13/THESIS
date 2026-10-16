@@ -18,7 +18,7 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
   - `pi-link` systemd service: ESP32 logger, soil moisture every 30 min.
   - Cron runs `capture_gpr.py` at 12:00, retrying every 10 min until 12:50. A duplicate-day guard means only the first successful run writes.
 - **`growth_dataset.csv`** has D8–D11 (36 rows). D11 (12:00 Oct 16) is the first day with the re-fitted ROIs.
-- **Pump:** it was unplugged from ~10:35 Oct 16 for the probe work. The user was told it is safe to plug back in after the remap; **confirm with the user that it is plugged in.** At 12:29 every pot was above its band.
+- **Pump:** plugged back in (user confirmed, ~12:50 Oct 16), after being unplugged 10:35–12:50 for the probe work. At 12:29 every pot was above its band.
 - **Firmware** (commit `1beedcf`, flashed 12:28 Oct 16):
   - Pot → MUX remap: `POD_MUX_CH = {8,7,6,5,4,3,2,1,0}`.
   - `ACTUATORS_ENABLED = true`, `PUMP_FLOW_ML_PER_S = 18.0`, treatment bands ON.
@@ -105,6 +105,5 @@ Pending with the user:
 - `/Users/moapilaw/Desktop/THESIS/_pi_data/`: Mac backup from `sync_pi.sh pull`. **Stale since Oct 15**; re-pull.
 
 ## Open questions
-- Is the pump plugged back in? (Unconfirmed at 12:45 Oct 16.)
 - Camera height above the pot rims and pot centre-to-centre spacing (cm): needed for the manuscript, not yet measured.
 - The pilot was described as "13 days", but the archived pilot CSV has days 1–15 [unconfirmed].
