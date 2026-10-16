@@ -56,6 +56,9 @@ Daily routine:
 2. Hotspot on, then: `cd ~/Desktop/THESIS && ./daily_checkin.sh`. It syncs the clock, shows status and backs up to `_pi_data/`.
 3. After 12:00, `./system.sh status`: confirm 9 new rows, and that the new frame exists in `~/agrisentry_data/frames/`.
 
+On the next Pi connection:
+- Append to `~/thesis/field_log.csv`: `2026-10-16,11,ALL,Pump plugged back in (~12:50) after probe remap; unplugged since ~10:35.` (not written yet; the Pi was offline).
+
 Pending with the user:
 - **Tell the adviser** about the three methodology events: the SM probe mapping fixed for D8–D11, the ROIs re-fitted from D11, and probes replaced in P-02 and P-08.
 - **Manuscript Appendix G** says the raw frame is discarded ("storage autonomy"). Frames are now kept from D12, so the text needs updating, or switch saving off if the adviser objects.
