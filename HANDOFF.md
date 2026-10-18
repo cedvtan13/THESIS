@@ -48,16 +48,14 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
    - The D10 zeros for P-01 and P-06 were ROI misses, not dead plants.
    - New circles are centred on Hough-detected rims, r = 85 px, so the denominator goes 15373 → 22701 px. Applies from D11. D8–D10 can't be recomputed.
    - Old geometry: `Dual_Archi/pot_rois_before_20261016.json`. Pots were **not** moved; the user refuses to move hardware.
-7. **P-06 read wet (raw ~1108) after the valve spray test**, probably water from its hose. Watch it.
+7. **P-06 read wet (raw ~1108) after the valve spray test**, probably water from its hose. On Oct 18 it was still ~100% (raw 1125, slowly rising, so not stuck).
+8. **The 11:20:09 P-07 irrigation_log row was NOT delivered** (pump unplugged). Its status was corrected on Oct 18; backup `irrigation_log_before_fix_20261018.csv`.
 
 ## Next action
 Daily routine:
 1. Plug mains back in early. If the Pi is still off at 12:50, that day is lost.
 2. Hotspot on, then: `cd ~/Desktop/THESIS && ./daily_checkin.sh`. It syncs the clock, shows status and backs up to `_pi_data/`.
 3. After 12:00, `./system.sh status`: confirm 9 new rows, and that the new frame exists in `~/agrisentry_data/frames/`.
-
-On the next Pi connection:
-- Append to `~/thesis/field_log.csv`: `2026-10-16,11,ALL,Pump plugged back in (~12:50) after probe remap; unplugged since ~10:35.` (not written yet; the Pi was offline).
 
 Pending with the user:
 - **Tell the adviser** about the three methodology events: the SM probe mapping fixed for D8–D11, the ROIs re-fitted from D11, and probes replaced in P-02 and P-08.
