@@ -1,4 +1,4 @@
-Picking up work in progress (handoff written 2026-10-16, 12:45). Context below — you have no prior history with this.
+Picking up work in progress (handoff written 2026-10-19, 11:45; Oct 16 events below, Oct 17–19 updates in their own section). Context below — you have no prior history with this.
 
 ## Project
 AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse"). 9 pechay pots under 3 soil-moisture bands. Each day at noon, a top-down camera measures canopy Green Pixel Ratio (GPR). After harvest, OLS regression + LOOCV predict harvest weight.
@@ -17,7 +17,7 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
 - **Running:**
   - `pi-link` systemd service: ESP32 logger, soil moisture every 30 min.
   - Cron runs `capture_gpr.py` at 12:00, retrying every 10 min until 12:50. A duplicate-day guard means only the first successful run writes.
-- **`growth_dataset.csv`** has D8–D11 (36 rows). D11 (12:00 Oct 16) is the first day with the re-fitted ROIs.
+- **`growth_dataset.csv`** has D8–D13 (54 rows) as of 11:36 Oct 19; D14 is due at 12:00 Oct 19. D11 is the first day with the re-fitted ROIs. D12 and D13 were captured fine, with frames saved.
 - **Pump:** plugged back in (user confirmed, ~12:50 Oct 16), after being unplugged 10:35–12:50 for the probe work. At 12:29 every pot was above its band.
 - **Firmware** (commit `1beedcf`, flashed 12:28 Oct 16):
   - Pot → MUX remap: `POD_MUX_CH = {8,7,6,5,4,3,2,1,0}`.
@@ -25,7 +25,7 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
   - The ESP32 has its own 15-min irrigation check. It waters on a single below-band reading, then locks that pot out for 2 h.
 - **Exposure:** brightness-matched on every capture. It starts at 6 ms and rescales until the frame's mean V ≈ 73. Gain 1.0 and white balance are locked. The capture light is used only if even 100 ms is >20% too dark (logged as `light_used` in `exposure_log.csv`).
 - **Raw noon frames are kept from D12** as lossless PNGs in `~/agrisentry_data/frames/` (commit `9546229`). An 11:44 Oct 16 pre-noon reference frame is saved there too.
-- **Code:** GitHub `cedvtan13/THESIS` `main` @ `9546229`, pushed, and synced to the Pi.
+- **Code:** GitHub `cedvtan13/THESIS` `main`, pushed, and synced to the Pi. The last code change is `9546229` (frame saving); later commits are handoff edits only.
 - **Progress-report slides (Canva):** https://www.canva.com/d/h0rLqS0UtsIH032. Still to fill: camera height and pot spacing (slide 15), and a Pi-enclosure photo (slide 10).
 
 ## What happened on 2026-10-16 (all in `field_log.csv` with times)
@@ -51,6 +51,22 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
 7. **P-06 read wet (raw ~1108) after the valve spray test**, probably water from its hose. On Oct 18 it was still ~100% (raw 1125, slowly rising, so not stuck).
 8. **The 11:20:09 P-07 irrigation_log row was NOT delivered** (pump unplugged). Its status was corrected on Oct 18; backup `irrigation_log_before_fix_20261018.csv`.
 
+## Oct 17–19 updates
+- **Pi-only reboots** (the ESP32 stayed up, `throttled=0x0`): Oct 17 at 08:39, 13:59, 14:49 and 16:09; Oct 19 at 09:19 and 09:29.
+  - The UPS now carries the Pi through the night.
+  - The morning reboots line up with mains being plugged back in.
+  - No capture has been lost so far.
+  - Advice given to the user: don't plug or unplug mains between 11:50 and 12:50.
+- **Drying is slow.** The bands are far from reached (Oct 18: dry band 55–79%, middle 62–100%, wet 73–91%). By Oct 19 it had sped up a little: P-05 (58.5%), P-07 (77%) and P-09 are now in band.
+  - **The user has NOT opened the greenhouse entrance yet** (planned "air dry test"). Log the open and close times in `field_log.csv` when it happens, then compare drying rates before and after from `sm_log.csv`.
+  - Raised with the user: the "%" is an air (0%) / water (100%) probe scale, not real VWC. A 30–40% band may be close to wilting and take very long to reach. A soil-specific gravimetric calibration is needed if the bands are meant as true VWC. **Ask the adviser how the bands were defined.**
+  - Advised against heaters, lamps or fans on the pots (they would confound growth).
+  - The user confirmed nothing drips from the hoses or valves.
+- **P-06 is still ~99–100%** (raw ~1125 on Oct 18). It's drying very slowly from the hose-test water; the probe is not stuck.
+- **P-05 seedling is leaning over the pot rim** (Oct 19 11:36 view). Its leaves sit at the circle edge, so GPR fell from 1.31% at noon Oct 18 to 0.15%. The circles have not moved. Told the user: any support or soil firming goes **after** the noon capture, and gets logged. `terr_gpr` still counts leaves beyond the rim.
+- **Alignment checks** (`gpr_view`, Oct 18 14:10 and Oct 19 11:36): all 9 circles still on the rims. The images are in `~/Desktop/AgriSentry GPR Views/` on the Mac.
+- **Network:** on Oct 18–19, `groupb.local` and `172.20.10.7` both worked from Claude's shell. `PI_HOST=172.20.10.7 ./daily_checkin.sh` is the reliable form. The Pi's clock may not internet-sync on some days through the hotspot, but it takes time from the ESP32 (offset 0 s), so D numbering stays correct.
+
 ## Next action
 Daily routine:
 1. Plug mains back in early. If the Pi is still off at 12:50, that day is lost.
@@ -58,6 +74,8 @@ Daily routine:
 3. After 12:00, `./system.sh status`: confirm 9 new rows, and that the new frame exists in `~/agrisentry_data/frames/`.
 
 Pending with the user:
+- **Entrance open (air-dry test):** log the open and close times when the user reports them.
+- **P-05:** did the user support or firm the seedling after the noon capture? If so, log it.
 - **Tell the adviser** about the three methodology events: the SM probe mapping fixed for D8–D11, the ROIs re-fitted from D11, and probes replaced in P-02 and P-08.
 - **Manuscript Appendix G** says the raw frame is discarded ("storage autonomy"). Frames are now kept from D12, so the text needs updating, or switch saving off if the adviser objects.
 - **Harvest weights** must be recorded with the pot IDs (P-01…P-09). The team's numbering matches the system's.
