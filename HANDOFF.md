@@ -59,7 +59,7 @@ AgriSentry, an undergraduate thesis ("Computer Vision-Based Growth Monitoring an
   - Advice given to the user: don't plug or unplug mains between 11:50 and 12:50.
 - **Drying is slow.** The bands are far from reached (Oct 18: dry band 55–79%, middle 62–100%, wet 73–91%). By Oct 19 it had sped up a little: P-05 (58.5%), P-07 (77%) and P-09 are now in band.
   - **The user has NOT opened the greenhouse entrance yet** (planned "air dry test"). Log the open and close times in `field_log.csv` when it happens, then compare drying rates before and after from `sm_log.csv`.
-  - Raised with the user: the "%" is an air (0%) / water (100%) probe scale, not real VWC. A 30–40% band may be close to wilting and take very long to reach. A soil-specific gravimetric calibration is needed if the bands are meant as true VWC. **Ask the adviser how the bands were defined.**
+  - **Calibration (user confirmed Oct 20):** two-point, soil-specific. 0% = oven-dried soil (150 °C, 6 h) and 100% = saturated soil. So "%" is relative to that dry–saturated range, not true VWC. A 30–40% band may still be slow to reach. **Ask the adviser how the bands were defined.**
   - Advised against heaters, lamps or fans on the pots (they would confound growth).
   - The user confirmed nothing drips from the hoses or valves.
 - **P-06 is still ~99–100%** (raw ~1125 on Oct 18). It's drying very slowly from the hose-test water; the probe is not stuck.
@@ -72,6 +72,17 @@ Daily routine:
 1. Plug mains back in early. If the Pi is still off at 12:50, that day is lost.
 2. Hotspot on, then: `cd ~/Desktop/THESIS && ./daily_checkin.sh`. It syncs the clock, shows status and backs up to `_pi_data/`.
 3. After 12:00, `./system.sh status`: confirm 9 new rows, and that the new frame exists in `~/agrisentry_data/frames/`.
+
+Oct 20, after the adviser's comments (`ADVISER_UPDATE_2026-10-20.md`):
+- **GPR validation tool:** `Dual_Archi/tools/gpr_validate.py` with `gpr_annotate_template.html`. It exports pot crops into a labelling page, people hand-paint the leaves, and `score` compares them with the HSV mask (IoU, GPR mean absolute error and bias, Bland–Altman, inter-annotator agreement).
+  - The D12/D13 page is `GPR_VALIDATION/annotate_D12_D13.html`.
+  - The Mac's system python has no cv2. Use a venv with `opencv-python-headless`, or run it on the Pi.
+  - **Done for D12/D13** with Cedric and Kent (`GPR_VALIDATION/labels_Cedric.json`, `labels_Kent_v2.json`), scored with `--leaf-only`.
+    - Program vs humans: IoU 0.64, GPR mean absolute error 0.28 pp, bias +0.04 pp.
+    - Human vs human: IoU 0.79, 0.19 pp. So the program is unbiased but not yet at human-level agreement.
+    - Kent's first file was an edit of Cedric's (fixed page bug) and is in `GPR_VALIDATION/invalid/`.
+  - Next: redo on D20 and D26 frames.
+- **Adviser wants:** data proving each deliverable, and a way to finish early. No study supports pechay D26 ≈ D30. Recommended: keep D30, pre-build everything. Need the checking date.
 
 Pending with the user:
 - **Entrance open (air-dry test):** log the open and close times when the user reports them.
@@ -123,6 +134,27 @@ Pending with the user:
 - `~/agrisentry_data/` on the Pi: `sm_log.csv`, `irrigation_log.csv`, `error_log.csv`, `band_log.csv`, `power_log.csv`, `frames/`, the remap backups, and `archive_*/` (old test data, never deleted).
 - `/Users/moapilaw/Desktop/THESIS/_pi_data/`: Mac backup from `sync_pi.sh pull`. **Stale since Oct 15**; re-pull.
 
+## Oct 21 (D16) events (all in field_log)
+- **Camera knocked at about 11:00.** The image shifted 209 px. The user re-aimed it by hand to within -22/+6 px, and the ROI circles were shifted per pot at about 11:42 (applies from D16). Backup: `pot_rois_before_20261021.json`.
+- **Two Pi-only power cuts**, at 11:18 and 11:19, while the camera was being handled. The power cable is probably being tugged.
+- **Don't start `live_feed.py` over the flaky hotspot.** Single-frame checks with `capture_gpr.capture_frame()` worked.
+- **Leaning seedlings.** Almost all seedlings are leaning toward the mesh side, with long thin stems. GPR dips follow the lean.
+- **First optimal-group dose:** P-05 at 08:44. P-09 was dosed again at 07:59.
+- **Not yet confirmed:** D16 capture with the new circles.
+- **Not yet done:** the panel tests.
+- **Canva deck:** the Oct 22 deck is saved as "Progress Report – Oct 22, 2026" (`DAHYqK4y3OU`, https://www.canva.com/d/u_OWN5QGGVcM5Lm). It uses data up to D15. Two unused duplicates (`DAHYgc7Ygik`, `DAHYqDat8kk`) can be deleted in Canva.
+- **User test results (Oct 21; not yet in field_log):**
+  - All relays clicked and actuated.
+  - Flow on all 9 valves: 90 mL in 5 s = 18 mL/s.
+  - The sensor check ×3 is not done yet.
+- **Meeting:** the adviser meeting was moved to Oct 22 at 10:00.
+
+## Measurements (Oct 21, in field_log)
+- **Camera height:** 136 cm from the lens to the soil at P-05 (vertical). Floor to lens is 146 cm.
+- **Pot opening:** about 13 cm.
+- **Pot spacing:** about 25–31 cm centre to centre. The edge-to-edge gaps are 11.5–18 cm.
+- **Image scale:** 170 px / 130 mm = 1.31 px/mm, which confirms `PX_PER_MM` 1.34. Leave the code as it is (changing it would change `MORPH_K`).
+- **Overlapping territory circles:** `POT_PITCH_MM` = 330 is larger than the real spacing, so neighbouring circles overlap. `terr_gpr` will double-count once canopies spread past the rims, from about D24. Recompute it after harvest from the saved frames, giving each pixel to its nearest pot. Don't change the live code.
+
 ## Open questions
-- Camera height above the pot rims and pot centre-to-centre spacing (cm): needed for the manuscript, not yet measured.
 - The pilot was described as "13 days", but the archived pilot CSV has days 1–15 [unconfirmed].
