@@ -1,0 +1,4 @@
+wall_time,esp_epoch,pot_id,group,vwc_before,vwc_target,dose_ml,pulse_ms,event_count,status
+2026-10-16T07:50:13,1792108211,P-08,C_High,68.7,75.0,20.1,1117,1,DOSED
+2026-10-16T10:50:14,1792119014,P-08,C_High,24.7,75.0,100.0,5556,2,NOT_DELIVERED_PUMP_UNPLUGGED
+2026-10-16T11:20:09,1792120808,P-07,C_High,66.5,75.0,26.9,1493,1,DOSED
