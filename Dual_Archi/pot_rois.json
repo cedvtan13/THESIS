@@ -1,5 +1,5 @@
 {
-  "_comment": "Shifted 2026-10-21 ~11:40 (from D16) after the camera was knocked and re-aimed by hand: each circle moved by its pot's measured image shift vs the D15 noon frame (dx -20..-23 px, dy +5..+9 px; rotation 0.06 deg, scale 1.000). Radius unchanged (85). Previous: pot_rois_before_20261021.json. | Re-fitted 2026-10-16 11:46 (from D11) to the pot rims by Hough circle detection on a fresh frame: old circles (r=70) sat ~45 px left of the pots and missed rim seedlings. Now r=85 = soil opening. Numbered row by row, right to left: top P-03 P-02 P-01 / middle P-06 P-05 P-04 / bottom P-09 P-08 P-07. Previous geometry: pot_rois_before_20261016.json",
+  "_comment": "Shifted 2026-10-27 ~09:25 (from D22): camera drift since D16 measured per pot vs the D16 frame (dx +14..+16 px, dy +3..+6 px; P-06 match unreliable, set to the common +15/+4; rotation -0.09 deg, scale 0.998). r=85 unchanged. Previous: pot_rois_before_20261027.json. | Shifted 2026-10-21 ~11:40 (from D16) after the camera was knocked and re-aimed by hand: each circle moved by its pot's measured image shift vs the D15 noon frame (dx -20..-23 px, dy +5..+9 px; rotation 0.06 deg, scale 1.000). Radius unchanged (85). Previous: pot_rois_before_20261021.json. | Re-fitted 2026-10-16 11:46 (from D11) to the pot rims by Hough circle detection on a fresh frame: old circles (r=70) sat ~45 px left of the pots and missed rim seedlings. Now r=85 = soil opening. Numbered row by row, right to left: top P-03 P-02 P-01 / middle P-06 P-05 P-04 / bottom P-09 P-08 P-07. Previous geometry: pot_rois_before_20261016.json",
   "circular": true,
   "frame_size": [
     1296,
@@ -7,56 +7,56 @@
   ],
   "rois": {
     "P-01": {
-      "x": 925,
-      "y": 241,
+      "x": 939,
+      "y": 246,
       "w": 170,
       "h": 170
     },
     "P-02": {
-      "x": 571,
-      "y": 228,
+      "x": 585,
+      "y": 233,
       "w": 170,
       "h": 170
     },
     "P-03": {
-      "x": 251,
-      "y": 227,
+      "x": 267,
+      "y": 233,
       "w": 170,
       "h": 170
     },
     "P-04": {
-      "x": 949,
-      "y": 582,
+      "x": 963,
+      "y": 585,
       "w": 170,
       "h": 170
     },
     "P-05": {
-      "x": 585,
-      "y": 575,
+      "x": 599,
+      "y": 579,
       "w": 170,
       "h": 170
     },
     "P-06": {
-      "x": 266,
-      "y": 584,
+      "x": 281,
+      "y": 588,
       "w": 170,
       "h": 170
     },
     "P-07": {
-      "x": 973,
-      "y": 935,
+      "x": 988,
+      "y": 938,
       "w": 170,
       "h": 170
     },
     "P-08": {
-      "x": 596,
-      "y": 952,
+      "x": 611,
+      "y": 956,
       "w": 170,
       "h": 170
     },
     "P-09": {
-      "x": 203,
-      "y": 919,
+      "x": 218,
+      "y": 923,
       "w": 170,
       "h": 170
     }
