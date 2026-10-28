@@ -40,14 +40,19 @@ DUAL = os.path.dirname(HERE)
 sys.path.insert(0, DUAL)
 import capture_gpr as cg  # noqa: E402  (same mask code as the live pipeline)
 
-CELL_R_PX = 175          # ~13 cm at 1.31 px/mm; half the closest pot spacing is ~160-180 px
+CELL_R_PX = cg.CELL_R_PX  # same cell as the live capture (run 2 writes cell_gpr itself)
 
-# Which ROI file was live from which day on. Frames exist from D12.
-ROI_SCHEDULE = [
-    (11, "pot_rois_before_20261021.json"),   # D11-D15: rims re-fitted Oct 16
-    (16, "pot_rois_before_20261027.json"),   # D16-D21: shifted after the camera knock
-    (22, "pot_rois.json"),                   # D22+:    shifted for drift Oct 27
-]
+# Which ROI file was live from which day on, per run (keyed by sowing date).
+# Run 1 (sown 2026-10-06, archived): frames exist from D12.
+ROI_SCHEDULES = {
+    "2026-10-06": [
+        (11, "pot_rois_before_20261021.json"),   # D11-D15: rims re-fitted Oct 16
+        (16, "pot_rois_before_20261027.json"),   # D16-D21: shifted after the camera knock
+        (22, "pot_rois_before_run2.json"),        # D22-D23: shifted for drift Oct 27
+    ],
+}
+DEFAULT_SCHEDULE = [(1, "pot_rois.json")]       # any later run: add rows here if ROIs move
+ROI_SCHEDULE = ROI_SCHEDULES.get(cg.sowing_date(), DEFAULT_SCHEDULE)
 
 
 def rois_for_day(day):
@@ -62,15 +67,8 @@ def rois_for_day(day):
 
 
 def cells(shape_hw, rois):
-    """{pot_id: bool mask} -- Voronoi cell of each pot centre, capped at CELL_R_PX."""
-    h, w = shape_hw
-    ids = sorted(rois)
-    centres = [(rois[p]["x"] + rois[p]["w"] / 2.0, rois[p]["y"] + rois[p]["h"] / 2.0) for p in ids]
-    yy, xx = np.mgrid[0:h, 0:w]
-    d2 = np.stack([(xx - cx) ** 2 + (yy - cy) ** 2 for cx, cy in centres])
-    owner = d2.argmin(0)
-    near = d2.min(0) <= CELL_R_PX ** 2
-    return {p: (owner == i) & near for i, p in enumerate(ids)}
+    """{pot_id: bool mask} -- the live pipeline's cells (capture_gpr.cell_masks)."""
+    return {p: m > 0 for p, m in cg.cell_masks(shape_hw, rois, CELL_R_PX).items()}
 
 
 def main():

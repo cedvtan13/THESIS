@@ -73,12 +73,13 @@ TERMS_8 = ["1", "D", "GPR", "SM", "D^2", "GPR^2", "D*GPR", "GPR*SM"]
 # ---------------------------------------------------------------------------
 # data
 # ---------------------------------------------------------------------------
-def load_growth(path):
+def load_growth(path, col="cell_gpr"):
+    """GPR from `col`; rows without it (run-1 files) fall back to raw_gpr."""
     rows = []
     with open(path, newline="") as f:
         for r in csv.DictReader(f):
             try:
-                gpr = float(r["raw_gpr"])
+                gpr = float(r[col] if r.get(col) not in (None, "") else r["raw_gpr"])
                 sm = float(r["sm_pct"])       # "NaN" raises, row dropped
                 d = int(r["day"])
             except (KeyError, ValueError):
@@ -241,6 +242,9 @@ def main():
     ap.add_argument("--harvest", default=HARVEST_CSV)
     ap.add_argument("--raw-gpr", action="store_true",
                     help="use raw instead of smoothed GPR")
+    ap.add_argument("--gpr-column", default="cell_gpr",
+                    help="growth_dataset.csv column used as GPR (default cell_gpr = "
+                         "pot-area GPR; raw_gpr = the pot circle)")
     ap.add_argument("--self-test", action="store_true",
                     help="run on synthetic data, write nothing")
     args = ap.parse_args()
@@ -254,7 +258,8 @@ def main():
             if not os.path.exists(path):
                 sys.exit(f"missing {path}. Run --self-test to check the "
                          f"analysis without real data.")
-        rows = load_growth(args.growth)
+        rows = load_growth(args.growth, args.gpr_column)
+        print(f"[analyze] GPR column: {args.gpr_column}")
         weights = load_harvest(args.harvest)
         missing = {r["pot_id"] for r in rows} - set(weights)
         if missing:

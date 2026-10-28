@@ -174,7 +174,14 @@ ANOMALY_DELTA_PER_DAY = 8.0
 CSV_HEADER = ["day", "timestamp", "pot_id", "sm_pct",
               "raw_gpr", "smooth_gpr", "green_px", "total_px", "flag",
               "raw_gpr_noopen", "terr_gpr", "terr_green_px", "terr_total_px",
-              "canopy_w_px", "canopy_h_px", "morph_k"]
+              "canopy_w_px", "canopy_h_px", "morph_k",
+              "cell_gpr", "cell_green_px", "cell_total_px"]
+
+# Pot-area ("cell") GPR, live from run 2 (sown 2026-10-29). Each pot owns the
+# pixels closer to its centre than to any other pot's centre, up to CELL_R_PX.
+# Cells never overlap, and a plant leaning past its rim stays in its own cell
+# (run 1: the pot circle read 0 for leaning P-01/P-05/P-07).
+CELL_R_PX = 175          # ~13 cm at 1.34 px/mm; half the closest pot spacing is ~160-180 px
 
 
 # ---------------------------------------------------------------------------
@@ -413,6 +420,26 @@ def green_mask(hsv):
     return cv2.morphologyEx(hsv_mask(hsv), cv2.MORPH_OPEN, MORPH_KERNEL)
 
 
+def cell_masks(shape_hw, rois, r_px=CELL_R_PX):
+    """{pot_id: uint8 mask} -- each pot's Voronoi cell, capped at r_px.
+
+    Running min over the 9 centres in float32, so it stays small on the Zero 2W
+    (a full 9-layer distance stack would be ~120 MB)."""
+    h, w = shape_hw
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    best = np.full((h, w), np.inf, np.float32)
+    owner = np.full((h, w), -1, np.int8)
+    ids = sorted(rois)
+    for i, pid in enumerate(ids):
+        cx, cy, _ = roi_geometry(rois[pid])
+        d2 = (xx - cx) ** 2 + (yy - cy) ** 2
+        closer = d2 < best
+        best[closer] = d2[closer]
+        owner[closer] = i
+    owner[best > r_px * r_px] = -1
+    return {pid: ((owner == i).astype(np.uint8) * 255) for i, pid in enumerate(ids)}
+
+
 def masked_count(mask, area):
     return int(np.count_nonzero(cv2.bitwise_and(mask, mask, mask=area)))
 
@@ -586,6 +613,7 @@ def main():
     stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     overlay = frame.copy() if args.debug_overlay else None
     terr_r_px = (POT_PITCH_MM * PX_PER_MM) / 2.0
+    cells = cell_masks(frame.shape[:2], rois)
     rows = []
 
     print(f"[capture_gpr] D={d}  kernel {MORPH_K}x{MORPH_K} "
@@ -611,6 +639,11 @@ def main():
         t_green = masked_count(green_all, t_area)
         t_gpr = t_green / t_total * 100.0 if t_total else 0.0
 
+        # pot-area (cell) GPR -- the main growth measure from run 2 on
+        c_total = int(np.count_nonzero(cells[pot_id]))
+        c_green = masked_count(green_all, cells[pot_id])
+        c_gpr = c_green / c_total * 100.0 if c_total else 0.0
+
         # anomaly flag, scaled by the gap since this pot was last recorded
         flag = 0
         if pot_id in prev:
@@ -628,9 +661,10 @@ def main():
         rows.append([d, stamp, pot_id, sm_str, f"{gpr:.2f}", "",
                      g, total, flag,
                      f"{gpr_raw:.2f}", f"{t_gpr:.2f}", t_green, t_total,
-                     cw, ch, MORPH_K])
+                     cw, ch, MORPH_K,
+                     f"{c_gpr:.2f}", c_green, c_total])
 
-        print(f"{pot_id}  SM={sm_str:>6}  GPR={gpr:6.2f}%  "
+        print(f"{pot_id}  SM={sm_str:>6}  cell={c_gpr:6.2f}%  GPR={gpr:6.2f}%  "
               f"(noopen {gpr_raw:5.2f}%, terr {t_gpr:5.2f}%)  "
               f"({g}/{total} px)  bbox {cw}x{ch}  flag={flag}")
 
@@ -678,6 +712,21 @@ def main():
                 print(f"[capture_gpr] WARNING: could not save frame to {fp}", file=sys.stderr)
         except OSError as e:
             print(f"[capture_gpr] WARNING: frame not saved ({e})", file=sys.stderr)
+        try:      # daily check picture: magenta = counted green, yellow = each pot's cell
+            ov = frame.copy()
+            ov[green_all > 0] = (255, 0, 255)
+            for pid, m in cells.items():
+                cnt, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(ov, cnt, -1, (0, 255, 255), 2)
+                cx, cy, _ = roi_geometry(rois[pid])
+                cv2.putText(ov, pid, (int(cx) - 30, int(cy) - 60),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
+            od = os.path.join(FRAME_DIR, "overlay")
+            os.makedirs(od, exist_ok=True)
+            cv2.imwrite(os.path.join(od, f"D{d:02d}_overlay.jpg"), ov,
+                        [cv2.IMWRITE_JPEG_QUALITY, 85])
+        except Exception as e:      # never cost the day for a check picture
+            print(f"[capture_gpr] WARNING: overlay not saved ({e})", file=sys.stderr)
     if LAST_EXPOSURE:
         new_log = not os.path.exists(EXPOSURE_LOG)
         with open(EXPOSURE_LOG, "a", newline="") as f:

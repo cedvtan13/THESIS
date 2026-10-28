@@ -5,6 +5,12 @@
 #   agrisentry.sh stop        stop + disable both (testing mode)
 #   agrisentry.sh status      what's running, today's day number, CSV row counts, last log lines
 #   agrisentry.sh reset-data  archive all data CSVs/logs and start empty ones (asks first)
+#   agrisentry.sh new-run YYYY-MM-DD
+#                             NEW PLANTING: archive the whole previous run (CSVs, logs,
+#                             frames, field log) to ~/archive/, set the sowing date (= D1),
+#                             reset the ESP32 (counters cleared, germination mode ON:
+#                             all pots 50-60 %), and turn logging back on
+#   agrisentry.sh bands-on    end germination mode: start the low/optimal/high treatments
 #   agrisentry.sh ups-test    start ONLY the logger (no noon capture) and mark the start
 #                             of a UPS runtime test; the result is written to
 #                             ~/agrisentry_data/power_log.csv after power comes back
@@ -17,11 +23,14 @@ DATA="$HOME/agrisentry_data"
 # 12:00, with retries every 10 min until 12:50 in case the Pi was rebooting or the camera
 # was busy. The duplicate-day guard makes every run after the first successful one a no-op.
 CRON_LINE="0,10,20,30,40,50 12 * * * /usr/bin/python3 $DUAL/capture_gpr.py >> $DUAL/cron.log 2>&1"
+# Hourly light reading from the camera (tools/light_log.py). Skips 12:xx so it never
+# fights the noon capture for the camera.
+LIGHT_LINE="30 6-11,13-18 * * * /usr/bin/python3 $DUAL/tools/light_log.py >> $DUAL/light_cron.log 2>&1"
 
 cron_set() {   # cron_set on|off
-  local cur; cur=$(crontab -l 2>/dev/null | grep -v 'capture_gpr.py')
-  if [[ $1 == on ]]; then printf '%s\n%s\n' "$cur" "$CRON_LINE" | crontab -
-  else printf '%s\n# %s\n' "$cur" "$CRON_LINE" | crontab -; fi
+  local cur; cur=$(crontab -l 2>/dev/null | grep -v -e 'capture_gpr.py' -e 'light_log.py')
+  if [[ $1 == on ]]; then printf '%s\n%s\n%s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" | crontab -
+  else printf '%s\n# %s\n# %s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" | crontab -; fi
 }
 
 day_info() {
@@ -125,6 +134,59 @@ case "${1:-status}" in
     python3 "$DUAL/tools/init_csvs.py"
     [[ $was == active ]] && sudo -n systemctl start pi-link
     echo "archived to $A"; status ;;
+  new-run)
+    NEW=${2:-}
+    if ! [[ $NEW =~ ^20[0-9]{2}-[01][0-9]-[0-3][0-9]$ ]] || ! date -d "$NEW" >/dev/null 2>&1; then
+      echo "usage: $0 new-run YYYY-MM-DD   (the sowing date, which becomes D1)"; exit 1
+    fi
+    OLD=$(cat "$DUAL/sowing_date.txt" 2>/dev/null || echo unknown)
+    A="$HOME/archive/run_sown_${OLD}_archived_$(date +%Y%m%d_%H%M%S)"
+    [[ -e $A ]] && { echo "$A already exists -- wait a second and run again"; exit 1; }
+    echo "This will:"
+    echo "  1. move ALL data of the run sown $OLD (CSVs, logs, frames, field log) to"
+    echo "     $A   (nothing is deleted)"
+    echo "  2. set the sowing date to $NEW (D1). Code and pot_rois.json stay as they are."
+    echo "  3. reset the ESP32: watering counters cleared, germination mode ON (all pots 50-60 %)"
+    echo "  4. turn the logger, the 12:00 capture and the hourly light log ON"
+    read -r -p "Go ahead? [y/N] " ok
+    [[ $ok == [yY] ]] || { echo "cancelled"; exit 1; }
+    sudo -n systemctl stop pi-link
+    cron_set off
+    mkdir -p "$A/agrisentry_data" "$A/thesis"
+    shopt -s dotglob nullglob
+    for f in "$DATA"/*; do mv "$f" "$A/agrisentry_data/"; done
+    for f in "$DUAL"/growth_dataset*.csv "$DUAL"/exposure_log*.csv "$DUAL"/field_log*.csv \
+             "$DUAL"/cell_gpr* "$DUAL"/light_log*.csv "$DUAL"/harvest_weights*.csv \
+             "$DUAL"/cron.log "$DUAL"/light_cron.log; do
+      [[ -e $f ]] && mv "$f" "$A/thesis/"
+    done
+    shopt -u dotglob nullglob
+    [[ -f $DUAL/pi_link.log ]] && sudo -n mv "$DUAL/pi_link.log" "$A/thesis/" && sudo -n chown "$USER" "$A/thesis/pi_link.log"
+    cp "$DUAL"/pot_rois*.json "$DUAL/sowing_date.txt" "$A/thesis/" 2>/dev/null
+    echo "$NEW" > "$DUAL/sowing_date.txt"
+    python3 "$DUAL/tools/init_csvs.py"
+    printf 'date,day,pot_id,note\n%s,,ALL,"New run, sowing date %s = D1. Previous run (sown %s) archived to %s."\n' \
+      "$(date +%F)" "$NEW" "$OLD" "$A" > "$DUAL/field_log.csv"
+    echo "--- resetting the ESP32 (counters, germination mode ON)"
+    if python3 "$DUAL/pi_link.py" --reset-state; then echo "ESP32 reset OK"
+    else echo "WARNING: ESP32 did not acknowledge RESET_STATE -- run it again later:"
+         echo "  sudo systemctl stop pi-link; python3 ~/thesis/pi_link.py --reset-state; sudo systemctl start pi-link"; fi
+    sudo -n systemctl enable --now pi-link
+    cron_set on
+    echo "archived to $A"
+    echo "Next: re-fit the pot circles (make_rois.py) once the camera is mounted, BEFORE 12:00 on $NEW."
+    sleep 4; status ;;
+  bands-on)
+    sudo -n systemctl stop pi-link
+    if python3 "$DUAL/pi_link.py" --bands-on; then
+      echo "Treatments ON (low 30-40 / optimal 50-60 / high 70-80)"
+      printf '%s,%s,ALL,Germination mode OFF -- treatment bands ON\n' "$(date +%F)" \
+        "$(( ($(date +%s) - $(date -d "$(cat "$DUAL/sowing_date.txt")" +%s)) / 86400 + 1 ))" >> "$DUAL/field_log.csv"
+    else
+      echo "WARNING: no ACK from the ESP32 -- bands NOT changed"
+    fi
+    sudo -n systemctl start pi-link
+    status ;;
   *)
-    echo "usage: $0 start|stop|status|reset-data|ups-test"; exit 1 ;;
+    echo "usage: $0 start|stop|status|reset-data|new-run YYYY-MM-DD|bands-on|ups-test"; exit 1 ;;
 esac
