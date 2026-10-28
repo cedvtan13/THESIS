@@ -51,6 +51,13 @@ Run these in the THESIS folder:
 5. **Leak test:** leave the pump off and the valves closed for 1 hour, then check that no saucer has water in it (this was the P-06 problem).
 6. **Re-fit the pot circles.** The camera moved, so the old circles are wrong. Take one frame and send it to Claude; it fits the circles. This **must be done before 12:00 on Oct 29**, or D1's capture will measure the wrong spots.
 
+## Live sensor page (from Oct 28, firmware v6-web)
+
+- On a phone, join the Wi-Fi network **AgriSentry** (password `agrisentry`), then open **http://192.168.4.1**.
+- It shows fresh readings from all 9 probes every 2 s, laid out as the camera sees the pots. Use "Rotate 180°" if you're standing on the other side.
+- **To find a probe:** pull it into the air. The tile that turns yellow is the pot number the ESP32 has it wired as.
+- The page is read-only, so it can't water anything. The phone has no internet while it's on this network.
+
 ## E. Sowing morning (Oct 29, D1)
 
 - [ ] Sow **3–4 seeds per pot**, in the centre, at the same depth. Write the seed count in the field log.

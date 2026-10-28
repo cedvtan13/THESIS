@@ -11,6 +11,9 @@
 #include <Adafruit_BMP3XX.h>
 #include <Preferences.h>
 #include "esp_task_wdt.h"
+#include <WiFi.h>
+#include <WebServer.h>
+#include "web_dashboard.h"
 
 /* ---------------------------------------------------------------------------
  * ACTUATOR MASTER SWITCH  <-- the only line to change when the 12V side is ready
@@ -159,6 +162,27 @@ volatile bool irrigating  = false;
 
 void drainPiLink();
 
+/* ---------------------------------------------------------------------------
+ * LIVE WEB PAGE (added 2026-10-28)
+ *
+ * The ESP32 runs its own Wi-Fi network; join it and open http://192.168.4.1
+ * for fresh probe readings every 2 s (for sorting probes, checking pots, and
+ * showing the panel). The page is READ-ONLY: it cannot water or switch relays.
+ *
+ * The web readings are separate from the control loop: they do not touch
+ * lastVWC, the fault counters or quarantine, so the 15-min irrigation logic
+ * and the SM lines sent to the Pi behave exactly as before. Probes are on
+ * ADC1 (io1), which keeps working while Wi-Fi is on.
+ * ------------------------------------------------------------------------- */
+const char* AP_SSID = "AgriSentry";
+const char* AP_PASS = "agrisentry";        // network key only; the page is read-only
+const unsigned long LIVE_READ_MS = 2000UL;
+WebServer     web(80);
+bool          webUp = false;
+int           liveRaw[NUM_PODS];
+float         livePct[NUM_PODS];
+unsigned long liveAtMs = 0;
+
 uint64_t millis64() {
   static uint32_t low32 = 0, high32 = 0;
   uint32_t now32 = millis();
@@ -250,10 +274,63 @@ float readMoisturePercent(int pod) {
   return constrain(pct, 0.0f, 100.0f);
 }
 
+// Display-only read: same median + calibration as readMoisturePercent(), but
+// no fault counting, no quarantine, no error lines.
+void liveRead() {
+  for (int i = 0; i < NUM_PODS; i++) {
+    int raw = readMuxMedian(POD_MUX_CH[i]);
+    liveRaw[i] = raw;
+    int span = dryADC[i] - wetADC[i];
+    if (raw < ADC_FAULT_LOW || raw > ADC_FAULT_HIGH || span == 0) { livePct[i] = -1.0f; continue; }
+    livePct[i] = constrain((float)(dryADC[i] - raw) / (float)span * 100.0f, 0.0f, 100.0f);
+  }
+  liveAtMs = millis();
+}
+
 void activeBand(int pod, float &lower, float &upper) {
   if (germinationMode) { lower = GERM_LOWER_BOUND; upper = GERM_UPPER_BOUND; }
   else                 { lower = podConfig[pod].lowerBound;
                          upper = podConfig[pod].upperBound; }
+}
+
+void handleApi() {
+  String j;
+  j.reserve(1400);
+  j += "{\"up\":" + String(millis() / 1000UL);
+  j += ",\"t\":" + String(nowEpoch());
+  j += ",\"synced\":" + String(timeSynced ? "true" : "false");
+  j += ",\"germ\":" + String(germinationMode ? "true" : "false");
+  j += ",\"irrigating\":" + String(irrigating ? "true" : "false");
+  j += ",\"bmp\":" + String(bmpAvailable ? "true" : "false");
+  j += ",\"temp\":" + String(currentTemp, 1);
+  j += ",\"age_ms\":" + String(liveAtMs ? millis() - liveAtMs : 0UL);
+  j += ",\"pots\":[";
+  for (int i = 0; i < NUM_PODS; i++) {
+    float lo, hi; activeBand(i, lo, hi);
+    if (i) j += ",";
+    j += "{\"id\":\"P-0" + String(i + 1) + "\",\"ch\":" + String(POD_MUX_CH[i]);
+    j += ",\"raw\":" + String(liveRaw[i]) + ",\"pct\":" + String(livePct[i], 1);
+    j += ",\"logged\":" + String(lastVWC[i], 1);
+    j += ",\"lo\":" + String(lo, 0) + ",\"hi\":" + String(hi, 0);
+    j += ",\"grp\":\"" + String(groupName(podConfig[i].group)) + "\"";
+    j += ",\"n\":" + String(irrigationCount[i]);
+    j += ",\"q\":" + String(podQuarantined[i] ? "true" : "false") + "}";
+  }
+  j += "]}";
+  web.sendHeader("Cache-Control", "no-store");
+  web.send(200, "application/json", j);
+}
+
+void startWeb() {
+  WiFi.mode(WIFI_AP);
+  if (!WiFi.softAP(AP_SSID, AP_PASS, 6, 0, 4)) { emit("BOOT,web=FAILED"); return; }
+  WiFi.setTxPower(WIFI_POWER_8_5dBm);      // greenhouse range is enough; lower current draw
+  web.on("/", []() { web.send_P(200, "text/html", DASHBOARD_HTML); });
+  web.on("/api", handleApi);
+  web.onNotFound([]() { web.sendHeader("Location", "/"); web.send(302, "text/plain", ""); });
+  web.begin();
+  webUp = true;
+  emit("BOOT,web=AP " + String(AP_SSID) + " http://" + WiFi.softAPIP().toString());
 }
 
 void saveState(int pod) {
@@ -654,11 +731,14 @@ void setup() {
   prevAliveEpoch = prefs.getULong("alive", 0);
 
   // Startup announcements to Pi
-  emit("BOOT," + String(millis()) + ",ESP32S3_PCB_IRRIGATION,v5,relays=12");
+  emit("BOOT," + String(millis()) + ",ESP32S3_PCB_IRRIGATION,v6-web,relays=12");
   emit(String("BOOT,bmp388=") + (bmpAvailable ? "ONLINE" : "OFFLINE"));
   emit(String("BOOT,germination_mode=") + (germinationMode ? "ON" : "OFF"));
   emit(String("BOOT,actuators=") + (ACTUATORS_ENABLED ? "ENABLED" : "DISABLED"));
   emit("BOOT,awaiting TIME sync from Pi");
+
+  liveRead();
+  startWeb();
 
   // Indicate successful setup complete (Turn LED ON)
   digitalWrite(LED_INDICATOR_PIN, LOW);
@@ -674,6 +754,12 @@ void loop() {
     lastLedBlinkMs = now;
     ledState = !ledState;
     digitalWrite(LED_INDICATOR_PIN, ledState ? LOW : HIGH);
+  }
+
+  // Live web page: serve requests, refresh the display-only readings
+  if (webUp) {
+    web.handleClient();
+    if (!irrigating && now - liveAtMs >= LIVE_READ_MS) liveRead();
   }
 
   // Auto-shutoff for camera light flash
