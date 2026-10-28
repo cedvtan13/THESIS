@@ -100,8 +100,14 @@ const float GERM_UPPER_BOUND = 60.0f;
 /* ---------------------------------------------------------------------------
  * SENSOR CALIBRATION & HYDRAULIC CONSTANTS
  * ------------------------------------------------------------------------- */
-int dryADC[NUM_PODS] = {2483, 2483, 2483, 2483, 2483, 2483, 2483, 2483, 2483};
-int wetADC[NUM_PODS] = {1120, 1120, 1120, 1120, 1120, 1120, 1120, 1120, 1120};
+// Shared two-point calibration (oven-dried soil = 2483, saturated = 1120), with
+// an offset for two probes that read high (2026-10-28, all 9 probes cleaned and
+// held in air): the other seven read 4.1-7.0 % (mean 5.9 %), P-03 read 13.5 %
+// and P-05 11.4 %. Their dry AND wet points are shifted by the same count
+// (P-03 -103, P-05 -75) so they read like the rest in air; the span is unchanged.
+//                        P-01  P-02  P-03  P-04  P-05  P-06  P-07  P-08  P-09
+int dryADC[NUM_PODS] = {2483, 2483, 2380, 2483, 2408, 2483, 2483, 2483, 2483};
+int wetADC[NUM_PODS] = {1120, 1120, 1017, 1120, 1045, 1120, 1120, 1120, 1120};
 
 const int ADC_FAULT_LOW  = 150;
 const int ADC_FAULT_HIGH = 4000;
