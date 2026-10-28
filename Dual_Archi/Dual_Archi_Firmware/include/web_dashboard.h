@@ -1,7 +1,7 @@
 // web_dashboard.h -- the live soil-moisture page served by the ESP32's own
 // Wi-Fi access point (http://192.168.4.1). Self-contained: phones on the
 // ESP32's network have no internet, so no external fonts or scripts.
-// Read-only: the page cannot water, switch relays or change settings.
+// The only action: a watering test for one pot (valve + pump, max 10 s).
 #pragma once
 #include <pgmspace.h>
 
@@ -44,6 +44,12 @@ svg.spark{display:block;width:100%;height:26px;margin-top:4px}
 .flag{position:absolute;top:8px;right:8px;font-size:11px;font-weight:700;color:var(--warn)}
 .help{margin:12px 16px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--ink2)}
 .help b{color:var(--ink)}
+details.water{margin:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+details.water summary{font-weight:700;cursor:pointer}
+.wgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+.wgrid button{padding:12px 0;font-size:15px;font-weight:700}
+.durs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+#wmsg{font-size:13px;margin-top:8px;color:var(--ink2)}
 footer{padding:4px 16px 24px;font-size:12px;color:var(--ink2)}
 @media (max-width:420px){.tile{padding:8px}.tile .pct{font-size:22px}.grid{gap:6px}}
 </style></head><body>
@@ -62,6 +68,12 @@ footer{padding:4px 16px 24px;font-size:12px;color:var(--ink2)}
 </div>
 <div class="grid" id="grid"></div>
 <div class="help"><b>Finding a probe:</b> pull one probe into the air (or squeeze the soil around it). The tile whose reading jumps lights up yellow — that is the pot number the ESP32 thinks that probe belongs to. Push it back in the same spot afterwards.</div>
+<details class="water"><summary>Test watering (valve + pump)</summary>
+<div class="sub" style="margin-top:6px">Opens the pot's valve, then runs the pump. Same layout as above. The Pi logs every test.</div>
+<div class="durs" id="durs"></div>
+<div class="wgrid" id="wgrid"></div>
+<div id="wmsg"></div>
+</details>
 <footer><span id="foot"></span><br>Moisture %: 0 = oven-dried soil, 100 = saturated (two-point scale). The 15-min value is what the watering logic uses.</footer>
 <script>
 const CAM=[3,2,1,6,5,4,9,8,7], NUM=[1,2,3,4,5,6,7,8,9];
@@ -108,5 +120,17 @@ async function tick(){
  }catch(e){ if(++fails>2){dot.className='dot';conn.textContent='no connection — are you on the AgriSentry Wi-Fi?'} }
  setTimeout(tick,2000);
 }
-btns(); tick();
+let dur=2000;
+function wdraw(){ durs.innerHTML=[1000,2000,5000,10000].map(d=>`<button class="${d===dur?'on':''}" data-d="${d}">${d/1000} s · ~${Math.round(d/1000*18)} mL</button>`).join('');
+ wgrid.innerHTML=order().map(n=>`<button data-p="${n}">P-0${n}</button>`).join('') }
+durs.onclick=e=>{const d=e.target.dataset.d; if(d){dur=+d; wdraw()}};
+wgrid.onclick=async e=>{const n=e.target.dataset.p; if(!n)return;
+ if(last&&last.irrigating){wmsg.textContent='Busy: watering in progress, wait a moment.';return}
+ if(!confirm(`Water P-0${n} for ${dur/1000} s (about ${Math.round(dur/1000*18)} mL)?\nValve ${n} opens, then the pump runs.`))return;
+ wmsg.textContent=`Starting P-0${n}…`;
+ try{const r=await fetch(`/water?pot=${n}&ms=${dur}`,{method:'POST'}); const t=await r.text();
+  wmsg.textContent=r.ok?`P-0${n}: valve + pump ON for ${dur/1000} s. Check that water comes out at pot P-0${n}.`:`Not started: ${t}`}
+ catch(err){wmsg.textContent='No answer from the ESP32.'}};
+lay.addEventListener('click',wdraw); rot.addEventListener('click',wdraw);
+btns(); wdraw(); tick();
 </script></body></html>)HTML";

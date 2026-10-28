@@ -167,7 +167,9 @@ void drainPiLink();
  *
  * The ESP32 runs its own Wi-Fi network; join it and open http://192.168.4.1
  * for fresh probe readings every 2 s (for sorting probes, checking pots, and
- * showing the panel). The page is READ-ONLY: it cannot water or switch relays.
+ * showing the panel). The only action on the page is a watering TEST for one
+ * pot (valve + pump, max 10 s), which runs the existing MANUAL_WATER command,
+ * so the Pi logs it as ACK,MANUAL_WATER. Nothing else can be switched.
  *
  * The web readings are separate from the control loop: they do not touch
  * lastVWC, the fault counters or quarantine, so the 15-min irrigation logic
@@ -293,6 +295,25 @@ void activeBand(int pod, float &lower, float &upper) {
                          upper = podConfig[pod].upperBound; }
 }
 
+void handleCommand(String cmd);
+
+// POST /water?pot=1..9&ms=500..10000 -- watering test: valve, then pump.
+// Replies first, then runs (blocking, like a normal dose); the page polls
+// /api and shows "WATERING NOW" meanwhile.
+void handleWater() {
+  if (web.method() != HTTP_POST) { web.send(405, "text/plain", "POST only"); return; }
+  int pot = web.arg("pot").toInt();
+  long ms = web.arg("ms").toInt();
+  if (pot < 1 || pot > NUM_PODS || ms < 500 || ms > 10000) {
+    web.send(400, "text/plain", "pot 1-9, ms 500-10000"); return;
+  }
+  if (irrigating) { web.send(409, "text/plain", "busy: watering in progress"); return; }
+  if (!ACTUATORS_ENABLED) { web.send(503, "text/plain", "actuators disabled in firmware"); return; }
+  web.send(200, "text/plain", "ok");
+  emit("LOG,WEB_TEST,P-0" + String(pot) + "," + String(ms) + "ms");
+  handleCommand("MANUAL_WATER," + String(pot - 1) + "," + String(ms));
+}
+
 void handleApi() {
   String j;
   j.reserve(1400);
@@ -327,6 +348,7 @@ void startWeb() {
   WiFi.setTxPower(WIFI_POWER_8_5dBm);      // greenhouse range is enough; lower current draw
   web.on("/", []() { web.send_P(200, "text/html", DASHBOARD_HTML); });
   web.on("/api", handleApi);
+  web.on("/water", handleWater);
   web.onNotFound([]() { web.sendHeader("Location", "/"); web.send(302, "text/plain", ""); });
   web.begin();
   webUp = true;
