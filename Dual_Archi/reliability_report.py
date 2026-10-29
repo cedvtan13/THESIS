@@ -254,10 +254,6 @@ def main():
             pct = (inb[pid] / t * 100) if t else 0.0
             out.append(f"  {pid:<7}{f'{lo}-{hi}%':<10}{inb[pid]:>9}"
                        f"{t:>9}{pct:>7.1f}%")
-        out.append("")
-        out.append("    Adherence will not be 100%: a pot sits below its band")
-        out.append("    between the moment it dries out and the next scheduled")
-        out.append("    sweep. Report the figure rather than explaining it away.")
 
     # --- faults ----------------------------------------------------------
     err = read(ERR_CSV)
