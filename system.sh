@@ -10,10 +10,11 @@
 # On the Pi itself:  ~/thesis/tools/agrisentry.sh start|stop|status|reset-data
 set -uo pipefail
 cd "$(dirname "$0")"
+CMD="${1:-status}"; CMD="${CMD#--}"        # accept "--status" as well as "status"
 # Typed on the Pi itself? Run it locally instead of ssh-ing to ourselves.
 if [[ "$(uname)" != Darwin ]]; then
-  exec bash Dual_Archi/tools/agrisentry.sh "${1:-status}" ${2:+"$2"}
+  exec bash Dual_Archi/tools/agrisentry.sh "$CMD" ${2:+"$2"}
 fi
 source .pi_host.sh
 ./sync_pi.sh push >/dev/null || true
-$SSH -t "$PI" "bash ~/THESIS/Dual_Archi/tools/agrisentry.sh ${1:-status} ${2:-}"
+$SSH -t "$PI" "bash ~/THESIS/Dual_Archi/tools/agrisentry.sh $CMD ${2:-}"
