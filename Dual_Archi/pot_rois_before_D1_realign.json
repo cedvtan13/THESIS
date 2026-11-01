@@ -1,0 +1,64 @@
+{
+  "_comment": "Re-fitted 2026-10-28 ~21:15 for run 2 after the greenhouse move: Hough circle per pot on a night frame (flashlight), r=77 px for all pots (fitted rims 70-81 px; median 77). Rims are smaller than run 1's r=85, so the camera is likely ~10-15 % higher than 136 cm -- measure it. Numbered as in run 1, row by row as seen by the camera: top P-03 P-02 P-01 / middle P-06 P-05 P-04 / bottom P-09 P-08 P-07. Run-1 geometry: pot_rois_before_run2.json.",
+  "circular": true,
+  "frame_size": [
+    1296,
+    1296
+  ],
+  "rois": {
+    "P-01": {
+      "x": 899,
+      "y": 248,
+      "w": 154,
+      "h": 154
+    },
+    "P-02": {
+      "x": 549,
+      "y": 244,
+      "w": 154,
+      "h": 154
+    },
+    "P-03": {
+      "x": 191,
+      "y": 251,
+      "w": 154,
+      "h": 154
+    },
+    "P-04": {
+      "x": 905,
+      "y": 591,
+      "w": 154,
+      "h": 154
+    },
+    "P-05": {
+      "x": 570,
+      "y": 618,
+      "w": 154,
+      "h": 154
+    },
+    "P-06": {
+      "x": 212,
+      "y": 631,
+      "w": 154,
+      "h": 154
+    },
+    "P-07": {
+      "x": 914,
+      "y": 988,
+      "w": 154,
+      "h": 154
+    },
+    "P-08": {
+      "x": 582,
+      "y": 1006,
+      "w": 154,
+      "h": 154
+    },
+    "P-09": {
+      "x": 205,
+      "y": 1042,
+      "w": 154,
+      "h": 154
+    }
+  }
+}
