@@ -142,6 +142,18 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 ---
 
+## Nov 1 to Nov 3 (D4 to D6)
+- **Nov 1:** Cedric powered the Pi at 11:42. Field log filled in (2 seeds per pot, D2/D3 misses, seedlings, power cut). **Hand watering by the team since sowing explains the rising moisture; decision: it stops from Nov 1, the ESP32 does all watering.**
+- **D4, D5, D6 captured** (12:10, 12:10, 12:00). Seedlings counted in P-04, P-05, P-07, P-08, P-09. Rey pushed the D6 snapshot (`ed48eaf`).
+- **Soil is drying** since hand watering stopped: P-02 back in band (55.8%), P-01 68%, P-03 63% (Nov 3 14:46). P-04/P-07/P-09 still 96-100%.
+- **The Pi restarts when the camera starts.** It went down right at the 12:00 capture on Nov 1 and Nov 2 (the 12:10 retry worked), at 15:30 on Nov 1 (that light reading is missing) and at 15:30 on Nov 3 (three boots, two dying in seconds). Other restarts happened with the camera idle, and the ESP32 lost power too (latest Nov 3 15:02). **Fix: a proper 5.1 V 3 A Pi supply with a short thick cable, ideally its own adapter; check the rig's main outlet.**
+- **P-07 read 0% on D6 although it has seedlings:** it was in direct sun (D6 exposure 1.6 ms, about 5× shorter than D4/D5) and the seedlings looked yellowish, so they fell outside the green thresholds. A detection miss, not drift: every pot is well inside its cell. The exposure floor is 1 ms (`EXPOSURE_MIN_US`), and the 10:30 light reading on Nov 3 was over-bright even at 1 ms. Shade over the top would help.
+- **Rey's commit says the camera drifted; the pot circles on the Pi are unchanged since Oct 29 14:45.** Not measured yet: an attempt at 15:30 Nov 3 clashed with the light log. Do it outside 12:00-12:50 and :30.
+- **`DATA/` run 1 leftovers moved to `DATA/run1_leftovers/`** (README inside).
+- **The Pi's CSVs use Windows line endings (CRLF); the copies in `DATA/` use LF** (except `power_log.csv`). Match the committed style when copying, or every row shows as changed.
+
+---
+
 ## Deliverables (Table I of the manuscript) and status
 **30 days / 270 rows is accepted** (Oct 29): the adviser does not require the manuscript's 35 days / 315 rows, prefers an earlier harvest if justified, and asked the team to **find sources showing pechay can be harvested at ~30 days (or earlier)**. The manuscript has to be updated. Missed days (D2, D3) lower the row count further.
 
