@@ -11,3 +11,8 @@ date,day,pot_id,note
 2026-11-01,4,ALL,"Pi off ~21:46 Oct 31 to ~11:42 Nov 1 (ESP32 also lost power). Powered on by Cedric 11:42. 11:44 check frame (frames/roi_check_D04.png): seedlings visible in P-04, P-05, P-07, P-08, P-09; P-03/P-06 hidden by a person; camera ~8 px from Oct 29 14:41."
 2026-11-01,4,ALL,"HAND WATERING: the team has been watering pots by hand with a bottle since sowing (dates, pots and amounts to be added). This explains soil moisture rising with 0 automatic doses (e.g. P-03 55 -> 73 %, Oct 29-31)."
 2026-11-01,4,ALL,"Decision (Cedric): hand watering stops from Nov 1. All watering from now on is by the ESP32 only."
+2026-11-03,6,P-07,"D6 GPR 0 is a detection miss, not no plant: 2 seedlings visible, but P-07 was in direct sun (pot V ~198 vs ~71 for shaded pots; leaf V clipped at 255) and the leaves read hue 30-33, below the green threshold H 38. Row left as measured."
+2026-11-03,6,ALL,"Camera drift measured on the D6 noon frame vs Oct 29 14:41: ~+16 px right (rim fits +11..+22 x on 8 pots); D4 ~+7, D5 ~+5, so it moved mostly between D5 and D6. Pots still well inside their 175 px cells (cell_gpr unaffected); pot circles not changed yet."
+2026-11-03,6,ALL,"Pot circles re-centred at ~16:00 for the ~16 px camera drift (rim fits on the D6 noon frame; P-01/P-04/P-07 by eye). Applies from D7; D4-D6 rows keep the old circles (cell_gpr unaffected). Old: pot_rois_before_D6_recentre.json."
+2026-11-02,5,P-07,"[glare_check] noon light: P-07 MILD (clip 2.9 %, 1.5x)"
+2026-11-03,6,P-01;P-04;P-07;P-09,"[glare_check] noon light: P-01 GLARE (clip 7.9 %, 1.7x); P-04 GLARE (clip 5.8 %, 1.6x); P-07 GLARE (clip 11.1 %, 2.0x); P-09 DARK (clip 0.0 %, 0.5x)"

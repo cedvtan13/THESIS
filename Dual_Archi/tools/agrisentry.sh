@@ -26,11 +26,14 @@ CRON_LINE="0,10,20,30,40,50 12 * * * /usr/bin/python3 $DUAL/capture_gpr.py >> $D
 # Hourly light reading from the camera (tools/light_log.py). Skips 12:xx so it never
 # fights the noon capture for the camera.
 LIGHT_LINE="30 6-11,13-18 * * * /usr/bin/python3 $DUAL/tools/light_log.py >> $DUAL/light_cron.log 2>&1"
+# Glare check on the saved noon frame (tools/glare_check.py), after the capture window.
+# Reads the frame only, never the camera.
+GLARE_LINE="55 12 * * * /usr/bin/python3 $DUAL/tools/glare_check.py >> $DUAL/glare_cron.log 2>&1"
 
 cron_set() {   # cron_set on|off
-  local cur; cur=$(crontab -l 2>/dev/null | grep -v -e 'capture_gpr.py' -e 'light_log.py')
-  if [[ $1 == on ]]; then printf '%s\n%s\n%s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" | crontab -
-  else printf '%s\n# %s\n# %s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" | crontab -; fi
+  local cur; cur=$(crontab -l 2>/dev/null | grep -v -e 'capture_gpr.py' -e 'light_log.py' -e 'glare_check.py')
+  if [[ $1 == on ]]; then printf '%s\n%s\n%s\n%s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" "$GLARE_LINE" | crontab -
+  else printf '%s\n# %s\n# %s\n# %s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" "$GLARE_LINE" | crontab -; fi
 }
 
 day_info() {
@@ -168,8 +171,8 @@ case "${1:-status}" in
     shopt -s dotglob nullglob
     for f in "$DATA"/*; do mv "$f" "$A/agrisentry_data/"; done
     for f in "$DUAL"/growth_dataset*.csv "$DUAL"/exposure_log*.csv "$DUAL"/field_log*.csv \
-             "$DUAL"/cell_gpr* "$DUAL"/light_log*.csv "$DUAL"/harvest_weights*.csv \
-             "$DUAL"/cron.log "$DUAL"/light_cron.log; do
+             "$DUAL"/cell_gpr* "$DUAL"/light_log*.csv "$DUAL"/glare_log*.csv "$DUAL"/harvest_weights*.csv \
+             "$DUAL"/cron.log "$DUAL"/light_cron.log "$DUAL"/glare_cron.log; do
       [[ -e $f ]] && mv "$f" "$A/thesis/"
     done
     shopt -u dotglob nullglob
