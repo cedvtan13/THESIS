@@ -61,13 +61,25 @@ status() {
   echo "data rows       : growth_dataset=$(rows "$DUAL/growth_dataset.csv")" \
        " sm_log=$(rows "$DATA/sm_log.csv") irrigation=$(rows "$DATA/irrigation_log.csv")" \
        " errors=$(rows "$DATA/error_log.csv") above-band notices=$(rows "$DATA/band_log.csv")"
+  # new-run starts a fresh field_log.csv and bands-on appends "treatment bands ON",
+  # so no such line yet = the ESP32 is still in germination mode (all pots 50-60 %).
+  local mode=germination
+  grep -q "treatment bands ON" "$DUAL/field_log.csv" 2>/dev/null && mode=bands
+  if [[ $mode == germination ]]; then
+    echo "watering mode   : GERMINATION -- all pots kept at 50-60 % until bands-on"
+  else
+    echo "watering mode   : TREATMENTS -- low 30-40 / optimal 50-60 / high 70-80 %"
+  fi
   if [[ -f $DATA/sm_log.csv ]] && (( $(wc -l < "$DATA/sm_log.csv") > 1 )); then
-    python3 - "$DATA/sm_log.csv" <<'EOF'
+    python3 - "$DATA/sm_log.csv" "$mode" <<'EOF'
 import csv, sys
 rows = list(csv.DictReader(open(sys.argv[1])))
 r = rows[-1]
-band = {1: "30-40", 2: "30-40", 3: "30-40", 4: "50-60", 5: "50-60", 6: "50-60",
-        7: "70-80", 8: "70-80", 9: "70-80"}
+if sys.argv[2] == "germination":
+    band = {i: "50-60" for i in range(1, 10)}
+else:
+    band = {1: "30-40", 2: "30-40", 3: "30-40", 4: "50-60", 5: "50-60", 6: "50-60",
+            7: "70-80", 8: "70-80", 9: "70-80"}
 print(f"latest moisture : {r['wall_time'].replace('T', ' ')[:16]}  (logged every 30 min)")
 for i in range(1, 10):
     v = r[f"P-0{i}"]
@@ -86,7 +98,7 @@ EOF
   fi
   if [[ -f $DUAL/pi_link.log ]]; then
     echo "--- last pi_link.log lines (above-band notices hidden)"
-    grep -v "ABOVE_BAND" "$DUAL/pi_link.log" | tail -n 6
+    grep -a -v "ABOVE_BAND" "$DUAL/pi_link.log" | tr -d '\000' | sed 's/^ *//' | tail -n 6
   fi
 }
 
