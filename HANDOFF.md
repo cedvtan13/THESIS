@@ -115,15 +115,17 @@ scp crk@<ip>:/tmp/roi_view.jpg .
 ```
 `roi_view.jpg` has a 70 px caption band stacked on top, so **subtract 70 from any y read in an image viewer**.
 
-**CORRECTED centres to compare against** (Kent's table listed the Oct 28 night fit from GitHub; the live `pot_rois.json` on the Pi is the Oct 29 14:45 fit below, r = 77):
+**Current centres to compare against** (the live `pot_rois.json`, re-centred Nov 3 16:00 for the D5→D6 drift, r = 77; the Oct 29 14:45 fit is in `pot_rois_before_D6_recentre.json`):
 
 | Pot | centre x | centre y | | Pot | centre x | centre y |
 |---|---|---|---|---|---|---|
-| P-01 | 944 | 305 | | P-06 | 268 | 697 |
-| P-02 | 605 | 299 | | P-07 | 978 | 1032 |
-| P-03 | 254 | 308 | | P-08 | 635 | 1054 |
-| P-04 | 969 | 655 | | P-09 | 260 | 1076 |
-| P-05 | 626 | 672 | | | | |
+| P-01 | 968 | 309 | | P-06 | 290 | 699 |
+| P-02 | 621 | 307 | | P-07 | 1003 | 1030 |
+| P-03 | 274 | 314 | | P-08 | 651 | 1045 |
+| P-04 | 992 | 656 | | P-09 | 277 | 1072 |
+| P-05 | 647 | 673 | | | | |
+
+**Measure drift on the saved noon frame** (`frames/DXX_*.png`) instead of taking a new photo: it needs no camera, so it can't clash with the cron jobs or trigger a restart.
 
 Drift is a rigid shift: all nine offsets should point the same way by about the same amount. Scattered offsets mean measurement error, not drift. One pot off and eight fine means that pot moved, not the camera.
 
@@ -148,7 +150,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 - **Soil is drying** since hand watering stopped: P-02 back in band (55.8%), P-01 68%, P-03 63% (Nov 3 14:46). P-04/P-07/P-09 still 96-100%.
 - **The Pi restarts when the camera starts.** It went down right at the 12:00 capture on Nov 1 and Nov 2 (the 12:10 retry worked), at 15:30 on Nov 1 (that light reading is missing) and at 15:30 on Nov 3 (three boots, two dying in seconds). Other restarts happened with the camera idle, and the ESP32 lost power too (latest Nov 3 15:02). **Fix: a proper 5.1 V 3 A Pi supply with a short thick cable, ideally its own adapter; check the rig's main outlet.**
 - **P-07 read 0% on D6 although it has seedlings:** it was in direct sun (D6 exposure 1.6 ms, about 5× shorter than D4/D5) and the seedlings looked yellowish, so they fell outside the green thresholds. A detection miss, not drift: every pot is well inside its cell. The exposure floor is 1 ms (`EXPOSURE_MIN_US`), and the 10:30 light reading on Nov 3 was over-bright even at 1 ms. Shade over the top would help.
-- **Rey's commit says the camera drifted; the pot circles on the Pi are unchanged since Oct 29 14:45.** Not measured yet: an attempt at 15:30 Nov 3 clashed with the light log. Do it outside 12:00-12:50 and :30.
+- **Camera drift confirmed (Rey was right):** on the noon frames vs Oct 29 14:41 the shift was ~+7 px (D4), ~+5 (D5), ~+16 to +20 (D6), all to the right, so it moved mostly between D5 and D6. Pots stayed well inside their cells (`cell_gpr` unaffected). **Pot circles re-centred Nov 3 ~16:00** on the D6 noon frame (P-01, P-04, P-07 by eye; saucer and glare pulled their fits); applies from D7. Logged in `field_log.csv`.
+- **The uneven noon light** is sun patches through the frame and cover: on D6 the sunlit P-07 pot read ~3× brighter than shaded pots (V ~198 vs ~71), and its leaves clipped and read hue 30-33, under the H 38 threshold. **Proposed fix: a diffuser (white shade net or translucent sheet) over the top; log the date.** Not a software threshold change.
 - **`DATA/` run 1 leftovers moved to `DATA/run1_leftovers/`** (README inside).
 - **The Pi's CSVs use Windows line endings (CRLF); the copies in `DATA/` use LF** (except `power_log.csv`). Match the committed style when copying, or every row shows as changed.
 

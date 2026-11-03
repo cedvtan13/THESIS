@@ -1,0 +1,64 @@
+{
+  "_comment": "2026-10-29 14:45 (D1): P-01 re-centred and P-07/P-08/P-09 re-fitted after the team nudged those pots; centres read from zoomed rim crops on frames/roi_fit_D01_b.png, r=77. Before this tweak: pot_rois_before_D1_1445_tweak.json. Re-aligned 2026-10-29 14:38 (D1) after the team repositioned the camera (and removed a plastic sheet from view): Hough rim fit per pot on frames/roi_fit_D01.png, r kept at 77; P-01 = mean of two rim fits. Earlier D1 fit (13:15): pot_rois_before_D1_1440_realign.json; Oct 28 night fit: pot_rois_before_D1_realign.json.",
+  "circular": true,
+  "frame_size": [
+    1296,
+    1296
+  ],
+  "rois": {
+    "P-01": {
+      "x": 867,
+      "y": 228,
+      "w": 154,
+      "h": 154
+    },
+    "P-02": {
+      "x": 528,
+      "y": 222,
+      "w": 154,
+      "h": 154
+    },
+    "P-03": {
+      "x": 177,
+      "y": 231,
+      "w": 154,
+      "h": 154
+    },
+    "P-04": {
+      "x": 892,
+      "y": 578,
+      "w": 154,
+      "h": 154
+    },
+    "P-05": {
+      "x": 549,
+      "y": 595,
+      "w": 154,
+      "h": 154
+    },
+    "P-06": {
+      "x": 191,
+      "y": 620,
+      "w": 154,
+      "h": 154
+    },
+    "P-07": {
+      "x": 901,
+      "y": 955,
+      "w": 154,
+      "h": 154
+    },
+    "P-08": {
+      "x": 558,
+      "y": 977,
+      "w": 154,
+      "h": 154
+    },
+    "P-09": {
+      "x": 183,
+      "y": 999,
+      "w": 154,
+      "h": 154
+    }
+  }
+}
