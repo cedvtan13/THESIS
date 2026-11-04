@@ -29,11 +29,14 @@ LIGHT_LINE="30 6-11,13-18 * * * /usr/bin/python3 $DUAL/tools/light_log.py >> $DU
 # Glare check on the saved noon frame (tools/glare_check.py), after the capture window.
 # Reads the frame only, never the camera.
 GLARE_LINE="55 12 * * * /usr/bin/python3 $DUAL/tools/glare_check.py >> $DUAL/glare_cron.log 2>&1"
+# Power flags every 5 min (tools/throttle_log.sh -> ~/agrisentry_data/throttle_log.csv).
+# Stays on even when the experiment cron is off: it is Pi health, not run data.
+THROTTLE_LINE="*/5 * * * * /bin/bash $DUAL/tools/throttle_log.sh"
 
 cron_set() {   # cron_set on|off
-  local cur; cur=$(crontab -l 2>/dev/null | grep -v -e 'capture_gpr.py' -e 'light_log.py' -e 'glare_check.py')
-  if [[ $1 == on ]]; then printf '%s\n%s\n%s\n%s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" "$GLARE_LINE" | crontab -
-  else printf '%s\n# %s\n# %s\n# %s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" "$GLARE_LINE" | crontab -; fi
+  local cur; cur=$(crontab -l 2>/dev/null | grep -v -e 'capture_gpr.py' -e 'light_log.py' -e 'glare_check.py' -e 'throttle_log.sh')
+  if [[ $1 == on ]]; then printf '%s\n%s\n%s\n%s\n%s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" "$GLARE_LINE" "$THROTTLE_LINE" | crontab -
+  else printf '%s\n# %s\n# %s\n# %s\n%s\n' "$cur" "$CRON_LINE" "$LIGHT_LINE" "$GLARE_LINE" "$THROTTLE_LINE" | crontab -; fi
 }
 
 day_info() {

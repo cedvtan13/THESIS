@@ -1,0 +1,5 @@
+logged_at,uptime_s,throttled,undervolt_now,undervolt_since_boot,throttled_since_boot,temp_c,wifi,clock_synced
+2026-11-04T21:56:50,9295,0x0,0,0,0,50.5,connected,yes
+2026-11-04T22:00:02,9487,0x0,0,0,0,49.4,connected,yes
+2026-11-04T22:05:01,9786,0x0,0,0,0,48.9,connected,yes
+2026-11-04T22:10:02,10087,0x0,0,0,0,49.4,connected,yes
