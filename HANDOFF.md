@@ -158,6 +158,17 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 ---
 
+## Nov 4 (D7)
+- **Power got worse:** 13 Pi restarts between 16:26 and 20:06 on Nov 3 with the camera idle, then the rig was off ~15 h until ~11:34 Nov 4 (ESP32 too). **Replace the Pi's supply/cable; this is the top risk.**
+- **D7 captured at 12:00 on the first try, no restart.** Camera ~1 px from D6 (11:45 check frame `frames/roi_check_D07.png`); circles on the rims.
+- **D7 GPR (cell, %):** P-08 0.45, P-04 0.39, P-09 0.23, P-05 0.21, P-02 0.05 (new seedling today), P-01/P-06 0.
+  - **P-03 0.70 is not a plant:** a green object on the cloth outside the pot, in the P-03 cell. Logged; remove it before D8 noon.
+  - **P-07 0 = glare again** (pot V ~181, 5.5 % clipped, ~2.4× the median pot). Its spot (bottom right) gets the noon sun through the same gap every sunny day. **Not re-captured:** glare is the real noon light, not a technical fault; re-taking at another time would cherry-pick conditions. Fix: a white diffuser over the top.
+- **Hand spraying:** Nov 3 ~15:00 all pots (~12 sprays each); Nov 4 11:39-12:03 P-03 (~12 sprays, 65.7 -> 74.5 %). Both logged. No more watering by hand from D8.
+- **Emergence:** seedlings in P-02, P-04, P-05, P-07, P-08, P-09; **none in P-01, P-03, P-06.** Seeds were placed on the surface; the empty pots look more covered by light flakes, but moisture level doesn't explain it (the wettest pots germinated). **Decision: don't re-mix those pots** (would disturb the probes and the uniform soil). Transfer spares (P-04, P-07, maybe P-08) on D7 ~16:00 into P-01 and P-03 first, then P-06: push the flakes aside only at the planting spot, plant with a soil plug, log each move. Then `bands-on` on D8.
+
+---
+
 ## Deliverables (Table I of the manuscript) and status
 **30 days / 270 rows is accepted** (Oct 29): the adviser does not require the manuscript's 35 days / 315 rows, prefers an earlier harvest if justified, and asked the team to **find sources showing pechay can be harvested at ~30 days (or earlier)**. The manuscript has to be updated. Missed days (D2, D3) lower the row count further.
 

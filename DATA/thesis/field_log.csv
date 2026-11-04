@@ -19,3 +19,4 @@ date,day,pot_id,note
 2026-11-03,6,ALL,"HAND WATERING (Cedric): each pot sprayed ~12 times with a spray bottle, between the 14:46 and 15:50 soil readings. Soil change 14:46 -> 15:50: P-03 62.6 -> 75.3 % (spray likely near the probe); other pots changed by -0.3 to +1.4 points. Exception to the Nov 1 stop; amount per spray not measured."
 2026-11-04,7,ALL,"11:45 check frame (frames/roi_check_D07.png): camera ~1 px from D6 noon, pot circles on the rims. Seedlings visible in P-02 (new today), P-04, P-05, P-07, P-08, P-09; none yet in P-01, P-03, P-06."
 2026-11-04,7,P-03,"D7 cell_gpr 0.70 is NOT a plant: a green object (leaf/grass?) on the cloth outside the pot, upper-left edge of the P-03 cell (717 px). Pot itself still empty (raw_gpr 0). Remove it before the next noon capture. Row left as measured."
+2026-11-04,7,P-03,"HAND WATERING (Cedric): P-03 sprayed ~12 times between the 11:39 and 12:03 soil readings (65.7 -> 74.5 %). D7 noon row taken after the spray."
