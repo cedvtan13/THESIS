@@ -8,8 +8,8 @@ AgriSentry, run 2 (sown 2026-10-29). Source of every number: `Dual_Archi/Dual_Ar
 | Dry (0 %) | DA soil mix oven-dried at **150 °C for 6 h** (the oven's limit) | `dryADC` |
 | Wet (100 %) | The same soil **fully saturated** with water | `wetADC` |
 
-Calibration date: ______________ (before run 1; team to fill in)
-Done by: ______________
+Calibration date: **2026-09-18**, using the same soil mixture as the pots
+Done by: **Cedric Vince Tan**
 
 Sensors: capacitive soil moisture sensor v1.2, one per pot, read by the ESP32-S3 through a multiplexer. Each reading is the median of 9 ADC samples.
 
