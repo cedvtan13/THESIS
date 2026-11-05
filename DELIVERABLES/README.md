@@ -7,6 +7,6 @@
 | 3 | 9 per-pot GPR time-series; capture log; GPR plots | `../DATA/thesis/gpr_per_pot/`, plot in `D3_gpr_timeseries/` | D1–D8, updated daily (D2, D3 missed). Redraw the plot with `python3 Dual_Archi/tools/plot_gpr.py --base DATA/thesis --out DELIVERABLES/D3_gpr_timeseries/gpr_by_group_DXX.png` |
 | 4 | 9-pot harvest table; scale check sheet | — | Harvest on D30 (2026-11-27), recorded with `Dual_Archi/record_harvest.py` |
 | 5–6 | Regression model; LOOCV R² and MAE | — | After harvest, with `Dual_Archi/analyze_yield.py` |
-| 7 | Error log; reliability summary | `D7_reliability/` | Snapshot to D8 |
+| 7 | Error log; reliability summary | `D7_reliability/` | Snapshot to D8, including vision reliability (`D7_reliability/vision/`) |
 
 The CSV files here are copies taken on D8. The live versions are in `DATA/` (pulled from the Pi) and on the Pi itself.
