@@ -1,0 +1,81 @@
+SYSTEM RELIABILITY SUMMARY  (Deliverable 7)
+============================================
+
+Image capture
+-------------
+  cycle                    : D1-D30, today is D8
+  captures due so far      : 8 (D1-D8)
+  captures recorded        : 6
+  completeness so far      : 75.0%
+  still to come            : D9-D30 (22 captures)
+  MISSED DAYS              : [2, 3]
+    each missed day is an unrecoverable gap in the GPR series -- state the cause in the results
+  rows written             : 54 of 72 due so far (270 at harvest)
+
+Soil moisture column
+--------------------
+  rows with usable SM      : 54
+  rows with NaN SM         : 0
+
+GPR anomaly flags
+-----------------
+  flagged rows             : 0
+
+Irrigation activity
+-------------------
+  total irrigation events  : 1
+
+  pot    group        events   total mL
+  P-01   A_Low             0          0
+  P-02   A_Low             1         16
+  P-03   A_Low             0          0
+  P-04   B_Optimal         0          0
+  P-05   B_Optimal         0          0
+  P-06   B_Optimal         0          0
+  P-07   C_High            0          0
+  P-08   C_High            0          0
+  P-09   C_High            0          0
+
+  by treatment group:
+    A_Low          1 events        16 mL
+    B_Optimal      0 events         0 mL
+    C_High         0 events         0 mL
+
+    Group A should show the fewest events and the least
+    volume, Group C the most. If that ordering does not
+    hold, the treatments did not separate and the SM term
+    in the model is not measuring what it claims.
+
+Treatment band adherence
+------------------------
+  germination mode (all pots 50-60 %) until bands-on; bands ON from 2026-11-05
+  snapshots read           : 182
+
+  germination phase (target 50-60 % for every pot):
+  pot    band        in band  samples       %
+  P-01   50-60%            0      160    0.0%
+  P-02   50-60%           66      160   41.2%
+  P-03   50-60%           24      160   15.0%
+  P-04   50-60%            0      160    0.0%
+  P-05   50-60%            0      160    0.0%
+  P-06   50-60%            0      160    0.0%
+  P-07   50-60%            0      160    0.0%
+  P-08   50-60%            0      160    0.0%
+  P-09   50-60%            0      160    0.0%
+
+  treatment phase:
+  pot    band        in band  samples       %
+  P-01   30-40%            0       22    0.0%
+  P-02   30-40%            0       22    0.0%
+  P-03   30-40%            0       22    0.0%
+  P-04   50-60%            0       22    0.0%
+  P-05   50-60%            3       22   13.6%
+  P-06   50-60%            0       22    0.0%
+  P-07   70-80%            0       22    0.0%
+  P-08   70-80%            0       22    0.0%
+  P-09   70-80%            0       22    0.0%
+
+Fault log
+---------
+  total entries            : 0
+  no faults recorded
