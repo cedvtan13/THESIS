@@ -9,4 +9,4 @@
 | 5–6 | Regression model; LOOCV R² and MAE | — | After harvest, with `Dual_Archi/analyze_yield.py` |
 | 7 | Error log; reliability summary | `D7_reliability/` | Snapshot to D8, including vision reliability (`D7_reliability/vision/`) |
 
-The CSV files here are copies taken on D8. The live versions are in `DATA/` (pulled from the Pi) and on the Pi itself.
+The CSV files here are copies refreshed on D10 (2026-11-07); the reliability summary text is still the D8 snapshot. The live versions are in `DATA/` (pulled from the Pi) and on the Pi itself.

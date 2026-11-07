@@ -743,3 +743,5 @@ logged_at,uptime_s,throttled,undervolt_now,undervolt_since_boot,throttled_since_
 2026-11-07T13:50:01,506,0x0,0,0,0,55.8,connected,yes
 2026-11-07T13:55:02,807,0x0,0,0,0,57.5,connected,yes
 2026-11-07T14:00:02,1106,0x0,0,0,0,54.2,connected,yes
+2026-11-07T14:05:02,1407,0x0,0,0,0,55.3,connected,yes
+2026-11-07T14:10:02,1706,0x0,0,0,0,54.8,connected,yes
