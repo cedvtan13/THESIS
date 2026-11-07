@@ -131,12 +131,24 @@ def main():
                 print(f"[glare_check] D{d}: already in {os.path.basename(LOG)} -- skipped")
                 continue
             path, date = frames[d]
-            fmean, res = check(path, rois, radius)
+            day_rois, roi_tag = rois, os.path.basename(roi_path)
+            try:    # follow the camera, exactly as capture_gpr.py does (from D10)
+                import sys
+                sys.path.insert(0, DUAL)
+                import capture_gpr as cg
+                img = cv2.imread(path)
+                if img is not None:
+                    day_rois, dx, dy, _, applied = cg.aligned_rois(img, rois, log=False)
+                    if applied:
+                        roi_tag += f"+align({dx:+.0f},{dy:+.0f})"
+            except Exception as e:      # never lose the glare check over alignment
+                print(f"[glare_check] alignment skipped ({e})")
+            fmean, res = check(path, day_rois, radius)
             flagged = []
             for pid, clip, mean, rel in res:
                 lv = level(clip, rel)
                 w.writerow([d, os.path.basename(path), pid, f"{clip:.1f}", f"{rel:.2f}",
-                            f"{mean:.1f}", f"{fmean:.1f}", lv, os.path.basename(roi_path)])
+                            f"{mean:.1f}", f"{fmean:.1f}", lv, roi_tag])
                 if lv != "ok":
                     flagged.append(f"{pid} {lv} (clip {clip:.1f} %, {rel:.1f}x)")
             print(f"[glare_check] D{d} {os.path.basename(path)}: "

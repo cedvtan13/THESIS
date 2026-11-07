@@ -486,6 +486,71 @@ def already_written(d):
 
 
 # ---------------------------------------------------------------------------
+# CAMERA ALIGNMENT (added D10, 2026-11-07)
+# ---------------------------------------------------------------------------
+# The camera mount moved by up to ~150 px within hours on D10. pot_rois.json was
+# fitted on ALIGN_REF; each new frame is matched to that reference photo (phase
+# correlation on edges, so a change in light or shade does not count as movement)
+# and the pot circles are shifted by the camera's movement before anything is
+# measured. Same circles, same sizes, same mask: only their position follows the
+# camera. Every shift is written to align_log.csv. A weak or implausible match is
+# not applied (the circles stay where pot_rois.json puts them) and is logged.
+ALIGN_REF = os.path.join(BASE, "align_ref.png")
+ALIGN_LOG = os.path.join(BASE, "align_log.csv")
+ALIGN_MIN_CONF = 0.12      # phase-correlation peak; real matches here were 0.35-0.45
+ALIGN_MAX_PX = 250         # beyond this the pots would be leaving the frame
+
+
+def _align_edges(img):
+    g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    g = cv2.GaussianBlur(g, (0, 0), 3)
+    return cv2.Laplacian(g, cv2.CV_32F, ksize=3)
+
+
+def camera_shift(frame, ref_path=ALIGN_REF):
+    """(dx, dy, confidence) of this frame against the ROI reference photo, or None."""
+    if not os.path.exists(ref_path):
+        return None
+    ref = cv2.imread(ref_path)
+    if ref is None or ref.shape != frame.shape:
+        return None
+    win = cv2.createHanningWindow((frame.shape[1], frame.shape[0]), cv2.CV_32F)
+    (dx, dy), conf = cv2.phaseCorrelate(_align_edges(ref), _align_edges(frame), win)
+    return float(dx), float(dy), float(conf)
+
+
+def shift_rois(rois, dx, dy):
+    out = {}
+    for pid, r in rois.items():
+        r2 = dict(r)
+        r2["x"] = int(round(r["x"] + dx))
+        r2["y"] = int(round(r["y"] + dy))
+        out[pid] = r2
+    return out
+
+
+def aligned_rois(frame, rois, day="", stamp="", source="capture", log=True):
+    """ROIs moved with the camera. Returns (rois, dx, dy, conf, applied)."""
+    s = camera_shift(frame)
+    if s is None:
+        return rois, 0.0, 0.0, 0.0, False
+    dx, dy, conf = s
+    applied = conf >= ALIGN_MIN_CONF and (dx * dx + dy * dy) ** 0.5 <= ALIGN_MAX_PX
+    if log:
+        new = not os.path.exists(ALIGN_LOG)
+        with open(ALIGN_LOG, "a", newline="") as f:
+            w = csv.writer(f)
+            if new:
+                w.writerow(["day", "timestamp", "source", "dx_px", "dy_px", "confidence",
+                            "applied"])
+            w.writerow([day, stamp or datetime.now().strftime("%Y-%m-%d %H:%M"), source,
+                        f"{dx:.1f}", f"{dy:.1f}", f"{conf:.2f}", int(applied)])
+    print(f"[capture_gpr] camera shift vs reference: {dx:+.1f}, {dy:+.1f} px "
+          f"(confidence {conf:.2f}) -> {'circles moved' if applied else 'NOT applied'}")
+    return (shift_rois(rois, dx, dy) if applied else rois), dx, dy, conf, applied
+
+
+# ---------------------------------------------------------------------------
 # VALIDATION
 # ---------------------------------------------------------------------------
 def validate_rois(rois, shape_hw, circular):
@@ -544,6 +609,8 @@ def main():
     ap.add_argument("--roi-file", default=ROI_FILE)
     ap.add_argument("--allow-any-day", action="store_true",
                     help=f"permit D outside 1..{CYCLE_DAYS} (testing only)")
+    ap.add_argument("--no-align", action="store_true",
+                    help="do not move the pot circles with the camera (see CAMERA ALIGNMENT)")
     ap.add_argument("--force", action="store_true",
                     help="write even if this day is already in the CSV "
                          "(you almost never want this)")
@@ -585,6 +652,12 @@ def main():
     else:
         use_light = (USE_CAPTURE_LIGHT or args.light) and not args.no_light
         frame = capture_frame(use_light=use_light)
+
+    if not args.no_align:
+        rois = aligned_rois(frame, rois, day=d,
+                            source="test_image" if args.test_image else
+                            ("no_write" if args.no_write else "noon_capture"),
+                            log=not args.no_write)[0]
 
     problems = validate_rois(rois, frame.shape[:2], circular)
     if problems:
