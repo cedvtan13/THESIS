@@ -180,7 +180,7 @@ def summary():
         rel = [float(r["rel_brightness"]) for r in rs]
         flags = [f"{r['pot_id'][-1]}{r['level'][0]}" for r in rs if r["level"] != "ok"]
         gpr = " ".join(f"{float(r['cell_gpr']):.2f}" for r in sorted(rs, key=lambda r: r["pot_id"]))
-        print(f"{d:10} {s:5} {r['light_index'] or '-':>6} {len(flags):5d} {max(rel):7.2f} "
+        print(f"{d:10} {s:5} {rs[0]['light_index'] or '-':>6} {len(flags):5d} {max(rel):7.2f} "
               f"{min(rel):7.2f}  {' '.join(flags):28} {gpr}")
     print("\nlight = light index (higher = brighter); flags: pot number + G(LARE) M(ILD) D(ARK);"
           "\nrel = pot brightness / median pot. The evenest light has max rel near 1 and min rel near 1.")
