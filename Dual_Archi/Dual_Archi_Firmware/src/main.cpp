@@ -111,6 +111,10 @@ int wetADC[NUM_PODS] = {1120, 1120, 1017, 1120, 1045, 1120, 1120, 1120, 1120};
 
 const int ADC_FAULT_LOW  = 150;
 const int ADC_FAULT_HIGH = 4000;
+// A reading below this is not soil (oven-dry soil = 0 %, a probe in air ~5 %): treat
+// it as a probe fault and do not water. On 2026-11-07/08 a disturbed P-01 probe read
+// 0 % in wet soil and got the maximum dose 7 times. Lowest band in this study: 30 %.
+const float IMPLAUSIBLE_VWC = 10.0f;
 
 const float ML_PER_PERCENT     = 3.18f;
 const float PUMP_FLOW_ML_PER_S = 18.0f;   // measured 2026-10-12: 90 mL in 5 s, all 9 valves
@@ -840,7 +844,12 @@ void loop() {
 
       float lo, hi; activeBand(i, lo, hi);
 
-      if (vwc < lo) {
+      if (vwc < IMPLAUSIBLE_VWC) {
+        // logged every sample while it lasts; watering resumes by itself once the
+        // probe reads like soil again
+        reportError("SENSOR_IMPLAUSIBLE", "P-0" + String(i + 1) + ";vwc=" + String(vwc, 1) +
+                    ";not_watered");
+      } else if (vwc < lo) {
         if (podHold[i]) {
           emit("INFO," + String(nowEpoch()) + ",WATER_HOLD,P-0" + String(i + 1) +
                ";vwc=" + String(vwc, 1));

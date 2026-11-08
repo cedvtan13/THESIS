@@ -1,5 +1,5 @@
 {
-  "_comment": "2026-11-07 (D10): circles moved +31 px x, +3 px y to fit align_ref.png (the D9 noon frame), measured by phase correlation against the D6 frame they were fitted on and checked on zoomed crops. From D10 every capture is matched to align_ref.png and the circles follow the camera (capture_gpr.py, CAMERA ALIGNMENT; shifts in align_log.csv). Before: pot_rois_before_D10_align.json",
+  "_comment": "2026-11-08 (D11): reference re-based on the D11 12:52 frame (checked by eye on rim close-ups); circles moved -21, +12 px to fit it (= the shift measured against the D9 reference). From now on each capture is matched to align_ref.png (the D11 frame); a weak match is retried, never written before 12:50. Before: pot_rois_before_D11_rebase.json, align_ref_D09.png",
   "circular": true,
   "frame_size": [
     1296,
@@ -7,56 +7,56 @@
   ],
   "rois": {
     "P-01": {
-      "x": 922,
-      "y": 235,
+      "x": 901,
+      "y": 247,
       "w": 154,
       "h": 154
     },
     "P-02": {
-      "x": 575,
-      "y": 233,
+      "x": 554,
+      "y": 245,
       "w": 154,
       "h": 154
     },
     "P-03": {
-      "x": 228,
-      "y": 240,
+      "x": 207,
+      "y": 252,
       "w": 154,
       "h": 154
     },
     "P-04": {
-      "x": 946,
-      "y": 582,
+      "x": 925,
+      "y": 594,
       "w": 154,
       "h": 154
     },
     "P-05": {
-      "x": 601,
-      "y": 599,
+      "x": 580,
+      "y": 611,
       "w": 154,
       "h": 154
     },
     "P-06": {
-      "x": 244,
-      "y": 625,
+      "x": 223,
+      "y": 637,
       "w": 154,
       "h": 154
     },
     "P-07": {
-      "x": 957,
-      "y": 956,
+      "x": 936,
+      "y": 968,
       "w": 154,
       "h": 154
     },
     "P-08": {
-      "x": 605,
-      "y": 971,
+      "x": 584,
+      "y": 983,
       "w": 154,
       "h": 154
     },
     "P-09": {
-      "x": 231,
-      "y": 998,
+      "x": 210,
+      "y": 1010,
       "w": 154,
       "h": 154
     }

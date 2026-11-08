@@ -654,10 +654,18 @@ def main():
         frame = capture_frame(use_light=use_light)
 
     if not args.no_align:
-        rois = aligned_rois(frame, rois, day=d,
-                            source="test_image" if args.test_image else
-                            ("no_write" if args.no_write else "noon_capture"),
-                            log=not args.no_write)[0]
+        rois, _, _, aconf, applied = aligned_rois(
+            frame, rois, day=d,
+            source="test_image" if args.test_image else
+            ("no_write" if args.no_write else "noon_capture"),
+            log=not args.no_write)
+        # Never write a day on circles that may not sit on the pots: if the match
+        # with the reference photo is too weak, leave it to the next 10-min retry.
+        # The last retry (12:50 or later) writes anyway; align_log.csv shows applied=0.
+        if (not applied and os.path.exists(ALIGN_REF) and not args.no_write
+                and not args.test_image and not args.force and datetime.now().minute < 50):
+            sys.exit(f"[capture_gpr] camera alignment too weak (confidence {aconf:.2f}) -- "
+                     f"day {d} not written; the next retry will try again")
 
     problems = validate_rois(rois, frame.shape[:2], circular)
     if problems:
