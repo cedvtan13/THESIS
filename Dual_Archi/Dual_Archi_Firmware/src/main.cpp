@@ -144,6 +144,7 @@ unsigned long lastIrrigationEpoch[NUM_PODS];
 uint32_t      irrigationCount[NUM_PODS];
 int           consecutiveFaults[NUM_PODS];
 bool          podQuarantined[NUM_PODS];
+bool          podHold[NUM_PODS];      // HOLD,<n>: still read and logged, never watered
 
 unsigned long lastSampleMs = 0;
 unsigned long lastReportMs = 0;
@@ -375,6 +376,7 @@ void loadState() {
     irrigationCount[i]     = prefs.getUInt ((k + "n").c_str(), 0);
     consecutiveFaults[i]   = 0;
     podQuarantined[i]      = prefs.getBool((k + "q").c_str(), false);
+    podHold[i]             = prefs.getBool((k + "h").c_str(), false);
     lastVWC[i]             = -1.0f;
   }
 }
@@ -520,6 +522,20 @@ void handleCommand(String cmd) {
       reportSM();
     }
   }
+  else if (cmd.startsWith("HOLD,") || cmd.startsWith("UNHOLD,")) {
+    // HOLD,<1-9>: stop automatic watering of one pot (its probe keeps being read
+    // and logged). UNHOLD,<1-9> undoes it. Kept in flash across restarts.
+    bool hold = cmd.startsWith("HOLD,");
+    int pod = cmd.substring(cmd.indexOf(',') + 1).toInt() - 1;
+    if (pod < 0 || pod >= NUM_PODS) {
+      reportError("INVALID_POD", cmd);
+    } else {
+      podHold[pod] = hold;
+      prefs.putBool(("p" + String(pod) + "h").c_str(), hold);
+      emit(String("ACK,") + (hold ? "HOLD" : "UNHOLD") + ",P-0" + String(pod + 1) +
+           "," + String(nowEpoch()));
+    }
+  }
   else if (cmd == "CLEAR_FAULTS") {
     for (int i = 0; i < NUM_PODS; i++) {
       podQuarantined[i]    = false;
@@ -586,7 +602,7 @@ void handleCommand(String cmd) {
            "," + (lastVWC[i] < 0 ? String("NaN") : String(lastVWC[i], 1)) +
            "," + String(irrigationCount[i]) +
            "," + String(lastIrrigationEpoch[i]) +
-           "," + (podQuarantined[i] ? "QUARANTINED" : "OK") +
+           "," + (podQuarantined[i] ? "QUARANTINED" : (podHold[i] ? "HOLD" : "OK")) +
            "," + (irrigating ? "IRRIGATING" : "IDLE"));
     }
     reportThermal();
@@ -763,6 +779,8 @@ void setup() {
   emit(String("BOOT,bmp388=") + (bmpAvailable ? "ONLINE" : "OFFLINE"));
   emit(String("BOOT,germination_mode=") + (germinationMode ? "ON" : "OFF"));
   emit(String("BOOT,actuators=") + (ACTUATORS_ENABLED ? "ENABLED" : "DISABLED"));
+  for (int i = 0; i < NUM_PODS; i++)
+    if (podHold[i]) emit("BOOT,watering on HOLD for P-0" + String(i + 1));
   emit("BOOT,awaiting TIME sync from Pi");
 
   liveRead();
@@ -823,7 +841,12 @@ void loop() {
       float lo, hi; activeBand(i, lo, hi);
 
       if (vwc < lo) {
-        irrigatePod(i, vwc);
+        if (podHold[i]) {
+          emit("INFO," + String(nowEpoch()) + ",WATER_HOLD,P-0" + String(i + 1) +
+               ";vwc=" + String(vwc, 1));
+        } else {
+          irrigatePod(i, vwc);
+        }
       } else if (vwc > hi) {
         reportError("ABOVE_BAND", "P-0" + String(i + 1) + ";vwc=" + String(vwc, 1));
       }

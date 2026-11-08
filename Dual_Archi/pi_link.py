@@ -612,6 +612,12 @@ if __name__ == "__main__":
         # New planting: irrigation counts, last-watered times, quarantines,
         # germination mode -> defaults.
         sys.exit(0 if simple_command("RESET_STATE", "ACK,RESET_STATE") else 1)
+    elif "--send" in sys.argv:
+        # Any one-line command, e.g.  --send HOLD,1   (stop watering P-01)
+        #                             --send UNHOLD,1 (undo)
+        # Waits for its ACK. The daemon must be stopped first (it owns the port).
+        c = sys.argv[sys.argv.index("--send") + 1].strip()
+        sys.exit(0 if simple_command(c, "ACK," + c.split(",")[0]) else 1)
     elif "--clear-faults" in sys.argv:
         sys.exit(0 if simple_command("CLEAR_FAULTS", "ACK,CLEAR_FAULTS") else 1)
     elif "--light-on" in sys.argv:
