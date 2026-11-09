@@ -35,6 +35,37 @@ moisture % = (dryADC - raw) / (dryADC - wetADC) x 100, limited to 0-100 %
 ## 4. Air check and offsets (2026-10-28)
 All 9 probes were cleaned and held in air. Seven read 4.1–7.0 % (mean 5.9 %). **P-03 read 13.5 % and P-05 read 11.4 %**, so both their dry and wet points were shifted by the same count (P-03 −103, P-05 −75). After the shift they read like the others in air. The span (1363 counts) is unchanged, so the slope of the scale is the same for all 9 probes.
 
+## 4b. Pot weighing (water held by the soil)
+One filled pot weighed on a 5 kg / 1 g kitchen scale (photos from the team, sent 2026-11-09):
+
+| State | Scale reading |
+|---|---|
+| Oven-dry soil (0 %) | **388 g** |
+| Fully saturated (100 %) | **662 g** (pot sitting in a plastic bag) |
+| Water held, dry → saturated | **274 g ≈ 274 mL** (minus the bag's few grams) |
+
+So 1 % on this scale ≈ 2.7 mL of water. The firmware uses `ML_PER_PERCENT = 3.18` ("318 mL total field capacity", set 2026-09-15), so each dose is about 16 % larger than this weighing gives. The watering still stops at the band, because the probe is re-read every 15 min; the larger dose only makes a small overshoot more likely. Not changed mid-run.
+
+## 4c. Conversion to true volumetric water content (VWC)
+Soil in the pot (team measurement, 2026-11-09): bottom diameter 8.5 cm, top soil diameter 11 cm, soil depth 8 cm.
+As a truncated cone: V = πh/3 × (R² + Rr + r²) = π·8/3 × (5.5² + 5.5·4.25 + 4.25²) ≈ **601 cm³ (601 mL)**.
+
+Saturated soil holds 274 mL in 601 mL, so **100 % on our scale ≈ 45.6 % VWC**, a normal value for a potting mix.
+
+```
+true VWC (%) ≈ our % × 274 mL / 601 mL ≈ our % × 0.456
+```
+
+| Group | Band (relative %) | ≈ True VWC |
+|---|---|---|
+| Low (A) | 30–40 % | 13.7–18.2 % |
+| Optimal (B) | 50–60 % | 22.8–27.4 % |
+| High (C) | 70–80 % | 31.9–36.5 % |
+| Saturated | 100 % | 45.6 % |
+| Oven-dry | 0 % | 0 % |
+
+Assumptions: the probe's reading is a straight line between the two calibration points (capacitive probes are close to linear but not exactly), the pot is evenly filled, and the 274 g includes the bag's few grams (≤ ~1 VWC point). With the firmware's 318 mL instead, saturation would be 52.9 % VWC. An optional harvest-day check (weighing known-volume cores before and after drying, at a few probe readings) would test the in-between values.
+
 ## 5. Fault limits
 | Rule | Value |
 |---|---|
@@ -64,6 +95,6 @@ Other hardware tests: relays and flow checked 2026-10-21; valve test 2026-10-29.
 
 ## 8. Limitations
 - One shared two-point calibration for all probes, plus the two air-check offsets. No separate per-probe wet/dry calibration.
-- Relative %, not VWC. An optional harvest-day check (weighing known-volume soil cores before and after drying) can convert the bands to true VWC.
+- Relative %, not VWC. Section 4c converts it (≈ × 0.456, from the pot weighing and soil volume), assuming a straight-line probe response.
 
 Checked by: ______________  Date: ______________
