@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-record_harvest.py -- capture ground-truth harvest data on D = 35.
+record_harvest.py -- capture ground-truth harvest data on D = 30 (harvest day).
 
 Thesis: Computer Vision-Based Growth Monitoring and Yield Prediction for
         Pechay Under Differential Soil Moisture Treatments in a Greenhouse
@@ -10,7 +10,7 @@ harvest_weights.csv, which analyze_yield.py joins to growth_dataset.csv on
 pot_id.
 
 WHEN TO RUN
-    On D = 35, IMMEDIATELY AFTER the final scheduled image capture and before
+    On D = 30, IMMEDIATELY AFTER the final scheduled image capture and before
     anything is uprooted. The manuscript fixes harvest on the same day as the
     last capture specifically so the terminal GPR corresponds in time to the
     measured weight -- this corrects the decoupling in the previous

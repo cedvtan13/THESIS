@@ -42,9 +42,22 @@ TWO ERROR FIGURES, BOTH REPORTED
 
     Only numpy is required. No scikit-learn, so this runs on the Pi as-is.
 
+SUN GLARE (glare_log.csv, written daily by tools/glare_check.py)
+    Some noon frames have sun patches that over-expose a pot; its leaves clip
+    and can be missed by the green threshold. growth_dataset.csv keeps those
+    rows exactly as measured. This script joins glare_log.csv on (day, pot_id)
+    and tags each row GLARE / MILD / DARK / ok (or "unchecked" if that day has
+    no glare entry). By default every row is used for the reported model, and
+    the six-term model is fitted a second time WITHOUT the GLARE rows, so the
+    effect of glare is shown, not hidden. --exclude-glare makes an exclusion
+    the main result instead. Excluded rows are dropped BEFORE the 3-day
+    smoothing, so a glare value never leaks into its neighbours' average.
+
 USAGE
     python3 analyze_yield.py
     python3 analyze_yield.py --growth growth_dataset.csv --harvest harvest_weights.csv
+    python3 analyze_yield.py --exclude-glare glare          drop GLARE rows
+    python3 analyze_yield.py --exclude-glare glare+mild     drop GLARE and MILD rows
     python3 analyze_yield.py --self-test        synthetic data, no files needed
 """
 
@@ -59,6 +72,11 @@ import numpy as np
 BASE = os.path.expanduser("~/thesis")
 GROWTH_CSV = os.path.join(BASE, "growth_dataset.csv")
 HARVEST_CSV = os.path.join(BASE, "harvest_weights.csv")
+GLARE_CSV = os.path.join(BASE, "glare_log.csv")
+
+# --exclude-glare choices -> glare levels dropped from the main fit
+EXCLUDE_LEVELS = {"none": set(), "glare": {"GLARE"},
+                  "glare+mild": {"GLARE", "MILD"}, "any": {"GLARE", "MILD", "DARK"}}
 OUT_JSON = os.path.join(BASE, "model_results.json")
 OUT_CSV = os.path.join(BASE, "model_predictions.csv")
 
@@ -73,12 +91,13 @@ TERMS_8 = ["1", "D", "GPR", "SM", "D^2", "GPR^2", "D*GPR", "GPR*SM"]
 # ---------------------------------------------------------------------------
 # data
 # ---------------------------------------------------------------------------
-def load_growth(path):
+def load_growth(path, col="cell_gpr"):
+    """GPR from `col`; rows without it (run-1 files) fall back to raw_gpr."""
     rows = []
     with open(path, newline="") as f:
         for r in csv.DictReader(f):
             try:
-                gpr = float(r["raw_gpr"])
+                gpr = float(r[col] if r.get(col) not in (None, "") else r["raw_gpr"])
                 sm = float(r["sm_pct"])       # "NaN" raises, row dropped
                 d = int(r["day"])
             except (KeyError, ValueError):
@@ -86,6 +105,39 @@ def load_growth(path):
             rows.append({"pot_id": r["pot_id"], "day": d, "gpr": gpr, "sm": sm,
                          "flag": int(r.get("flag", 0) or 0)})
     return rows
+
+
+def load_glare(path):
+    """{(day, pot_id): level} from glare_log.csv; empty if the file is missing."""
+    out = {}
+    if not os.path.exists(path):
+        return out
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            try:
+                out[(int(r["day"]), r["pot_id"])] = r["level"]
+            except (KeyError, ValueError):
+                continue
+    return out
+
+
+def tag_glare(rows, glare):
+    for r in rows:
+        r["glare"] = glare.get((r["day"], r["pot_id"]), "unchecked")
+    return rows
+
+
+def glare_counts(rows):
+    out = {}
+    for r in rows:
+        out[r.get("glare", "unchecked")] = out.get(r.get("glare", "unchecked"), 0) + 1
+    return out
+
+
+def drop_levels(rows, levels):
+    """Copies of the rows whose glare level is not in `levels` (copies, so the
+    smoothing of one pass never overwrites another pass's values)."""
+    return [dict(r) for r in rows if r.get("glare") not in levels]
 
 
 def load_harvest(path):
@@ -231,7 +283,9 @@ def synthetic(n_plants=9, n_days=35, seed=1):
             rows.append({"pot_id": pid, "day": d,
                          "gpr": float(max(0.0, gpr)),
                          "sm": float(sm_mu + rng.normal(0, 2.5)),
-                         "flag": 0})
+                         "flag": 0,
+                         # a few synthetic glare rows so the glare pass is exercised
+                         "glare": "GLARE" if rng.random() < 0.05 else "ok"})
     return rows, weights
 
 
@@ -241,8 +295,17 @@ def main():
     ap.add_argument("--harvest", default=HARVEST_CSV)
     ap.add_argument("--raw-gpr", action="store_true",
                     help="use raw instead of smoothed GPR")
+    ap.add_argument("--gpr-column", default="cell_gpr",
+                    help="growth_dataset.csv column used as GPR (default cell_gpr = "
+                         "pot-area GPR; raw_gpr = the pot circle)")
     ap.add_argument("--self-test", action="store_true",
                     help="run on synthetic data, write nothing")
+    ap.add_argument("--glare-log", default=GLARE_CSV,
+                    help="glare_log.csv from tools/glare_check.py")
+    ap.add_argument("--exclude-glare", choices=sorted(EXCLUDE_LEVELS), default="none",
+                    help="drop rows with these glare levels from the MAIN fit "
+                         "(default none: all rows used, GLARE-excluded fit shown "
+                         "as a comparison)")
     args = ap.parse_args()
 
     if args.self_test:
@@ -254,7 +317,8 @@ def main():
             if not os.path.exists(path):
                 sys.exit(f"missing {path}. Run --self-test to check the "
                          f"analysis without real data.")
-        rows = load_growth(args.growth)
+        rows = load_growth(args.growth, args.gpr_column)
+        print(f"[analyze] GPR column: {args.gpr_column}")
         weights = load_harvest(args.harvest)
         missing = {r["pot_id"] for r in rows} - set(weights)
         if missing:
@@ -265,6 +329,25 @@ def main():
         if flagged:
             print(f"[analyze] {flagged} rows carry an anomaly flag; they are "
                   f"INCLUDED. Re-run excluding them to see the difference.")
+        glare = load_glare(args.glare_log)
+        if not glare:
+            print(f"[analyze] no glare log at {args.glare_log}: every row is 'unchecked'")
+        tag_glare(rows, glare)
+
+    counts = glare_counts(rows)
+    print("[analyze] glare levels: "
+          + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
+    all_rows = rows
+    excluded = EXCLUDE_LEVELS[args.exclude_glare]
+    if excluded:
+        rows = drop_levels(all_rows, excluded)
+        print(f"[analyze] --exclude-glare {args.exclude_glare}: "
+              f"{len(all_rows) - len(rows)} rows dropped, {len(rows)} used")
+        missing_now = set(weights) - {r["pot_id"] for r in rows}
+        if missing_now:
+            print(f"[analyze] WARNING: no rows left for {sorted(missing_now)}")
+    else:
+        rows = [dict(r) for r in all_rows]
 
     rows = smooth_per_plant(rows)
     use_smoothed = not args.raw_gpr
@@ -296,12 +379,33 @@ def main():
     else:
         print("  -> difference is not clear-cut; report both and say so.")
 
+    # Glare sensitivity: the six-term model again without the GLARE rows, so the
+    # effect of sun glare on the result is reported rather than assumed.
+    glare_check = None
+    n_glare = counts.get("GLARE", 0)
+    if not excluded and n_glare:
+        no_glare = smooth_per_plant(drop_levels(all_rows, {"GLARE"}))
+        print(f"\n=== glare check: six-term model without the {n_glare} GLARE rows ===")
+        alt = report("Six-term, GLARE rows excluded", TERMS_6,
+                     no_glare, weights, use_smoothed)
+        d_r2 = alt["loocv"]["per_plant"]["r2"] - six["loocv"]["per_plant"]["r2"]
+        d_mae = alt["loocv"]["per_plant"]["mae"] - six["loocv"]["per_plant"]["mae"]
+        print(f"  excluding GLARE changes LOOCV per-plant R2 by {d_r2:+.4f}, "
+              f"MAE by {d_mae:+.2f} g")
+        glare_check = {"rows_excluded": n_glare, "six_term_without_glare": alt,
+                       "delta_loocv_per_plant_r2": d_r2,
+                       "delta_loocv_per_plant_mae_g": d_mae}
+    elif not n_glare:
+        print("\n[analyze] no GLARE rows: glare check not needed")
+
     if args.self_test:
         print("\n[self-test] machinery works. Nothing written.")
         return
 
     with open(OUT_JSON, "w") as f:
-        json.dump({"six_term": six, "eight_term": eight}, f, indent=2)
+        json.dump({"six_term": six, "eight_term": eight,
+                   "glare": {"levels": counts, "excluded_from_main_fit":
+                             sorted(excluded), "check": glare_check}}, f, indent=2)
     with open(OUT_CSV, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["pot_id", "actual_g", "predicted_g", "abs_error_g"])

@@ -1,5 +1,5 @@
 {
-  "_comment": "Shifted 2026-10-21 ~11:40 (from D16) after the camera was knocked and re-aimed by hand: each circle moved by its pot's measured image shift vs the D15 noon frame (dx -20..-23 px, dy +5..+9 px; rotation 0.06 deg, scale 1.000). Radius unchanged (85). Previous: pot_rois_before_20261021.json. | Re-fitted 2026-10-16 11:46 (from D11) to the pot rims by Hough circle detection on a fresh frame: old circles (r=70) sat ~45 px left of the pots and missed rim seedlings. Now r=85 = soil opening. Numbered row by row, right to left: top P-03 P-02 P-01 / middle P-06 P-05 P-04 / bottom P-09 P-08 P-07. Previous geometry: pot_rois_before_20261016.json",
+  "_comment": "2026-11-08 (D11): reference re-based on the D11 12:52 frame (checked by eye on rim close-ups); circles moved -21, +12 px to fit it (= the shift measured against the D9 reference). From now on each capture is matched to align_ref.png (the D11 frame); a weak match is retried, never written before 12:50. Before: pot_rois_before_D11_rebase.json, align_ref_D09.png",
   "circular": true,
   "frame_size": [
     1296,
@@ -7,58 +7,58 @@
   ],
   "rois": {
     "P-01": {
-      "x": 925,
-      "y": 241,
-      "w": 170,
-      "h": 170
+      "x": 901,
+      "y": 247,
+      "w": 154,
+      "h": 154
     },
     "P-02": {
-      "x": 571,
-      "y": 228,
-      "w": 170,
-      "h": 170
+      "x": 554,
+      "y": 245,
+      "w": 154,
+      "h": 154
     },
     "P-03": {
-      "x": 251,
-      "y": 227,
-      "w": 170,
-      "h": 170
+      "x": 207,
+      "y": 252,
+      "w": 154,
+      "h": 154
     },
     "P-04": {
-      "x": 949,
-      "y": 582,
-      "w": 170,
-      "h": 170
+      "x": 925,
+      "y": 594,
+      "w": 154,
+      "h": 154
     },
     "P-05": {
-      "x": 585,
-      "y": 575,
-      "w": 170,
-      "h": 170
+      "x": 580,
+      "y": 611,
+      "w": 154,
+      "h": 154
     },
     "P-06": {
-      "x": 266,
-      "y": 584,
-      "w": 170,
-      "h": 170
+      "x": 223,
+      "y": 637,
+      "w": 154,
+      "h": 154
     },
     "P-07": {
-      "x": 973,
-      "y": 935,
-      "w": 170,
-      "h": 170
+      "x": 936,
+      "y": 968,
+      "w": 154,
+      "h": 154
     },
     "P-08": {
-      "x": 596,
-      "y": 952,
-      "w": 170,
-      "h": 170
+      "x": 584,
+      "y": 983,
+      "w": 154,
+      "h": 154
     },
     "P-09": {
-      "x": 203,
-      "y": 919,
-      "w": 170,
-      "h": 170
+      "x": 210,
+      "y": 1010,
+      "w": 154,
+      "h": 154
     }
   }
 }

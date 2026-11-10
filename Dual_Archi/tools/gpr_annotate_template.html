@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPR Leaf Labelling</title>
+<style>
+  :root { --bg:#f6f6f4; --fg:#1d1d1b; --muted:#6b6b66; --card:#fff; --line:#d9d9d4; --acc:#1f6f43; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --fg:#ecece8; --muted:#9a9a94; --card:#20201e; --line:#3a3a36; --acc:#5cc28a; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 -apple-system, system-ui, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:16px; display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:16px; }
+  @media (max-width:860px) { main { grid-template-columns:minmax(0,1fr); } }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; }
+  #wrap { overflow:auto; }
+  canvas { display:block; image-rendering:pixelated; cursor:crosshair; touch-action:none; max-width:100%; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0; }
+  button { font:inherit; padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--fg); cursor:pointer; }
+  button.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+  button.primary { background:var(--acc); color:#fff; border-color:var(--acc); }
+  input[type=text] { font:inherit; padding:6px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--fg); width:100%; }
+  .muted { color:var(--muted); }
+  #list { max-height:380px; overflow:auto; margin-top:8px; }
+  #list div { padding:3px 6px; border-radius:4px; cursor:pointer; display:flex; justify-content:space-between; }
+  #list div.cur { background:var(--line); }
+  .done { color:var(--acc); }
+  kbd { border:1px solid var(--line); border-radius:3px; padding:0 4px; font-size:12px; }
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <h1 id="title">—</h1>
+    <div class="muted" id="sub"></div>
+    <div class="row">
+      <button id="bPaint" class="on">Paint leaf (B)</button>
+      <button id="bErase">Erase (E)</button>
+      <label>Brush <input id="size" type="range" min="1" max="8" value="2"> <span id="sizeV">2</span> px</label>
+      <label>Zoom <input id="zoom" type="range" min="2" max="8" value="4"></label>
+      <button id="bHide">Hide paint (H)</button>
+      <button id="bUndo">Undo (Z)</button>
+      <button id="bClear">Clear</button>
+    </div>
+    <div id="wrap" class="card"><canvas id="cv"></canvas></div>
+    <div class="row">
+      <button id="bPrev">← Prev</button>
+      <button id="bDone" class="primary">Mark done &amp; next (Enter)</button>
+      <button id="bNext">Next →</button>
+    </div>
+  </section>
+  <aside class="card">
+    <label class="muted">Annotator name</label>
+    <div class="row" style="margin-top:4px"><input id="who" type="text" placeholder="e.g. Kent" style="flex:1"><button id="bStart" class="primary">Start</button></div>
+    <p class="muted" id="whoNote">Type your name and press Start. Each name has its own saved work, so nobody starts from someone else's labels.</p>
+    <p class="muted">Paint <b>every leaf pixel</b> of the plant inside the dashed circle (skip the thin stem). Don't look at anyone else's labels first. Paint only what you see as plant, not what you think the program finds. A pot with no visible plant: just mark it done.</p>
+    <p class="muted">Right-drag also erases. <kbd>H</kbd> hides the paint so you can check the edges.</p>
+    <div class="row"><button id="bSave" class="primary">Download labels</button></div>
+    <div class="muted" id="prog"></div>
+    <div id="list"></div>
+  </aside>
+</main>
+<script>
+const ITEMS = /*__ITEMS__*/[];
+const KEY = "gprlab:" + ITEMS.map(i => i.frame + i.pot).join("|").length + ":" + ITEMS.length;
+const S = ITEMS.map(it => ({ mask: new Uint8Array(it.w * it.h), done: false, undo: [] }));
+let cur = 0, erase = false, hide = false, size = 2, zoom = 4, imgs = [];
+
+function store(f) { try { return f(); } catch (e) { return null; } }
+// Saved work is kept PER ANNOTATOR NAME so a second person in the same browser
+// starts from a blank page; independent labels are the point of the exercise.
+let WHO = "";
+function userKey() { return KEY + ":" + WHO.toLowerCase(); }
+function start() {
+  const name = document.getElementById("who").value.trim();
+  if (!name) { alert("Type your name first."); return; }
+  WHO = name;
+  document.getElementById("who").disabled = true;
+  document.getElementById("bStart").disabled = true;
+  const raw = store(() => localStorage.getItem(userKey()));
+  const d = raw && store(() => JSON.parse(raw));
+  if (d) (d.items || []).forEach((x, i) => { if (!S[i]) return; S[i].done = x.done; if (x.rle) S[i].mask = rleDec(x.rle, S[i].mask.length); });
+  document.getElementById("whoNote").textContent = d ? `Welcome back, ${WHO}: your saved work is loaded.` : `Labelling as ${WHO}, starting blank. Reload the page to switch person.`;
+  draw();
+}
+function persist() {
+  if (!WHO) return;
+  const d = { who: WHO, items: S.map(s => ({ done: s.done, rle: rleEnc(s.mask) })) };
+  store(() => localStorage.setItem(userKey(), JSON.stringify(d)));
+}
+function rleEnc(m) { const out = []; let v = 0, run = 0; for (let i = 0; i < m.length; i++) { if (m[i] === v) run++; else { out.push(run); v ^= 1; run = 1; } } out.push(run); return out; }
+function rleDec(r, n) { const m = new Uint8Array(n); let p = 0, v = 0; for (const k of r) { if (v) m.fill(1, p, p + k); p += k; v ^= 1; } return m; }
+
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+ITEMS.forEach((it, i) => { const im = new Image(); im.onload = () => { if (i === cur) draw(); }; im.src = it.img; imgs[i] = im; });
+
+function draw() {
+  const it = ITEMS[cur], s = S[cur];
+  cv.width = it.w * zoom; cv.height = it.h * zoom;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(imgs[cur], 0, 0, cv.width, cv.height);
+  if (!hide) {
+    const id = ctx.createImageData(it.w, it.h);
+    for (let i = 0; i < s.mask.length; i++) if (s.mask[i]) { id.data[i*4] = 255; id.data[i*4+1] = 0; id.data[i*4+2] = 255; id.data[i*4+3] = 150; }
+    const off = document.createElement("canvas"); off.width = it.w; off.height = it.h; off.getContext("2d").putImageData(id, 0, 0);
+    ctx.drawImage(off, 0, 0, cv.width, cv.height);
+  }
+  ctx.setLineDash([6, 6]); ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(it.cx * zoom, it.cy * zoom, it.r * zoom, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  document.getElementById("title").textContent = `${it.pot} — ${it.frame}`;
+  document.getElementById("sub").textContent = `Image ${cur + 1} of ${ITEMS.length}` + (s.done ? " · done" : "");
+  const n = S.filter(x => x.done).length;
+  document.getElementById("prog").textContent = `${n} / ${ITEMS.length} done`;
+  const L = document.getElementById("list"); L.innerHTML = "";
+  ITEMS.forEach((x, i) => { const d = document.createElement("div"); d.className = i === cur ? "cur" : "";
+    d.innerHTML = `<span>${x.frame.replace(/\.png$/, "")} ${x.pot}</span><span class="${S[i].done ? "done" : "muted"}">${S[i].done ? "✓" : "·"}</span>`;
+    d.onclick = () => go(i); L.appendChild(d); });
+  L.children[cur] && L.children[cur].scrollIntoView({ block: "nearest" });
+}
+function go(i) { cur = Math.max(0, Math.min(ITEMS.length - 1, i)); draw(); }
+
+let drawing = false, mode = 1;
+function stamp(ev) {
+  const it = ITEMS[cur], m = S[cur].mask, rc = cv.getBoundingClientRect();
+  const x = (ev.clientX - rc.left) * (cv.width / rc.width) / zoom, y = (ev.clientY - rc.top) * (cv.height / rc.height) / zoom;
+  const r = size / 2;
+  for (let yy = Math.floor(y - r); yy <= Math.ceil(y + r); yy++) for (let xx = Math.floor(x - r); xx <= Math.ceil(x + r); xx++) {
+    if (xx < 0 || yy < 0 || xx >= it.w || yy >= it.h) continue;
+    if ((xx + 0.5 - x) ** 2 + (yy + 0.5 - y) ** 2 <= r * r + 0.25) m[yy * it.w + xx] = mode;
+  }
+  draw();
+}
+cv.addEventListener("contextmenu", e => e.preventDefault());
+cv.addEventListener("pointerdown", e => { if (!WHO) { alert("Type your name and press Start first."); return; } drawing = true; mode = (erase || e.button === 2) ? 0 : 1;
+  const s = S[cur]; s.undo.push(s.mask.slice()); if (s.undo.length > 40) s.undo.shift(); cv.setPointerCapture(e.pointerId); stamp(e); });
+cv.addEventListener("pointermove", e => { if (drawing) stamp(e); });
+cv.addEventListener("pointerup", () => { drawing = false; persist(); });
+
+function setErase(v) { erase = v; bPaint.classList.toggle("on", !v); bErase.classList.toggle("on", v); }
+const $ = id => document.getElementById(id);
+const bPaint = $("bPaint"), bErase = $("bErase");
+bPaint.onclick = () => setErase(false); bErase.onclick = () => setErase(true);
+$("size").oninput = e => { size = +e.target.value; $("sizeV").textContent = size; };
+$("zoom").oninput = e => { zoom = +e.target.value; draw(); };
+$("bHide").onclick = () => { hide = !hide; $("bHide").classList.toggle("on", hide); draw(); };
+function undo() { const s = S[cur]; if (s.undo.length) { s.mask = s.undo.pop(); draw(); persist(); } }
+$("bUndo").onclick = undo;
+$("bClear").onclick = () => { if (confirm("Clear this pot's paint?")) { S[cur].undo.push(S[cur].mask.slice()); S[cur].mask.fill(0); draw(); persist(); } };
+$("bPrev").onclick = () => go(cur - 1); $("bNext").onclick = () => go(cur + 1);
+function markDone() { if (!WHO) { alert("Type your name and press Start first."); return; } S[cur].done = true; persist(); const nx = S.findIndex((s, i) => i > cur && !s.done); go(nx >= 0 ? nx : cur); }
+$("bDone").onclick = markDone;
+$("bStart").onclick = start;
+$("who").addEventListener("keydown", e => { if (e.key === "Enter") start(); });
+$("bSave").onclick = () => {
+  const who = WHO; if (!who) { alert("Type your name and press Start first."); return; }
+  const out = { tool: "gpr_validate", version: 1, annotator: who, created: new Date().toISOString(),
+    items: ITEMS.map((it, i) => ({ frame: it.frame, pot: it.pot, w: it.w, h: it.h, done: S[i].done, rle: rleEnc(S[i].mask) })) };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out)], { type: "application/json" }));
+  a.download = `labels_${who.replace(/\W+/g, "_")}.json`; a.click();
+};
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const k = e.key.toLowerCase();
+  if (k === "b") setErase(false); else if (k === "e") setErase(true);
+  else if (k === "h") $("bHide").click(); else if (k === "z") undo();
+  else if (k === "enter") markDone(); else if (k === "arrowright") go(cur + 1); else if (k === "arrowleft") go(cur - 1);
+});
+draw();
+</script>
+</body>
+</html>

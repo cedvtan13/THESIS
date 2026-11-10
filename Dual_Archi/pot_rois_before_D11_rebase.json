@@ -1,0 +1,64 @@
+{
+  "_comment": "2026-11-07 (D10): circles moved +31 px x, +3 px y to fit align_ref.png (the D9 noon frame), measured by phase correlation against the D6 frame they were fitted on and checked on zoomed crops. From D10 every capture is matched to align_ref.png and the circles follow the camera (capture_gpr.py, CAMERA ALIGNMENT; shifts in align_log.csv). Before: pot_rois_before_D10_align.json",
+  "circular": true,
+  "frame_size": [
+    1296,
+    1296
+  ],
+  "rois": {
+    "P-01": {
+      "x": 922,
+      "y": 235,
+      "w": 154,
+      "h": 154
+    },
+    "P-02": {
+      "x": 575,
+      "y": 233,
+      "w": 154,
+      "h": 154
+    },
+    "P-03": {
+      "x": 228,
+      "y": 240,
+      "w": 154,
+      "h": 154
+    },
+    "P-04": {
+      "x": 946,
+      "y": 582,
+      "w": 154,
+      "h": 154
+    },
+    "P-05": {
+      "x": 601,
+      "y": 599,
+      "w": 154,
+      "h": 154
+    },
+    "P-06": {
+      "x": 244,
+      "y": 625,
+      "w": 154,
+      "h": 154
+    },
+    "P-07": {
+      "x": 957,
+      "y": 956,
+      "w": 154,
+      "h": 154
+    },
+    "P-08": {
+      "x": 605,
+      "y": 971,
+      "w": 154,
+      "h": 154
+    },
+    "P-09": {
+      "x": 231,
+      "y": 998,
+      "w": 154,
+      "h": 154
+    }
+  }
+}
