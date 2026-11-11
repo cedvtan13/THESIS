@@ -192,3 +192,16 @@ Whenever any `.tex` or `.bib` file is edited and saved, `auto_watch.py` detects 
    open 2026-11-11-GroupB-Manuscript-Draft1/thesis.pdf
    ```
    *(macOS Preview automatically live-refreshes every time `thesis.pdf` recompiles).*
+
+
+### 8.1 Live Compilation & Word Count Metrics
+
+| Metric | Current Value |
+| :--- | :--- |
+| **Last Compilation** | `2026-11-12 01:11:43` (Passing, 95 pages in 4.6s) |
+| **Chapter 1 Words** | 2393 words |
+| **Chapter 2 Words** | 2477 words |
+| **Chapter 3 Words** | 2448 words |
+| **Chapter 4 Words** | 2765 words (Run 2 in progress) |
+| **Total Chapters Word Count** | **10083 words** (95 pages) |
+
