@@ -198,10 +198,36 @@ Whenever any `.tex` or `.bib` file is edited and saved, `auto_watch.py` detects 
 
 | Metric | Current Value |
 | :--- | :--- |
-| **Last Compilation** | `2026-11-12 01:11:43` (Passing, 95 pages in 4.6s) |
+| **Last Compilation** | `2026-11-12 01:12:21` (Passing, 95 pages in 4.7s) |
 | **Chapter 1 Words** | 2393 words |
 | **Chapter 2 Words** | 2477 words |
 | **Chapter 3 Words** | 2448 words |
 | **Chapter 4 Words** | 2765 words (Run 2 in progress) |
 | **Total Chapters Word Count** | **10083 words** (95 pages) |
+
+
+## 10. Automated Sync & Teammate AI Workflow
+
+To ensure all team members (and any AI assistants they pair with) remain in lock-step:
+
+### 10.1 Syncing Manuscript Revisions (`sync_work.sh manuscript`)
+Whenever you or your AI assistant complete revisions on any chapter:
+```bash
+./sync_work.sh manuscript "description of changes"
+```
+Or simply tell your AI: **"update manuscript"** or **"sync repo manuscript"**.  
+This command automatically:
+1. Recompiles `thesis.pdf` cleanly with Tectonic in < 5 seconds.
+2. Re-calculates word counts for all chapters.
+3. Updates the live metrics table in `MANUSCRIPT.md`.
+4. Stages `MANUSCRIPT.md`, `REVISION_LETTER.md`, `.tex` files, and the updated `thesis.pdf`.
+5. Commits and pushes directly to GitHub `origin/main`.
+
+### 10.2 Checking Live Hardware Telemetry (`check_system.sh`)
+Whenever you connect to the Pi hotspot (around 12:30 PM daily):
+```bash
+./check_system.sh
+```
+Or simply tell your AI: **"check system"**.
+This checks NTP clock sync, service daemons, Run 2 progress, pot soil moisture vs. target bands, noon capture GPR, runs `roi_drift.py` to verify pot circle alignment, copies the alignment image to your Desktop, and pulls fresh data to `_pi_data/`.
 
