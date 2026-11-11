@@ -293,3 +293,11 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 - **What did the panel say at the Oct 29 ~15:00 check, and what do they want to see next time?**
 - Camera height at the new site, lens to soil.
 - Sources for a ~30-day pechay harvest.
+
+
+## Daily Sync & Field Log History
+
+- **Sync Check (2026-11-12 01:11:32) -- Day 15 of 30:**
+  - Run 2 timeline: 15 days remaining until harvest on 2026-11-27.
+  - Local data mirror: 668 soil moisture readings, 126 canopy GPR rows.
+  - Notes: feat: add check_system.sh daily inspector and sync_work.sh workflow tools
