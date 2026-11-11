@@ -34,17 +34,17 @@
         \textbf{Drafting:} Chapter 2 (RRL -- Non-Destructive Phenotyping \& Statistical Models). \newline \textbf{Design:} Establish theoretical baseline for polynomial regression. &
         \textbf{Drafting:} Chapter 1 (Introduction, Scope, and Limitations). \newline \textbf{Procurement:} Source agricultural components, DA soil, and greenhouse space. \\
         \midrule
-        \textbf{PHASE 2: Pre-Deployment Setup} \newline \textit{(Jun--Jul)} &
+        \textbf{PHASE 2: Pre-Deployment Setup} \newline \textit{(Jun--Sep)} &
         \textbullet~Greenhouse Prep \newline \textbullet~PCB Conformal Coating \newline \textbullet~Headless Pi Config \newline \textbullet~\textbf{System Calibration} &
         \textbf{Firmware:} Flash Pi OS, write headless Python script for daily image capture. Program ESP32-S3 solenoid and pump-control logic. Run UPS-backed continuity and recovery tests. &
-        \textbf{Calibration:} Construct $90^\circ$ nadir camera rig. Conduct empirical HSV calibration on Pechay leaves (locking $35^\circ$--$85^\circ$ bounds). Pre-write regression code. &
-        \textbf{Hardware:} Prepare DA soil media, establish baseline pH. Apply silicone conformal coating to PCBs. Set up LED lighting enclosure. \\
+        \textbf{Calibration:} Construct $90^\circ$ nadir camera rig. Conduct empirical HSV calibration on Pechay leaves (locking $H\in[38,85]$, $S\ge 100$, $V\ge 55$). Pre-write regression code. &
+        \textbf{Hardware:} Prepare 8:4:3 soil substrate. Apply conformal coating to PCBs. Construct timber-framed greenhouse and 3D-printed electronics enclosures. \\
         \midrule
-        \textbf{PHASE 3: The 35-Day Grow-Out} \newline \textit{(Aug--Sep)} &
+        \textbf{PHASE 3: The 30-Day Grow-Out} \newline \textit{(Oct--Nov)} &
         \textbullet~Automated Imaging \newline \textbullet~1:1 Solenoid Baseline \newline \textbullet~\textbf{Physical Harvest} &
-        \textbf{Monitoring:} Audit edge-device logs weekly to verify the Pi purges image payloads to save memory. Monitor ESP32-S3 moisture polling. &
-        \textbf{Pipeline Prep:} Finalize the Jupyter/Python regression pipeline for instant execution. Document visual canopy progression for presentation aids. &
-        \textbf{Agronomy:} Conduct weekly visual inspections of coated sensors for moisture ingress. \textbf{Lead the Physical Harvest:} weigh fresh-weight biomass. \\
+        \textbf{Monitoring:} Audit edge-device logs weekly to verify noon PNG archival and CSV completeness. Monitor ESP32-S3 moisture polling and cooling fan thermal regulation. &
+        \textbf{Pipeline Prep:} Finalize the Python OLS regression and LOOCV pipeline for instant execution. Document visual canopy progression and GPR validation against hand-labels. &
+        \textbf{Agronomy:} Conduct weekly visual inspections of coated sensors for moisture ingress. \textbf{Lead the Physical Harvest:} weigh fresh-weight biomass on Day 30. \\
         \midrule
         \textbf{PHASE 4: Statistical Modeling} \newline \textit{(Oct)} &
         \textbullet~CSV Data Extraction \newline \textbullet~Regression Formulation \newline \textbullet~\textbf{Model Validation} &

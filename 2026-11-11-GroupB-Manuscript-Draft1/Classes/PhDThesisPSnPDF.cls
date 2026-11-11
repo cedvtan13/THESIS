@@ -256,20 +256,26 @@ supported!}
 
 % Determine whether to run pdftex or dvips
 \ProcessOptions\relax%
+\RequirePackage{ifxetex}
 \newif\ifsetDVI\setDVIfalse
-\ifx\pdfoutput\undefined
-  % we are not running PDFLaTeX
-  \setDVItrue
-  \LoadClass[dvips,fleqn,openright]{book}%
-\else % we are running PDFLaTeX
-  \ifnum \pdfoutput>0
-    %PDF-Output
-    \setDVIfalse
-    \LoadClass[pdftex,fleqn,openright]{book}%
-  \else
-    %DVI-output
+\ifxetex
+  \setDVIfalse
+  \LoadClass[fleqn,openright]{book}%
+\else
+  \ifx\pdfoutput\undefined
+    % we are not running PDFLaTeX
     \setDVItrue
-    \LoadClass[fleqn,openright]{book}%
+    \LoadClass[dvips,fleqn,openright]{book}%
+  \else % we are running PDFLaTeX
+    \ifnum \pdfoutput>0
+      %PDF-Output
+      \setDVIfalse
+      \LoadClass[pdftex,fleqn,openright]{book}%
+    \else
+      %DVI-output
+      \setDVItrue
+      \LoadClass[fleqn,openright]{book}%
+    \fi
   \fi
 \fi
 
@@ -321,9 +327,15 @@ supported!}
   \pdfcompresslevel=9
   \graphicspath{{Figs/Raster/}{Figs/}}
 \else
-  \RequirePackage{graphicx}
-  \DeclareGraphicsExtensions{.eps, .ps}
-  \graphicspath{{Figs/Vector/}{Figs/}}
+  \ifxetex
+    \RequirePackage{graphicx}
+    \DeclareGraphicsExtensions{.png, .jpg, .pdf, .eps}
+    \graphicspath{{Figs/Raster/}{Figs/Vector/}{Figs/}}
+  \else
+    \RequirePackage{graphicx}
+    \DeclareGraphicsExtensions{.eps, .ps}
+    \graphicspath{{Figs/Vector/}{Figs/}}
+  \fi
 \fi
 
 
@@ -622,13 +634,17 @@ supported!}
 % Moved below other usepackage definitions to fix PDFLaTeX footnote warning
 % Based on the suggestion by John Plaice
 
-\ifsetDVI
-  \special{papersize=\the\paperwidth,\the\paperheight}
-  \RequirePackage[unicode=true]{hyperref}  % extra option dvips
-\else
+\ifxetex
   \RequirePackage[unicode=true]{hyperref}
-  \pdfpagewidth=\the\paperwidth
-  \pdfpageheight=\the\paperheight
+\else
+  \ifsetDVI
+    \special{papersize=\the\paperwidth,\the\paperheight}
+    \RequirePackage[unicode=true]{hyperref}  % extra option dvips
+  \else
+    \RequirePackage[unicode=true]{hyperref}
+    \pdfpagewidth=\the\paperwidth
+    \pdfpageheight=\the\paperheight
+  \fi
 \fi
 
 % The \pdfstringdefDisableCommands command from the hyperref package can be used to redefine commands that are usually not supported in PDF bookmark strings. 
@@ -660,13 +676,18 @@ supported!}
   \ifsetCustomMargin
   % Margin to be define in preamble using geometry package
   \else
-    \ifsetDVI
-      % Odd and Even side Margin for binding and set viewmode for PDF
-      \RequirePackage[dvips,paper=\PHD@papersize,hmarginratio=1:1,
+    \ifxetex
+      \RequirePackage[paper=\PHD@papersize,hmarginratio=1:1,
         vmarginratio=1:1,scale=0.75,bindingoffset=5mm]{geometry}
     \else
-      \RequirePackage[pdftex,paper=\PHD@papersize,hmarginratio=1:1,
-        vmarginratio=1:1,scale=0.75,bindingoffset=5mm]{geometry}
+      \ifsetDVI
+        % Odd and Even side Margin for binding and set viewmode for PDF
+        \RequirePackage[dvips,paper=\PHD@papersize,hmarginratio=1:1,
+          vmarginratio=1:1,scale=0.75,bindingoffset=5mm]{geometry}
+      \else
+        \RequirePackage[pdftex,paper=\PHD@papersize,hmarginratio=1:1,
+          vmarginratio=1:1,scale=0.75,bindingoffset=5mm]{geometry}
+      \fi
     \fi
   \fi
 
@@ -699,12 +720,17 @@ supported!}
     % Margin to be define in preamble using geometry package
     \else
       % No Margin staggering on Odd and Even side
-      \ifsetDVI
+      \ifxetex
         \RequirePackage[paper=\PHD@papersize,hmarginratio=1:1,
-          vmarginratio=1:1,scale=0.75]{geometry} % dvips
-      \else
-        \RequirePackage[pdftex,paper=\PHD@papersize,hmarginratio=1:1,
           vmarginratio=1:1,scale=0.75]{geometry}
+      \else
+        \ifsetDVI
+          \RequirePackage[paper=\PHD@papersize,hmarginratio=1:1,
+            vmarginratio=1:1,scale=0.75]{geometry} % dvips
+        \else
+          \RequirePackage[pdftex,paper=\PHD@papersize,hmarginratio=1:1,
+            vmarginratio=1:1,scale=0.75]{geometry}
+        \fi
       \fi
     \fi
 

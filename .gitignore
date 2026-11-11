@@ -15,6 +15,21 @@ env/
 __pycache__/
 *.pyc
 
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.out
+*.nlo
+*.nls
+*.ilg
+*.lot
+*.lof
+
 # PlatformIO build artifacts
 .pio/
 _pi_data/

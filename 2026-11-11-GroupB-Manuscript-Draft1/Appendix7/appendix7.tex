@@ -18,26 +18,23 @@ To prevent file-system corruption from repeated hard power-cycling, the Raspberr
 \begin{algorithmic}[1]
 \renewcommand{\algorithmicrequire}{\textbf{Trigger:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
-\REQUIRE \texttt{cron} schedule matches 12:00 PM (Noon)
-\ENSURE \texttt{growth\_dataset.csv} updated with daily metrics
-\STATE Load \texttt{pot\_rois.json} (Coordinate boundaries for all 9 pots)
-\STATE Open continuous live video stream and allow auto-exposure to stabilize
-\STATE Sample a single high-resolution RGB frame from the live feed
-\STATE Convert image matrix from RGB to HSV
-\FOR{each $Pot\_ID$ in Target\_Array (1 to 9)}
-    \STATE Apply specific bounding coordinates from JSON
-    \STATE Apply threshold mask ($35^\circ \le Hue \le 85^\circ$)
-    \STATE Calculate $GPR = (Green\_Pixels / Total\_ROI\_Pixels) \times 100$
-    \IF{$GPR$ deviation from previous day exceeds threshold}
-        \STATE $Anomaly\_Flag = 1$
-    \ELSE
-        \STATE $Anomaly\_Flag = 0$
-    \ENDIF
-    \STATE Fetch localized Volumetric Water Content ($SM$) from ESP32 baseline log
-    \STATE Append ($D$, $Timestamp$, $Pot\_ID$, $SM$, $GPR$, $Anomaly\_Flag$) to \texttt{growth\_dataset.csv}
+\REQUIRE \texttt{cron} schedule matches 12:00 PM (Solar Noon)
+\ENSURE \texttt{growth\_dataset.csv} updated with daily metrics and frame archived
+\STATE Load \texttt{pot\_rois.json} (9 pot centers and Voronoi cell boundaries)
+\STATE Open camera video stream with locked white balance and fixed focus
+\STATE Converge auto-exposure to target mean luminance ($V = 73$)
+\STATE Sample single uncompressed $1296 \times 1296$ frame and save lossless PNG to \texttt{frames/}
+\STATE Convert frame from RGB to HSV color space
+\STATE Generate binary vegetation mask ($38 \le \text{Hue} \le 85$, $\text{Saturation} \ge 100$, $\text{Value} \ge 55$)
+\STATE Apply $3 \times 3$ morphological opening kernel (\texttt{MORPH\_K = 3}) to remove noise
+\FOR{each $\text{Pot\_ID}$ in 1 to 9}
+    \STATE Compute non-overlapping Voronoi pot-area cell mask (capped at $r \le 175\,\mathrm{px}$)
+    \STATE Count green vegetation pixels within pot circle ($\text{raw\_gpr}$) and cell area ($\text{cell\_gpr}$)
+    \STATE Check anomaly bounds against moving baseline; set $\text{Anomaly\_Flag}$ if deviant
+    \STATE Query localized Soil Moisture ($\text{SM}$) from ESP32 serial link
+    \STATE Append ($D$, $\text{Timestamp}$, $\text{Pot\_ID}$, $\text{SM}$, $\text{Raw\_GPR}$, $\text{Cell\_GPR}$, $\text{Anomaly\_Flag}$) to \texttt{growth\_dataset.csv}
 \ENDFOR
-\STATE Delete raw RGB image file to free local storage
-\STATE Terminate script execution and wait for next \texttt{cron} trigger
+\STATE Terminate pipeline and return to low-power idle until next trigger
 \end{algorithmic}
 
 \vspace{0.5\baselineskip}

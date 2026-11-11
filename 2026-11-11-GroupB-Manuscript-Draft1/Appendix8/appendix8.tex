@@ -13,22 +13,22 @@
     \graphicspath{{Appendix8/Figs/Vector/}{Appendix8/Figs/}}
 \fi
 
-Because the system operates entirely independently of cloud infrastructure, all temporal data required for the formulation of the multivariate polynomial regression model is saved locally on the device. Table \ref{tab:csv_structure} illustrates the simulated formatting of the comma-separated values (CSV) log utilized by the system across a standard 35-day Pechay grow-out cycle. The \textbf{Smooth GPR} column is populated during offline post-harvest processing rather than by the daily cron routine.
+Because the system operates entirely independently of cloud infrastructure, all temporal data required for the formulation of the multivariate polynomial regression model is saved locally on the device. Table \ref{tab:csv_structure} illustrates the structure of the comma-separated values (CSV) log utilized by the system across the 30-day Pechay grow-out cycle. The \textbf{Smooth GPR} column is populated during offline post-harvest processing rather than by the daily cron routine.
 
 \begin{table}[htbp]
     \centering
-    \caption{Simulated Edge Data CSV Log Structure (Pot P-01, Treatment Group A)}
-    \begin{tabular}{@{}lrlrrrr@{}}
+    \caption{Edge Data CSV Log Structure (\texttt{growth\_dataset.csv})}
+    \begin{tabular}{@{}lrlrrrrr@{}}
         \toprule
-        \textbf{Day (D)} & \textbf{Timestamp} & \textbf{Pot\_ID} & \textbf{SM (\%)} & \textbf{Raw GPR} & \textbf{Smooth GPR} & \textbf{Flag} \\
+        \textbf{Day (D)} & \textbf{Timestamp} & \textbf{Pot\_ID} & \textbf{SM (\%)} & \textbf{Raw GPR} & \textbf{Cell GPR} & \textbf{Smooth GPR} & \textbf{Flag} \\
         \midrule
-        14 & 2026-10-16 12:00 & P-01 & 35.2 & 9.05\% & 8.95\% & 0 \\
-        15 & 2026-10-17 12:00 & P-01 & 34.8 & 10.80\% & 10.85\% & 0 \\
-        16 & 2026-10-18 12:00 & P-01 & 36.1 & 14.20\% & 12.71\% & 1 \\
-        17 & 2026-10-19 12:00 & P-01 & 33.5 & 14.90\% & 14.90\% & 0 \\
-        18 & 2026-10-20 12:00 & P-01 & 38.0 & 17.32\% & 17.20\% & 0 \\
-        19 & 2026-10-21 12:00 & P-01 & 36.5 & 19.95\% & 19.95\% & 0 \\
-        20 & 2026-10-22 12:00 & P-01 & 34.2 & 22.80\% & 22.80\% & 0 \\
+        14 & 2026-11-11 12:00 & P-01 & 35.2 & 1.05\% & 1.24\% & 1.18\% & 0 \\
+        15 & 2026-11-12 12:00 & P-01 & 34.8 & 1.30\% & 1.52\% & 1.55\% & 0 \\
+        16 & 2026-11-13 12:00 & P-01 & 36.1 & 1.62\% & 1.89\% & 1.85\% & 0 \\
+        17 & 2026-11-14 12:00 & P-01 & 33.5 & 1.90\% & 2.14\% & 2.18\% & 0 \\
+        18 & 2026-11-15 12:00 & P-01 & 38.0 & 2.25\% & 2.51\% & 2.55\% & 0 \\
+        19 & 2026-11-16 12:00 & P-01 & 36.5 & 2.68\% & 2.99\% & 3.01\% & 0 \\
+        20 & 2026-11-17 12:00 & P-01 & 34.2 & 3.12\% & 3.53\% & 3.50\% & 0 \\
         \bottomrule
     \end{tabular}
     \label{tab:csv_structure}
