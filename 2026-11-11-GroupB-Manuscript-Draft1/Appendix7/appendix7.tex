@@ -1,0 +1,46 @@
+%%*****************************************************************************
+%%  APPENDIX G: Always-On Local Vision Cron Execution Pseudocode
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{Always-On Local Vision Cron Execution Pseudocode}
+
+\ifpdf
+    \graphicspath{{Appendix7/Figs/Raster/}{Appendix7/Figs/PDF/}{Appendix7/Figs/}}
+\else
+    \graphicspath{{Appendix7/Figs/Vector/}{Appendix7/Figs/}}
+\fi
+
+To prevent file-system corruption from repeated hard power-cycling, the Raspberry Pi Zero 2W remains continuously powered through the UPS-backed supply path. The daily visual data extraction is managed entirely by a headless \texttt{cron} job. The following pseudocode outlines the Python script executed autonomously every 24 hours.
+
+\begin{algorithmic}[1]
+\renewcommand{\algorithmicrequire}{\textbf{Trigger:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\REQUIRE \texttt{cron} schedule matches 12:00 PM (Noon)
+\ENSURE \texttt{growth\_dataset.csv} updated with daily metrics
+\STATE Load \texttt{pot\_rois.json} (Coordinate boundaries for all 9 pots)
+\STATE Open continuous live video stream and allow auto-exposure to stabilize
+\STATE Sample a single high-resolution RGB frame from the live feed
+\STATE Convert image matrix from RGB to HSV
+\FOR{each $Pot\_ID$ in Target\_Array (1 to 9)}
+    \STATE Apply specific bounding coordinates from JSON
+    \STATE Apply threshold mask ($35^\circ \le Hue \le 85^\circ$)
+    \STATE Calculate $GPR = (Green\_Pixels / Total\_ROI\_Pixels) \times 100$
+    \IF{$GPR$ deviation from previous day exceeds threshold}
+        \STATE $Anomaly\_Flag = 1$
+    \ELSE
+        \STATE $Anomaly\_Flag = 0$
+    \ENDIF
+    \STATE Fetch localized Volumetric Water Content ($SM$) from ESP32 baseline log
+    \STATE Append ($D$, $Timestamp$, $Pot\_ID$, $SM$, $GPR$, $Anomaly\_Flag$) to \texttt{growth\_dataset.csv}
+\ENDFOR
+\STATE Delete raw RGB image file to free local storage
+\STATE Terminate script execution and wait for next \texttt{cron} trigger
+\end{algorithmic}
+
+\vspace{0.5\baselineskip}
+\noindent The daily cron routine logs only the raw per-day GPR value. The \texttt{Smoothed\_GPR} field is not computed on-device; the 3-day centered moving average is applied offline during post-harvest analysis, once each plant's complete time-series is available.
+
+\clearpage

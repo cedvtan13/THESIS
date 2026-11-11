@@ -1,0 +1,23 @@
+%%*****************************************************************************
+%%  APPENDIX C: System Timing Diagram
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{System Timing Diagram}
+
+\ifpdf
+    \graphicspath{{Appendix3/Figs/Raster/}{Appendix3/Figs/PDF/}{Appendix3/Figs/}}
+\else
+    \graphicspath{{Appendix3/Figs/Vector/}{Appendix3/Figs/}}
+\fi
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{Timing_Diagram.png}
+    \caption{Daily operating sequence showing continuous UPS-backed controller power, autonomous ESP32-S3 irrigation control, and the scheduled noon image-capture window executed by the Raspberry Pi Zero 2W.}
+    \label{fig:timing-diagram}
+\end{figure}
+
+\clearpage

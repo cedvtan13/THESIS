@@ -1,0 +1,176 @@
+%%*****************************************************************************
+%%  INTRODUCTION
+%%
+%%  MIGRATED FROM THE IEEE-FORMAT PROPOSAL. The wording below is UNCHANGED
+%%  from the proposal except for the mechanical conversions listed here:
+%%    - \section -> \chapter, \subsection -> \section, etc. (one level up)
+%%    - \columnwidth -> \linewidth (the book class is single column)
+%%    - figure paths now resolve through \graphicspath below
+%%    - IEEE two-column spacing crutches removed (\hspace*{1.5em} paragraph
+%%      indents and \vspace{0.5\baselineskip} gaps); the book class indents
+%%      and spaces paragraphs on its own
+%%
+%%  STILL TO DO IN THIS FILE - see MIGRATION-NOTES.md:
+%%    1. TENSE PASS. Future tense throughout; change to past tense for what
+%%       was done and present tense for established facts.
+%%    2. Day 0 pH measurement is listed as a deliverable but was never taken.
+%%    3. Scope section still says 'bulk commercial potting mix sourced from
+%%       the Department of Agriculture'. The real medium is garden soil, rice
+%%       hull and vermicast at 8:4:3.
+%%    4. The GPR definition here is the fixed circular ROI. It is now a
+%%       non-overlapping per-pot area.
+%%    5. Nomenclature entries are at the end of this file. Add any term you
+%%       use and have not yet defined.
+%%*****************************************************************************
+
+\chapter{Introduction}
+\label{chap:introduction}
+
+\ifpdf
+    \graphicspath{{Chapter1/Figs/Raster/}{Chapter1/Figs/PDF/}{Chapter1/Figs/}}
+\else
+    \graphicspath{{Chapter1/Figs/Vector/}{Chapter1/Figs/}}
+\fi
+
+\section{Global Context: Food Insecurity and Urbanization}
+Food insecurity remains one of the most pressing global challenges of the 21st century. The United Nations reports that over two billion people experience moderate to severe food insecurity, a figure that continues to climb due to climate change, population growth, and repeated disruptions in global supply chains \cite{UN2023}. The Sustainable Development Goals (SDGs), particularly Goal 2 (Zero Hunger) and Goal 11 (Sustainable Cities and Communities), call for resilient food systems capable of withstanding environmental and economic shocks while ensuring equitable access to nutritious food.
+
+Urbanization intensifies this challenge. As cities expand, agricultural land recedes and urban households grow increasingly dependent on external supply chains, exposing them to both price volatility and supply disruptions. In the Philippines, where food constitutes a disproportionately large share of household expenditures, this vulnerability is especially acute. Leafy vegetables such as Pechay (\textit{Brassica rapa}), among the most commonly cultivated crops in Philippine urban gardens, are themselves subject to supply-driven price fluctuations that directly impact household food budgets \cite{PSA2023}. Such volatility underscores the urgency of developing decentralized, small-scale food production systems that can partially insulate urban dwellers from external market shocks.
+
+\section{Urban Agriculture as a Sustainable Solution}
+Urban agriculture offers a promising pathway to address these challenges by integrating food production into accessible spaces such as balconies, rooftops, small gardens, and controlled greenhouse environments. By shortening supply chains, it reduces dependence on long-distance transportation, lowers household food costs, and provides fresher, more nutritious produce. Beyond direct nutritional benefits, urban farming contributes to climate resilience by cutting food miles, enabling controlled water use through precision irrigation, and supporting biodiversity in densely populated areas.
+
+The Philippine government has increasingly recognized urban agriculture as a strategic response to food insecurity and climate change. The National Urban and Peri-Urban Agriculture Program (NUPAP) and the proposed Urban Agriculture and Farming Promotion Act of 2025 (House Bill 1337) explicitly identify IoT-enabled micro-irrigation and remote-sensing diagnostics as priority technologies \cite{HB1337, NUPAP2023}. However, adoption among urban residents remains limited by the technical expertise and daily time commitment required for effective crop maintenance \cite{PSA2023}. The integration of IoT automation and computer vision into small-scale farming systems has therefore become an important research direction for making urban agriculture more accessible and self-sustaining.
+
+\section{Institutional Background and Research Gap}
+Prior institutional research at the University of San Carlos has progressively established the feasibility of IoT-enabled automated irrigation for small-scale urban farming. Aala et al. (2022) developed an early IoT precision farming prototype that introduced sensor-driven microclimatic monitoring using capacitive soil moisture sensors and a modular sprinkler probe system deployed in a shared soil plot \cite{Aala2022}. While the capacitive moisture sensors performed adequately, the glass-bulb pH sensor encountered significant reliability issues: continuous immersion in soil caused progressive signal drift and required frequent manual recalibration, ultimately limiting the system's long-term autonomy. Additionally, the system's reliance on loose jumper wire interconnects in a high-humidity environment introduced intermittent contact faults that compromised data reliability \cite{Aala2022}.
+
+Building on this foundation, Zamora et al. (2025) redeveloped and evaluated a refined system employing capacitive soil moisture sensors and a 1:1 solenoid-per-probe architecture deployed across a shared \(0.4\,\mathrm{m} \times 1.0\,\mathrm{m}\) crop plot divided into individual grid cells \cite{ZamoraOgue2025}. Their system automated irrigation based on soil moisture thresholds and integrated a weather forecast API, a cloud database, and a companion mobile application for remote monitoring. A comparative grow-out trial of Pechay (\textit{Brassica rapa}) demonstrated that the automated system produced plants with a 92.1\% higher average fresh weight compared to a manually watered traditional setup, validating the effectiveness of sensor-driven automated irrigation for urban crop cultivation \cite{ZamoraOgue2025}.
+
+However, both iterations share one critical and unresolved limitation: plant health monitoring and yield estimation remained entirely manual. In both systems, a user was required to physically inspect each plant to assess its growth stage and overall health condition. In Zamora et al. (2025), plant growth was monitored through daily manual measurements of height, leaf count, and leaf color using a standardized color chart, a labor-intensive process that contradicts the goal of a fully autonomous farming system. No automated mechanism existed in either study to estimate accumulated biomass at any point in the growth cycle, nor to predict the yield expected at harvest \cite{ZamoraOgue2025, Aala2022}. This dependence on manual visual inspection constitutes the primary research gap that the present study addresses.
+
+More broadly, while RGB image-based methods for non-destructive biomass estimation have been studied in controlled research environments \cite{Ge2016, Patrignani2015}, these approaches have rarely been adapted for low-cost, fixed-camera deployments targeting common urban crops such as Pechay. Existing models frequently rely on expensive multispectral or hyperspectral imaging equipment, or require precisely controlled laboratory conditions that are difficult to replicate outside specialized facilities. No validated, low-cost computer vision pipeline currently exists for daily growth monitoring and statistical yield prediction of Pechay under controlled small-scale farming conditions.
+
+This gap defines the scope of the present study. Rather than introducing new irrigation hardware, this study reuses the validated solenoid-based automated irrigation approach demonstrated by Zamora et al. (2025) to enforce three distinct soil moisture treatment groups. Unlike the prior crop plot deployment, this study grows Pechay in individual isolated container pots to eliminate root-zone competition. The vision pipeline runs on an always-on Raspberry Pi Zero 2W, employs a fixed-position camera with optimal angle and digital ROI masking determined during the setup phase, and computes the Green Pixel Ratio (GPR) through HSV color space segmentation. Ultimately, the study correlates the daily GPR time-series, alongside chronological age (Day-in-cycle) and localized Soil Moisture (SM) data, with harvest-time biomass measurements to formulate and validate a multivariate statistical predictive regression model.
+
+\section{Statement of the Problem and Objectives}
+This study addresses the absence of an affordable, validated multivariate yield prediction model for container-grown Pechay using daily RGB images and soil moisture data captured under controlled greenhouse conditions. Specifically, the following research questions are posed:
+
+\noindent \textbf{RQ1.} How accurately does a multivariate polynomial regression model, utilizing Green Pixel Ratio (GPR), Day in growth cycle (D), and Soil Moisture (SM), predict the final fresh-weight yield of Pechay?
+
+\noindent \textbf{RQ2.} What is the statistical correlation and contribution of each individual variable (GPR, D, SM) towards the final biomass prediction?
+
+\noindent \textbf{RQ3.} What is the predictive performance of the formulated model when evaluated using leave-one-plant-out cross-validation (LOOCV), expressed through the coefficient of determination (\(R^2\)) and Mean Absolute Error (MAE) relative to ground-truth harvest measurements?
+
+\noindent \textbf{a) Primary Objective:} To develop and validate a multivariate polynomial regression model that predicts the final fresh-weight biomass of Pechay (\textit{Brassica rapa}) from daily Green Pixel Ratio (GPR), Day-in-cycle (D), and Soil Moisture (SM) inputs---collected automatically by a computer vision and sensor system---across three differential soil moisture treatment groups in a controlled greenhouse environment.
+
+\noindent \textbf{b) Verifiable Project Deliverables:}
+\begin{table}[htbp]
+\caption{Verifiable Deliverables Mapped to Specific Research Objectives}
+\label{tab:deliverables}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{p{0.45\linewidth} p{0.5\linewidth}}
+\toprule
+\textbf{Specific Objective} & \textbf{Verifiable Deliverables} \\
+\midrule
+1. Deploy 1:1 solenoid baseline irrigation for three differential soil moisture treatment groups (Low: 30--40\%, Optimal: 50--60\%, High: 70--80\%). & Two-point sensor calibration log documenting oven-dried and saturated-soil ADC baselines and the True VWC conversion factor; 30-day automated irrigation log (CSV) with timestamps, Pot ID, soil moisture (\%), dose volumes (mL), and pulse durations. \\
+\midrule
+2. Establish a uniform growing environment and controlled agronomic conditions. & Standardized 8:4:3 potting substrate specification (garden soil : carbonized rice hull : vermicast); baseline soil pH spot-check table for 9 pots; pre-calibration vision report (HSV bounds, $3\times3$ morphological opening, and locked exposure); ROI mask configuration file (\texttt{pot\_rois.json}) with pot-area Voronoi cell boundaries for \texttt{cell\_gpr}. \\
+\midrule
+3. Capture daily canopy images and compute Green Pixel Ratio (GPR) for 9 plants over a 30-day grow-out cycle. & Nine 30-day GPR time-series CSV files (Date, Timestamp, Pot ID, Soil Moisture, Raw GPR, Cell GPR, Smoothed GPR, Anomaly Flag); daily system capture and exposure log; multi-group GPR canopy trajectory plots. \\
+\midrule
+4. Collect ground-truth fresh-weight biomass at harvest. & 9-pot harvest fresh-weight table (Pot ID, Treatment Group, Harvest Date, Fresh Weight in grams); digital scale calibration check-sheet. \\
+\midrule
+5. Formulate a multivariate polynomial regression model. & Full 30-day training dataset CSV (up to 270 rows); parsimonious six-term polynomial regression specification with explicit $\beta_0$--$\beta_5$ coefficients; feature correlation matrix and multicollinearity evaluation. \\
+\midrule
+6. Evaluate model predictive performance via Leave-One-Plant-Out Cross-Validation (LOOCV). & LOOCV $R^2$ score; Mean Absolute Error (MAE, g) reported per plant and per row; predicted-versus-actual harvest weight table; residual plots for each soil moisture treatment group. \\
+\midrule
+7. Implement software-level failure detection, anomaly tracking, and system recovery. & 30-day error, power, and glare log files (\texttt{error\_log.csv}, \texttt{power\_log.csv}, \texttt{glare\_log.csv}); system reliability summary report covering capture completeness, outage recovery, fault quarantines, and GPR segmentation accuracy benchmarked against manual hand-labels. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Control Variables for Agronomic Integrity}
+The statistical validity of the yield prediction model depends on the consistency of the growing environment throughout the data collection period. Two primary control variables are enforced across all experimental units.
+
+Soil moisture is maintained as a strict control variable through the automated 1:1 solenoid irrigation system reused from Zamora et al. (2025). However, rather than maintaining a single optimal baseline, the ESP32-S3 microcontroller manages sensor polling and irrigation scheduling to strictly enforce three distinct volumetric water content (VWC) treatment bands: Low (30--40\%), Optimal (50--60\%), and High (70--80\%). This ensures that moisture variance is systematically controlled and accurately logged, providing the necessary mathematical spread required to train the soil moisture parameter (\(SM\)) of the multivariate prediction model without introducing random, unquantified drought or flooding artifacts.
+
+Ambient lighting is maintained as a strict control variable through a two-part greenhouse lighting arrangement. The greenhouse admits natural daylight, which serves as the primary energy source for photosynthesis and vegetative growth, while a fixed overhead LED array provides standardized supplemental illumination during image acquisition so that imaging conditions remain reproducible regardless of daily weather or cloud cover. To further stabilize the recorded illumination, daily image capture is restricted to the 11:00 AM to 2:00 PM window, when natural light is most consistent, and is performed under the constant LED source, which fixes the effective color temperature and intensity presented to the camera. Consistent lighting is essential for the reliability of HSV color space thresholding, as variations in illumination intensity or color temperature can artificially inflate or suppress the computed GPR independent of actual plant growth \cite{Hamuda2016}. By enforcing these two control variables, agronomic noise is minimized, ensuring that the daily GPR time-series reflects genuine vegetative development and provides a clean, reliable dataset for statistical model formulation.
+
+\section{Significance of the Study}
+
+This research contributes a validated, reproducible workflow for non-destructive yield prediction using only a single fixed-position RGB camera, a low-power edge device, and an existing automated irrigation baseline. Unlike prior institutional iterations which relied entirely on manual daily inspection, physically measuring plant height with a ruler, counting leaves, and assessing leaf color against a standardized chart, the approach presented here automates vegetative growth monitoring through a low-cost computer vision pipeline, reducing the need for human presence during data collection. More broadly, while RGB image-based phenotyping studies in the wider literature frequently depend on expensive multispectral or hyperspectral imaging equipment, the system presented here achieves non-destructive biomass estimation using only a consumer-grade RGB camera on a Raspberry Pi Zero 2W, making it accessible for resource-constrained, controlled small-scale farming environments.
+
+By building directly upon the irrigation hardware already validated by Zamora et al. (2025), this study avoids duplicating prior hardware contributions and focuses its original contribution entirely on the vision pipeline and statistical modeling layer. This deliberate narrowing of scope isolates the vision-based yield prediction component as the primary research contribution, free from the confounding effects of unvalidated hardware introductions.
+
+The findings establish a quantitative baseline, expressed as a validated \(R^2\) and MAE, for how well the combination of daily GPR, chronological age, and localized soil moisture data predicts Pechay harvest yield under controlled conditions. This provides a practical reference for future work extending multivariate phenotyping approaches to outdoor environments, multi-crop setups, and automated resource allocation systems in urban agriculture. All image processing is performed locally on the Raspberry Pi Zero 2W with no cloud infrastructure dependency, and all data is stored as standard CSV files, making the pipeline accessible and replicable for future researchers operating under similar resource constraints.
+
+\section{Scope and Limitations}
+This study is deployed within a controlled greenhouse environment in Cebu City, Philippines. The investigation focuses strictly on developing and validating a multivariate vision-based statistical yield prediction model for one target crop: Pechay (\textit{Brassica rapa}), grown in individual container pots using a standardized bulk commercial potting mix sourced from the Department of Agriculture.
+
+\noindent \textbf{a) In Scope:}
+\begin{itemize}
+    \item \textbf{Differential Treatment Groups:} The deployment of 9 individual container pots divided into three distinct soil moisture treatment groups (Low 30--40\%, Optimal 50--60\%, High 70--80\% VWC), managed autonomously by the reused 1:1 solenoid-based irrigation system from Zamora et al. (2025).
+    \item \textbf{Always-On Computer Vision Pipeline:} A fixed-position camera rig interfaced with a Raspberry Pi Zero 2W, powered continuously to avoid boot-cycle hardware failures. Image capture is executed automatically via a \texttt{cron}-scheduled Python script daily at noon.
+    \item \textbf{Digital Masking and Smoothing:} An HSV-based GPR extraction pipeline that utilizes fixed Region of Interest (ROI) JSON masking to bound computation purely to the individual pot areas, paired with a 3-day centered moving average to filter transient daily anomalies.
+    \item \textbf{Automated Failure Handling:} Software-level failure detection protocols embedded within the ESP32-S3 and Raspberry Pi to automatically log and manage hardware faults (e.g., sensor drift, missed cron jobs) without requiring physical intervention during the grow-out cycle.
+    \item \textbf{Multivariate Modeling:} Formulating a second-degree polynomial regression model mapping three input variables (GPR, Day-in-cycle, and SM) against the ground-truth final harvest weight.
+\end{itemize}
+
+\noindent \textbf{b) Limitations and Exclusions:}
+\begin{itemize}
+    \item \textbf{Systematic Occlusion Bias (Ceiling Effect):} Because a fixed-position, nadir-view (top-down) camera setup is used, overlapping leaves naturally occlude underlying biomass. The extracted GPR represents \textit{projected canopy cover}, not true leaf area index. The statistical model empirically absorbs this systematic bias, but the model is strictly bound to this specific camera angle.
+    \item \textbf{Within-Plant Autocorrelation:} The model maps 35 daily observations per plant to a single final harvest weight. While this provides 315 total training rows, the observations within a single plant's time-series are highly autocorrelated. This limitation is addressed during evaluation through leave-one-plant-out cross-validation (LOOCV).
+    \item \textbf{Manual Intervention Constraints:} Irrigation must remain fully automated. The only permissible manual intervention during the 35-day cycle is a non-disruptive weekly visual inspection of sensor probe coatings and pot structural integrity. Should any unplanned manual watering or corrective intervention nevertheless become necessary---for example, to recover a specimen in acute physiological distress, or to restore a failed irrigation component---the event is recorded in a deviation log capturing the timestamp, pot identifier, nature of the intervention, and justification. All logged deviations are disclosed together with the results, and the affected pots and acquisition dates are identified so that their influence on the fitted model can be assessed. 
+    \item \textbf{Germination-Window Moisture Measurement:} The capacitive probes are positioned within the root zone at a depth substantially below the placement depth of the sown seed. During the germination window (from \(D = 1\) until emergence, nominally \(D = 5\) to \(D = 7\)), the volumetric water content reported by each probe therefore characterises root-zone moisture rather than the moisture of the shallow surface layer in which the seed is situated. Differences in emergence timing between treatment groups consequently cannot be attributed solely to the reported VWC band, and no separate instrumentation of the seed-depth layer is undertaken within the scope of this study.
+    \item \textbf{Hardware Exclusions:} No weather forecast integration, mechanical water distribution multiplexing, mobile applications, cloud databases, or automated pH monitoring are implemented; these are explicitly outside the defined scope.
+    \item \textbf{Generalizability:} The calculated \(R^2\) and MAE values represent localized model fit for this specific greenhouse configuration and crop species. Generalization to outdoor environments, different lighting structures, or alternative crops would require complete model retraining.
+\end{itemize}
+
+
+%*****************************************************************************
+%  NOMENCLATURE (Glossary / Definition of Terms)
+%
+%  Maam Antoi: this is auto-generated by \printnomenclature in thesis.tex.
+%  It may live in any chapter file; keeping it here keeps it in one place.
+%  Sort-key prefixes used by the template:
+%     a-  Roman symbols      g-  Greek symbols
+%     s-  subscripts         z-  acronyms
+%  Add a line for every technical term or acronym you use and have not defined.
+%*****************************************************************************
+
+% ---- Roman symbols ----
+\nomenclature[a-D]{$D$}{Day in the growth cycle, counted from sowing}
+\nomenclature[a-GPR]{$GPR$}{Green Pixel Ratio, the fraction of a pot's measurement area classified as green canopy}
+\nomenclature[a-SM]{$SM$}{Soil moisture at the pot, expressed as volumetric water content}
+\nomenclature[a-R2]{$R^2$}{Coefficient of determination}
+\nomenclature[a-Y]{$\hat{Y}$}{Predicted fresh-weight yield at harvest, in grams}
+
+% ---- Greek symbols ----
+\nomenclature[g-b]{$\beta$}{Regression coefficient of the fitted polynomial model}
+\nomenclature[g-e]{$\varepsilon$}{Residual error term of the regression model}
+
+% ---- Acronyms ----
+\nomenclature[z-CSV]{CSV}{Comma-Separated Values}
+\nomenclature[z-DA]{DA}{Department of Agriculture}
+\nomenclature[z-GPIO]{GPIO}{General-Purpose Input/Output}
+\nomenclature[z-GPR]{GPR}{Green Pixel Ratio}
+\nomenclature[z-HSV]{HSV}{Hue, Saturation, Value colour space}
+\nomenclature[z-IoT]{IoT}{Internet of Things}
+\nomenclature[z-LAI]{LAI}{Leaf Area Index}
+\nomenclature[z-LED]{LED}{Light-Emitting Diode}
+\nomenclature[z-LOOCV]{LOOCV}{Leave-One-Plant-Out Cross-Validation}
+\nomenclature[z-MAE]{MAE}{Mean Absolute Error}
+\nomenclature[z-MUX]{MUX}{Multiplexer}
+\nomenclature[z-NUPAP]{NUPAP}{National Urban and Peri-Urban Agriculture Program}
+\nomenclature[z-PCB]{PCB}{Printed Circuit Board}
+\nomenclature[z-PSA]{PSA}{Philippine Statistics Authority}
+\nomenclature[z-RGB]{RGB}{Red, Green, Blue colour space}
+\nomenclature[z-ROI]{ROI}{Region of Interest}
+\nomenclature[z-SDG]{SDG}{Sustainable Development Goal}
+\nomenclature[z-SM]{SM}{Soil Moisture}
+\nomenclature[z-UPS]{UPS}{Uninterruptible Power Supply}
+\nomenclature[z-USC]{USC}{University of San Carlos}
+\nomenclature[z-VWC]{VWC}{Volumetric Water Content}

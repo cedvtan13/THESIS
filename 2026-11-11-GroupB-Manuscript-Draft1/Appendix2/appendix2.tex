@@ -1,0 +1,24 @@
+%%*****************************************************************************
+%%  APPENDIX B: Hardware Wiring Diagram
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{Hardware Wiring Diagram}
+
+\ifpdf
+    \graphicspath{{Appendix2/Figs/Raster/}{Appendix2/Figs/PDF/}{Appendix2/Figs/}}
+\else
+    \graphicspath{{Appendix2/Figs/Vector/}{Appendix2/Figs/}}
+\fi
+
+% Note to team: Insert your wiring diagram here. 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{WiringDiagram.png}
+    \caption{Hardware wiring diagram featuring the ESP32-S3 micro-controller, conformal-coated capacitive soil moisture sensors, solenoid valves, 12V diaphragm pump, dual power supply module, and UPS-backed power path for continuous controller operation.}
+    \label{fig:app_schematic}
+\end{figure}
+
+\clearpage

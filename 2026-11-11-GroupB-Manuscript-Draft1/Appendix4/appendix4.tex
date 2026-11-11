@@ -1,0 +1,44 @@
+%%*****************************************************************************
+%%  APPENDIX D: Bill of Materials and Prototype Cost
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{Bill of Materials and Prototype Cost}
+
+\ifpdf
+    \graphicspath{{Appendix4/Figs/Raster/}{Appendix4/Figs/PDF/}{Appendix4/Figs/}}
+\else
+    \graphicspath{{Appendix4/Figs/Vector/}{Appendix4/Figs/}}
+\fi
+
+The following table outlines the estimated hardware cost required to construct the data acquisition node and the automated irrigation baseline. The exclusion of cloud hosting fees and complex mechanical multiplexers maintains the system's economic viability for urban farming applications.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Project Bill of Materials (Estimated)}
+    \begin{tabular}{@{}llrr@{}}
+        \toprule
+        \textbf{Component} & \textbf{Qty} & \textbf{Unit Cost (₱)} & \textbf{Total Cost (₱)} \\
+        \midrule
+        Raspberry Pi Zero 2W & 1 & 1,250.00 & 1,250.00 \\
+        Raspberry Pi Camera Module V2 & 1 & 1,400.00 & 1,400.00 \\
+        ESP32-S3 Microcontroller & 1 & 450.00 & 450.00 \\
+        Capacitive Soil Moisture Sensor v1.2 & 4 & 60.00 & 240.00 \\
+        12V Solenoid Valve (1/2 inch) & 4 & 250.00 & 1,000.00 \\
+        UPS Backup Unit (model TBD) & 1 & TBD & TBD \\
+        12V Diaphragm Water Pump & 1 & 400.00 & 400.00 \\
+        5V/12V Dual Power Supply Module & 1 & 650.00 & 650.00 \\
+        Custom PCB Fabrication \& Coating & 1 & 800.00 & 800.00 \\
+        Grow-out Consumables (Pots, Soil, Seeds) & 1 & 1,500.00 & 1,500.00 \\
+        Miscellaneous (Wires, Hoses, Enclosure) & 1 & 1,200.00 & 1,200.00 \\
+        \midrule
+        \textbf{Subtotal Excluding TBD UPS} & & & \textbf{₱ 8,890.00} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:bom}
+\end{table}
+
+
+\clearpage

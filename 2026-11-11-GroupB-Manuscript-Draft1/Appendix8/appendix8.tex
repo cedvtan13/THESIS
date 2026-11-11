@@ -1,0 +1,38 @@
+%%*****************************************************************************
+%%  APPENDIX H: Localized Data Log Structure
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{Localized Data Log Structure}
+
+\ifpdf
+    \graphicspath{{Appendix8/Figs/Raster/}{Appendix8/Figs/PDF/}{Appendix8/Figs/}}
+\else
+    \graphicspath{{Appendix8/Figs/Vector/}{Appendix8/Figs/}}
+\fi
+
+Because the system operates entirely independently of cloud infrastructure, all temporal data required for the formulation of the multivariate polynomial regression model is saved locally on the device. Table \ref{tab:csv_structure} illustrates the simulated formatting of the comma-separated values (CSV) log utilized by the system across a standard 35-day Pechay grow-out cycle. The \textbf{Smooth GPR} column is populated during offline post-harvest processing rather than by the daily cron routine.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Simulated Edge Data CSV Log Structure (Pot P-01, Treatment Group A)}
+    \begin{tabular}{@{}lrlrrrr@{}}
+        \toprule
+        \textbf{Day (D)} & \textbf{Timestamp} & \textbf{Pot\_ID} & \textbf{SM (\%)} & \textbf{Raw GPR} & \textbf{Smooth GPR} & \textbf{Flag} \\
+        \midrule
+        14 & 2026-10-16 12:00 & P-01 & 35.2 & 9.05\% & 8.95\% & 0 \\
+        15 & 2026-10-17 12:00 & P-01 & 34.8 & 10.80\% & 10.85\% & 0 \\
+        16 & 2026-10-18 12:00 & P-01 & 36.1 & 14.20\% & 12.71\% & 1 \\
+        17 & 2026-10-19 12:00 & P-01 & 33.5 & 14.90\% & 14.90\% & 0 \\
+        18 & 2026-10-20 12:00 & P-01 & 38.0 & 17.32\% & 17.20\% & 0 \\
+        19 & 2026-10-21 12:00 & P-01 & 36.5 & 19.95\% & 19.95\% & 0 \\
+        20 & 2026-10-22 12:00 & P-01 & 34.2 & 22.80\% & 22.80\% & 0 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:csv_structure}
+\end{table}
+
+
+\clearpage
