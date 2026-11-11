@@ -72,7 +72,10 @@ def detect_modified_scopes():
     for line in out.splitlines():
         if not line.strip():
             continue
-        filepath = line[3:].strip()
+        parts = re.split(r"\s+", line.strip(), maxsplit=1)
+        if len(parts) < 2:
+            continue
+        filepath = parts[1].strip()
         if "2026-11-11-GroupB-Manuscript-Draft1" in filepath or filepath in ("MANUSCRIPT.md", "REVISION_LETTER.md"):
             manuscript_changed = True
         elif "Dual_Archi" in filepath or "_pi_data" in filepath or "DATA" in filepath or filepath in ("HANDOFF.md", ".pi_host.sh", "check_system.sh", "daily_checkin.sh", "system.sh"):

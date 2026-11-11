@@ -16,6 +16,10 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
 - **Panel Revision Letter:** `REVISION_LETTER.md` in root contains the complete 9-item formal revision letter to Dr. Cañete, Engr. D’Silva, and Engr. Labarosa with all measurements and rationale filled in.
 - **Fast Build & Live Preview:** Run `./compile.sh` inside `2026-11-11-GroupB-Manuscript-Draft1` to compile the 78-page `thesis.pdf` in ~5 seconds. Run `python3 auto_watch.py` for background auto-recompilation on save.
 - **Run 2 State:** Sown Oct 29, 2026 (D1). D8 bands activated Nov 5 at 11:44 AM. Currently at D14/D15. D2–D3 outage reported transparently in Chapter 4 without synthetic data. Harvest scheduled on D30 (November 27, 2026).
+- **Daily Inspection Command (`./check_system.sh`):** Connect laptop to Pi hotspot (or pass `PI_HOST=<ip>`), run `./check_system.sh` (or tell AI **"check system"**). It checks NTP clock sync, service daemons, Run 2 progress, pot moisture vs. bands, noon capture GPR, runs `roi_drift.py` on the latest frame to check camera/pot alignment, copies the alignment verification image to `~/Desktop/AgriSentry_ROI_Check.jpg`, and pulls latest telemetry to `_pi_data/`.
+- **Handoff & Work Sync Command (`./sync_work.sh [hardware|manuscript|auto]`):**
+  - For hardware/field checks: `./sync_work.sh hardware "D15 field check notes"` (or tell AI **"update handoff"**). Updates `HANDOFF.md` with Run 2 Day index, local telemetry stats, commits, and pushes to git.
+  - For manuscript work: `./sync_work.sh manuscript "revised Ch3"` (or tell AI **"update manuscript"**). Recompiles `thesis.pdf` via Tectonic, updates word counts in `MANUSCRIPT.md`, commits, and pushes to git.
 
 ## Project
 AgriSentry is an undergraduate thesis: "Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse".
@@ -296,6 +300,11 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync Check (2026-11-12 01:13:18) -- Day 15 of 30:**
+  - Run 2 timeline: 15 days remaining until harvest on 2026-11-27.
+  - Local data mirror: 668 soil moisture readings, 126 canopy GPR rows.
+  - Notes: docs: document check_system.sh and sync_work.sh workflows in HANDOFF.md and MANUSCRIPT.md
 
 - **Sync Check (2026-11-12 01:11:32) -- Day 15 of 30:**
   - Run 2 timeline: 15 days remaining until harvest on 2026-11-27.
