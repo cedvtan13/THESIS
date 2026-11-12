@@ -1,1 +1,2 @@
 2026-11-10 (D13): Found and removed a stray leaf inside the ROI circle of P-08, and removed a small weed protruding into P-09. D13 GPR readings for these two pots are artificially inflated.
+2026-11-12 (D15): Stray greenery from outside plants intruded into the ROI circle of P-09. D15 GPR reading for P-09 is artificially inflated.
