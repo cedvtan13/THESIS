@@ -2,6 +2,25 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
 
 **Read "Run 2 problems" first.** The run is in trouble on day 3 for the same reason run 1 was, and the cause is power, not software.
 
+## Current Status & Manuscript Overhaul (November 12, 2026)
+- **Manuscript Overhaul:** Located in `2026-11-11-GroupB-Manuscript-Draft1/`. Chapters 1, 2, and 3 have been completely overhauled:
+  - Tense pass (past/present).
+  - Scope and bench parameters reconciled (30-day cycle, 9 pots, up to 270 rows).
+  - Substrate specification: 8:4:3 volumetric mix (garden soil : carbonized rice hull : vermicast).
+  - Truncated-cone pots: 110 mm top, 85 mm base, 80 mm depth ($601\text{ cm}^3$ volume, 388 g dry / 662 g saturated substrate).
+  - Moisture calibration: Two-point calibration (2483 ADC dry to 1120 ADC saturated) mapped to True VWC ($\times 0.456$).
+  - Vision pipeline: Raspberry Pi Camera Module 3 (IMX708) at 136 cm elevation, brightness-normalized exposure ($V = 73$), locked WB, Voronoi pot-area `cell_gpr` ($r \le 175\text{ px}$), $3 \times 3$ morphological opening kernel, and lossless noon PNG archival from D12.
+  - Predictive modeling: Parsimonious 6-term polynomial model evaluated strictly by LOOCV.
+  - Literature: 5 key references added and cited (Ding 2022, Cho 2015, Hosoda 2024, Kim 2022, Lee 2024).
+- **Appendices Updated:** Appendix 4 (BOM updated to 9 sensors, 9 valves, Camera Module 3, BMP388, cooling fans), Appendix 6 (WBS), Appendix 7 (Vision daemon pseudocode), Appendix 8 (CSV log structure with `Cell GPR`).
+- **Panel Revision Letter:** `REVISION_LETTER.md` in root contains the complete 9-item formal revision letter to Dr. Cañete, Engr. D’Silva, and Engr. Labarosa with all measurements and rationale filled in.
+- **Fast Build & Live Preview:** Run `./compile.sh` inside `2026-11-11-GroupB-Manuscript-Draft1` to compile the 78-page `thesis.pdf` in ~5 seconds. Run `python3 auto_watch.py` for background auto-recompilation on save.
+- **Run 2 State:** Sown Oct 29, 2026 (D1). D8 bands activated Nov 5 at 11:44 AM. Currently at D14/D15. D2–D3 outage reported transparently in Chapter 4 without synthetic data. Harvest scheduled on D30 (November 27, 2026).
+- **Daily Inspection Command (`./check_system.sh`):** Connect laptop to Pi hotspot (or pass `PI_HOST=<ip>`), run `./check_system.sh` (or tell AI **"check system"**). It checks NTP clock sync, service daemons, Run 2 progress, pot moisture vs. bands, noon capture GPR, runs `roi_drift.py` on the latest frame to check camera/pot alignment, copies the alignment verification image to `~/Desktop/AgriSentry_ROI_Check.jpg`, and pulls latest telemetry to `_pi_data/`.
+- **Handoff & Work Sync Command (`./sync_work.sh [hardware|manuscript|auto]`):**
+  - For hardware/field checks: `./sync_work.sh hardware "D15 field check notes"` (or tell AI **"update handoff"**). Updates `HANDOFF.md` with Run 2 Day index, local telemetry stats, commits, and pushes to git.
+  - For manuscript work: `./sync_work.sh manuscript "revised Ch3"` (or tell AI **"update manuscript"**). Recompiles `thesis.pdf` via Tectonic, updates word counts in `MANUSCRIPT.md`, commits, and pushes to git.
+
 ## Project
 AgriSentry is an undergraduate thesis: "Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse".
 - 9 pechay pots in 3 soil-moisture groups.
@@ -278,3 +297,16 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 - **What did the panel say at the Oct 29 ~15:00 check, and what do they want to see next time?**
 - Camera height at the new site, lens to soil.
 - Sources for a ~30-day pechay harvest.
+
+
+## Daily Sync & Field Log History
+
+- **Sync Check (2026-11-12 01:13:18) -- Day 15 of 30:**
+  - Run 2 timeline: 15 days remaining until harvest on 2026-11-27.
+  - Local data mirror: 668 soil moisture readings, 126 canopy GPR rows.
+  - Notes: docs: document check_system.sh and sync_work.sh workflows in HANDOFF.md and MANUSCRIPT.md
+
+- **Sync Check (2026-11-12 01:11:32) -- Day 15 of 30:**
+  - Run 2 timeline: 15 days remaining until harvest on 2026-11-27.
+  - Local data mirror: 668 soil moisture readings, 126 canopy GPR rows.
+  - Notes: feat: add check_system.sh daily inspector and sync_work.sh workflow tools

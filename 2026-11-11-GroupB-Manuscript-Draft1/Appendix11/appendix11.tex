@@ -1,0 +1,65 @@
+\chapter{Ethical Considerations and Data Management Plan}
+\label{app:ethics}
+
+\section{Ethical Considerations}
+
+This study involves no human participants, no animal subjects and no personal
+data. It is an instrumented agronomic experiment on a cultivated vegetable
+crop, and accordingly it required no clearance from an ethics review board.
+The ethical obligations that do apply to it are obligations of research
+integrity, and they are stated here so that they can be checked.
+
+% TODO: confirm with the advisers whether the department requires a formal
+% ethics clearance form even for studies with no human or animal subjects.
+% The predecessor study (Zamora et al., 2025) required one because it
+% surveyed users; this study does not survey anyone.
+
+\subsection{Integrity of the Record}
+
+No measurement reported in this study was interpolated, back-filled or
+reconstructed after the fact. Capture days lost to power interruption are
+recorded as missing rather than filled from a neighbouring day, and the
+affected days are named in Chapter~\ref{chap:results}. Every change to the
+measurement geometry is logged with the date, the reason and a retained copy
+of the previous configuration, so that any reported value can be traced to the
+exact settings that produced it.
+
+\subsection{Reporting of Unfavourable Results}
+
+Results that weaken the study are reported alongside those that support it.
+The failure of the treatment bands to separate as designed, the days lost from
+the series, and the gap between the algorithm's agreement with human
+annotation and the agreement humans reach among themselves are all stated in
+Chapter~\ref{chap:results} rather than confined to a limitations section.
+
+\section{Data Management Plan}
+
+\subsection{Data Generated}
+
+% TODO: confirm final figures at submission.
+\begin{itemize}
+  \item Daily overhead frames at 1296 by 1296 px, one per capture day.
+  \item \texttt{growth\_dataset.csv}: one row per pot per capture day, holding
+        the day index, timestamp, soil moisture, the several Green Pixel Ratio
+        variants, pixel counts and quality flags.
+  \item \texttt{sm\_log.csv}: periodic soil moisture snapshots for all nine
+        pots.
+  \item \texttt{irrigation\_log.csv}: one row per delivered dose.
+  \item \texttt{power\_log.csv}, \texttt{error\_log.csv}: reliability records.
+  \item \texttt{pot\_rois.json} and its dated predecessors: measurement
+        geometry and its change history.
+  \item \texttt{harvest\_weights.csv}: above-ground fresh weight per plant.
+\end{itemize}
+
+\subsection{Storage and Backup}
+
+Working data are held on the controller's storage and mirrored to a version
+controlled repository. Every change to the measurement configuration is
+committed with the reason recorded in the file itself, so the history of the
+instrument is recoverable alongside the history of the data.
+
+\subsection{Retention and Access}
+
+The dataset and the analysis code will be deposited with the Department of
+Computer Engineering on completion of the study, so that the reported results
+can be reproduced from the raw frames.

@@ -1,0 +1,64 @@
+%%*****************************************************************************
+%%  APPENDIX F: Work Breakdown Structure
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{Work Breakdown Structure}
+
+\ifpdf
+    \graphicspath{{Appendix6/Figs/Raster/}{Appendix6/Figs/PDF/}{Appendix6/Figs/}}
+\else
+    \graphicspath{{Appendix6/Figs/Vector/}{Appendix6/Figs/}}
+\fi
+
+\begin{table}[htbp]
+    \centering
+    \caption{Unified Master Schedule \& Work Breakdown Structure (Jan--Dec 2026)}
+    \label{tab:wbs_schedule}
+    \renewcommand{\arraystretch}{1.5}
+    \small
+    \begin{tabularx}{\textwidth}{@{}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{3cm}
+        >{\raggedright\arraybackslash}X
+        >{\raggedright\arraybackslash}X
+        >{\raggedright\arraybackslash}X @{} }
+        \toprule
+        \textbf{Phase \& Timeline} & \textbf{Key Milestones} & \textbf{Cedric Tan} \newline \textit{(Systems \& Firmware)} & \textbf{Kent Godinez} \newline \textit{(Data \& Vision)} & \textbf{Rey Adag} \newline \textit{(Agronomy \& Infra)} \\
+        \midrule
+        \textbf{PHASE 1: Conceptualization \& Proposal} \newline \textit{(Jan--May)} &
+        \textbullet~Architecture Finalization \newline \textbullet~Chapter 1--3 Drafting \newline \textbullet~Hardware Sourcing \newline \textbullet~\textbf{Proposal Defense} &
+        \textbf{Drafting:} Chapter 3 (Methodology -- Vision \& Processing Pipeline). \newline \textbf{Procurement:} Source ESP32-S3, Raspberry Pi Zero 2W, and components. &
+        \textbf{Drafting:} Chapter 2 (RRL -- Non-Destructive Phenotyping \& Statistical Models). \newline \textbf{Design:} Establish theoretical baseline for polynomial regression. &
+        \textbf{Drafting:} Chapter 1 (Introduction, Scope, and Limitations). \newline \textbf{Procurement:} Source agricultural components, DA soil, and greenhouse space. \\
+        \midrule
+        \textbf{PHASE 2: Pre-Deployment Setup} \newline \textit{(Jun--Sep)} &
+        \textbullet~Greenhouse Prep \newline \textbullet~PCB Conformal Coating \newline \textbullet~Headless Pi Config \newline \textbullet~\textbf{System Calibration} &
+        \textbf{Firmware:} Flash Pi OS, write headless Python script for daily image capture. Program ESP32-S3 solenoid and pump-control logic. Run UPS-backed continuity and recovery tests. &
+        \textbf{Calibration:} Construct $90^\circ$ nadir camera rig. Conduct empirical HSV calibration on Pechay leaves (locking $H\in[38,85]$, $S\ge 100$, $V\ge 55$). Pre-write regression code. &
+        \textbf{Hardware:} Prepare 8:4:3 soil substrate. Apply conformal coating to PCBs. Construct timber-framed greenhouse and 3D-printed electronics enclosures. \\
+        \midrule
+        \textbf{PHASE 3: The 30-Day Grow-Out} \newline \textit{(Oct--Nov)} &
+        \textbullet~Automated Imaging \newline \textbullet~1:1 Solenoid Baseline \newline \textbullet~\textbf{Physical Harvest} &
+        \textbf{Monitoring:} Audit edge-device logs weekly to verify noon PNG archival and CSV completeness. Monitor ESP32-S3 moisture polling and cooling fan thermal regulation. &
+        \textbf{Pipeline Prep:} Finalize the Python OLS regression and LOOCV pipeline for instant execution. Document visual canopy progression and GPR validation against hand-labels. &
+        \textbf{Agronomy:} Conduct weekly visual inspections of coated sensors for moisture ingress. \textbf{Lead the Physical Harvest:} weigh fresh-weight biomass on Day 30. \\
+        \midrule
+        \textbf{PHASE 4: Statistical Modeling} \newline \textit{(Oct)} &
+        \textbullet~CSV Data Extraction \newline \textbullet~Regression Formulation \newline \textbullet~\textbf{Model Validation} &
+        \textbf{Extraction:} Extract the cumulative time-series CSV log from the Pi. Audit the GPR dataset for missing days or hardware-induced data spikes. &
+        \textbf{Data Science:} Feed GPR and harvest weights into the regression model. Calculate coefficient of determination ($R^2$) and Mean Absolute Error (MAE). Generate curves. &
+        \textbf{Compilation:} Compile the raw data tables linking physical harvest weights, soil baseline conditions, and final GPR for the manuscript's appendix. \\
+        \midrule
+        \textbf{PHASE 5: Manuscript Finalization} \newline \textit{(Nov--Dec)} &
+        \textbullet~Drafting Chapters 4 \& 5 \newline \textbullet~Adviser Reviews \newline \textbullet~\textbf{Panel Defense} &
+        \textbf{Writing:} Draft Chapter 4 hardware/software sections (always-on power and capture reliability). Compile final system schematics and codebase for appendices. &
+        \textbf{Writing:} Draft Chapter 4 statistical analysis sections (interpreting $R^2$ and MAE). Format all regression graphs and equations to meet IEEE standards. &
+        \textbf{Coordination:} Draft Chapter 5 (Conclusions). Finalize document formatting, manage bibliography, and coordinate reviews with Engr. Macapagal \& Saavedra. \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\clearpage

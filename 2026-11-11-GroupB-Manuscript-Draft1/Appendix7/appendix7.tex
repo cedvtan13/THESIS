@@ -1,0 +1,43 @@
+%%*****************************************************************************
+%%  APPENDIX G: Always-On Local Vision Cron Execution Pseudocode
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{Always-On Local Vision Cron Execution Pseudocode}
+
+\ifpdf
+    \graphicspath{{Appendix7/Figs/Raster/}{Appendix7/Figs/PDF/}{Appendix7/Figs/}}
+\else
+    \graphicspath{{Appendix7/Figs/Vector/}{Appendix7/Figs/}}
+\fi
+
+To prevent file-system corruption from repeated hard power-cycling, the Raspberry Pi Zero 2W remains continuously powered through the UPS-backed supply path. The daily visual data extraction is managed entirely by a headless \texttt{cron} job. The following pseudocode outlines the Python script executed autonomously every 24 hours.
+
+\begin{algorithmic}[1]
+\renewcommand{\algorithmicrequire}{\textbf{Trigger:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\REQUIRE \texttt{cron} schedule matches 12:00 PM (Solar Noon)
+\ENSURE \texttt{growth\_dataset.csv} updated with daily metrics and frame archived
+\STATE Load \texttt{pot\_rois.json} (9 pot centers and Voronoi cell boundaries)
+\STATE Open camera video stream with locked white balance and fixed focus
+\STATE Converge auto-exposure to target mean luminance ($V = 73$)
+\STATE Sample single uncompressed $1296 \times 1296$ frame and save lossless PNG to \texttt{frames/}
+\STATE Convert frame from RGB to HSV color space
+\STATE Generate binary vegetation mask ($38 \le \text{Hue} \le 85$, $\text{Saturation} \ge 100$, $\text{Value} \ge 55$)
+\STATE Apply $3 \times 3$ morphological opening kernel (\texttt{MORPH\_K = 3}) to remove noise
+\FOR{each $\text{Pot\_ID}$ in 1 to 9}
+    \STATE Compute non-overlapping Voronoi pot-area cell mask (capped at $r \le 175\,\mathrm{px}$)
+    \STATE Count green vegetation pixels within pot circle ($\text{raw\_gpr}$) and cell area ($\text{cell\_gpr}$)
+    \STATE Check anomaly bounds against moving baseline; set $\text{Anomaly\_Flag}$ if deviant
+    \STATE Query localized Soil Moisture ($\text{SM}$) from ESP32 serial link
+    \STATE Append ($D$, $\text{Timestamp}$, $\text{Pot\_ID}$, $\text{SM}$, $\text{Raw\_GPR}$, $\text{Cell\_GPR}$, $\text{Anomaly\_Flag}$) to \texttt{growth\_dataset.csv}
+\ENDFOR
+\STATE Terminate pipeline and return to low-power idle until next trigger
+\end{algorithmic}
+
+\vspace{0.5\baselineskip}
+\noindent The daily cron routine logs only the raw per-day GPR value. The \texttt{Smoothed\_GPR} field is not computed on-device; the 3-day centered moving average is applied offline during post-harvest analysis, once each plant's complete time-series is available.
+
+\clearpage

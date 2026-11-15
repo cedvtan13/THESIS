@@ -1,0 +1,41 @@
+%*****************************************************************************
+%  ABSTRACT
+%
+%  DRAFT. The first two paragraphs describe work that is complete and can
+%  stand. The results paragraph is deliberately left as a marked gap: it
+%  cannot be written until the harvest. WRITE IT LAST.
+%*****************************************************************************
+
+\begin{abstract}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{\baselineskip}
+
+Smallholder and urban growers in the Philippines manage irrigation largely by
+inspection, and the decision of when and how much to water is made without a
+quantitative record of how the crop is responding. This study developed and
+deployed an automated system that monitors the growth of pechay
+(\textit{Brassica rapa} subsp. \textit{chinensis}) under three controlled soil
+moisture regimes and relates the observed canopy development to the harvested
+biomass.
+
+A nine-pot array was instrumented inside a purpose-built greenhouse enclosure
+on the University of San Carlos Talamban Campus. Each pot carries a capacitive
+soil moisture probe and an individually valved drip line driven by an ESP32-S3
+controller on a custom board, which maintains three treatment bands of 30 to
+40, 50 to 60 and 70 to 80 per cent volumetric water content by a
+dose-and-wait rule. A Raspberry Pi Zero 2 W with a Camera Module 3 captures a
+fixed overhead frame at local noon each day, from which a Green Pixel Ratio is
+computed for each pot by thresholding in the HSV colour space over a
+non-overlapping per-pot measurement area. The segmentation was validated
+against independent manual annotation by two labellers.
+
+% ---------------------------------------------------------------------------
+% RESULTS PARAGRAPH: WRITE AFTER HARVEST. It must state, in this order:
+%   (1) the achieved soil moisture separation between groups;
+%   (2) the validation figures for the canopy measure;
+%   (3) the fitted model and its cross-validated R-squared and MAE;
+%   (4) one sentence on what this means for a grower.
+% Do not write this paragraph from expectation.
+% ---------------------------------------------------------------------------
+
+\end{abstract}

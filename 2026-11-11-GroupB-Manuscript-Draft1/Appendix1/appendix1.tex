@@ -1,0 +1,24 @@
+%%*****************************************************************************
+%%  APPENDIX A: System Architecture and Data Workflow
+%%
+%%  Carried over from the proposal's \appendices block. Single-column and
+%%  graphics-path fixes applied; wording unchanged.
+%%*****************************************************************************
+
+\chapter{System Architecture and Data Workflow}
+
+\ifpdf
+    \graphicspath{{Appendix1/Figs/Raster/}{Appendix1/Figs/PDF/}{Appendix1/Figs/}}
+\else
+    \graphicspath{{Appendix1/Figs/Vector/}{Appendix1/Figs/}}
+\fi
+
+% Note to team: Insert your downloaded Mermaid/Lucidchart PNG here
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{SystemArchitecture_2.png}
+    \caption{Dual-controller system architecture showing the continuous ESP32-S3 telemetry and irrigation layer, the cron-scheduled Raspberry Pi Zero 2W image-processing layer, shared UPS-backed power, and local CSV data storage.}
+    \label{fig:app_architecture}
+\end{figure}
+
+\clearpage

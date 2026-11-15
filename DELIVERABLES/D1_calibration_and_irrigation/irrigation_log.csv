@@ -1,0 +1,4 @@
+wall_time,esp_epoch,pot_id,group,vwc_before,vwc_target,dose_ml,pulse_ms,event_count,status
+2026-11-05T11:25:05,1793849105,P-02,GERM_UNIFORM,49.9,55.0,16.2,902,1,DOSED
+2026-11-06T09:35:20,1793928919,P-05,B_Optimal,50.0,55.0,16.0,889,1,DOSED
+2026-11-07T10:06:37,1794017206,P-05,B_Optimal,49.1,55.0,18.8,1045,2,DOSED

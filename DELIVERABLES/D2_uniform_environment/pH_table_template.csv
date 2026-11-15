@@ -1,0 +1,13 @@
+sample,group,date,time,temp_c,reading_1,reading_2,reading_3,average,note
+Day 0 soil mix (retained),all,,,,,,,,
+P-01,Low,,,,,,,,
+P-02,Low,,,,,,,,
+P-03,Low,,,,,,,,
+P-04,Optimal,,,,,,,,
+P-05,Optimal,,,,,,,,
+P-06,Optimal,,,,,,,,
+P-07,High,,,,,,,,
+P-08,High,,,,,,,,
+P-09,High,,,,,,,,
+Tank water,all,,,,,,,,
+pH 7.00 buffer check (end),-,,,,,,,,

@@ -1,0 +1,316 @@
+%%*****************************************************************************
+%%  METHODOLOGY
+%%
+%%  MIGRATED FROM THE IEEE-FORMAT PROPOSAL. The wording below is UNCHANGED
+%%  from the proposal except for the mechanical conversions listed here:
+%%    - \section -> \chapter, \subsection -> \section, etc. (one level up)
+%%    - \columnwidth -> \linewidth (the book class is single column)
+%%    - figure paths now resolve through \graphicspath below
+%%    - IEEE two-column spacing crutches removed (\hspace*{1.5em} paragraph
+%%      indents and \vspace{0.5\baselineskip} gaps); the book class indents
+%%      and spaces paragraphs on its own
+%%
+%%  STILL TO DO IN THIS FILE - see MIGRATION-NOTES.md:
+%%    1. TENSE PASS. This chapter is the most affected: it describes a system
+%%       that did not exist yet and now does.
+%%    2. Maam Antoi named this chapter specifically as needing rewriting
+%%       because the proposal version is generic.
+%%    3. CORRECTIONS OVERDUE (see MIGRATION-NOTES.md for the full table):
+%%       growing medium, 13 cm pots not 200 mm, Camera Module 3 not V2,
+%%       array geometry, always-on power not deep-sleep, enclosure material
+%%       and dimensions, and the per-pot area measure.
+%%    4. MISSING SECTION: the panel asked how the camera data is validated.
+%%       Section 'System Calibration and Pre-Deployment Validation' has five
+%%       items and every one validates the apparatus, not the measurement.
+%%       Add a sixth: GPR validation against hand-labelled ground truth.
+%%*****************************************************************************
+
+\chapter{Methodology}
+\label{chap:methodology}
+
+\ifpdf
+    \graphicspath{{Chapter3/Figs/Raster/}{Chapter3/Figs/PDF/}{Chapter3/Figs/}}
+\else
+    \graphicspath{{Chapter3/Figs/Vector/}{Chapter3/Figs/}}
+\fi
+
+\section{Experimental Design and Agronomic Controls}
+
+This study implements a structured quantitative experimental design to evaluate an edge computer vision architecture for non-destructive yield estimation. The cultivation trials focus on Pechay (\textit{Brassica rapa}) observed over a 30-day vegetative grow-out cycle, which falls within the documented 30- to 45-day harvest window for the crop \cite{Camariosa2021}. To isolate the primary mathematical relationship between daily extracted visual canopy features and final fresh-weight biomass at harvest, strict agronomic control variables were maintained within a timber-framed greenhouse setting:
+
+\textbf{Cultivation Timeline and Day Indexing.} The growth cycle index $D$ was defined such that $D = 1$ corresponds to the date of direct seed sowing into the final container (October 29, 2026), consistent with the direct-sowing protocol employed in prior institutional deployments \cite{ZamoraOgue2025}. Seedling emergence was observed between $D = 5$ and $D = 7$. Physical harvest and ground-truth fresh-weight measurement were scheduled on Day 30 ($D = 30$, November 27, 2026) immediately following the final scheduled noon image capture, ensuring that the terminal point of each GPR time-series corresponds temporally to the measured harvest weight.
+
+\begin{enumerate}
+    \item \textbf{Substrate Uniformity:} All specimens were cultivated in individual, structurally isolated containers using an 8:4:3 volumetric substrate mix composed of garden soil (53.3\%), carbonized rice hull (26.7\%), and vermicast (20.0\%). The substrate was homogenized in a single batch so that every pot received an identical physical and chemical matrix.
+    \item \textbf{Root Isolation:} Cultivating each plant in an individual pot container strictly bounded the rooting volume and eliminated inter-plant root-zone competition for localized water, space, and macronutrients.
+    \item \textbf{Differential Moisture Control:} The automated 1:1 solenoid-based micro-irrigation system adapted from Zamora et al. (2025) was configured to maintain three independent soil moisture treatment groups across the nine container pots: Group A (Low: 30--40\% relative moisture, 13.7--18.2\% True VWC), Group B (Optimal: 50--60\% relative moisture, 22.8--27.4\% True VWC), and Group C (High: 70--80\% relative moisture, 31.9--36.5\% True VWC). During the initial germination window ($D = 1$ to $D = 8$), all pots were held uniformly at 50--60\% moisture to support uniform seedling establishment before activating the differential treatment bands at $D = 8$. This autonomous baseline ensured strict root-zone moisture regulation without manual watering intervention, while providing the controlled variance necessary to train the soil moisture parameter ($SM$) in the multivariate prediction model.
+\end{enumerate}
+
+\section{Physical Cultivation Geometry and Spatial Setup}
+
+To ensure consistent digital image acquisition and eliminate microclimatic cross-contamination between specimens, the physical cultivation framework was organized according to strict spatial dimensions.
+
+\textbf{1) Container Pot Specifications:} All nine experimental units utilized identical truncated-cone polyethylene container pots featuring an upper diameter of $110\,\mathrm{mm}$ ($11.0\,\mathrm{cm}$), a base diameter of $85\,\mathrm{mm}$ ($8.5\,\mathrm{cm}$), and a vertical depth of $80\,\mathrm{mm}$ ($8.0\,\mathrm{cm}$). The geometric soil volume of each container is:
+\begin{equation}
+V = \frac{\pi h}{3} \left(R^2 + Rr + r^2\right) \approx 601\,\mathrm{cm}^3 \quad (0.60\,\mathrm{L})
+\label{eq:pot_volume}
+\end{equation}
+where $R = 5.5\,\mathrm{cm}$, $r = 4.25\,\mathrm{cm}$, and $h = 8.0\,\mathrm{cm}$. Gravimetric bench measurements using a calibrated 1-gram resolution digital scale established that each pot holds $388\,\mathrm{g}$ of oven-dry substrate and $662\,\mathrm{g}$ when fully saturated, representing an available water-holding capacity of $274\,\mathrm{mL}$.
+
+\textbf{2) Grid Array and Inter-Pot Clearance:} The nine pots were positioned on a planar cultivation bench arranged in a uniform $3 \times 3$ grid array. A standardized edge-to-edge clearance was maintained between adjacent pots, establishing sufficient spatial clearance to prevent mature vegetative canopies from touching or shading neighboring specimens and allowing non-overlapping digital cell masks to isolate individual plant canopies cleanly.
+
+\textbf{3) Camera Mounting Elevation and Field of View (FOV):} A single Raspberry Pi Camera Module 3 (Sony IMX708, 12-Megapixel, wide autofocus lens locked at fixed focal distance) was mounted directly overhead above the pot rim plane at an elevation of $1360\,\mathrm{mm}$ ($136\,\mathrm{cm}$), oriented at a true $90^\circ$ perpendicular angle (nadir view). The camera captured images at $1296 \times 1296$ pixels ($2\times$ binned from the native $4608 \times 2592$ sensor array), providing a square field of view spanning the complete $3 \times 3$ grid array with sufficient border margins. At this elevation, the spatial resolution was approximately $1.34\,\mathrm{px}\,\mathrm{mm}^{-1}$, ensuring that individual leaf structures and emerging cotyledons were resolved well beyond the precision threshold required for canopy segmentation.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\linewidth]{PhysicalSetup.png}
+    \caption{Physical setup of the greenhouse cultivation system showing the overhead camera, Raspberry Pi Zero 2W, microcontroller, water source, irrigation lines, 9-pot planting layout, and UPS-backed wall power connection.}
+    \label{fig:physical-setup-ups}
+\end{figure}
+
+\section{Stage 1: Physical System Stabilization and Interconnect Isolation}
+
+Building upon previous institutional lineage \cite{ZamoraOgue2025}, the physical hardware framework was modified to secure telemetry integrity against high-humidity greenhouse conditions. Unstructured copper core jumper wire matrices were eliminated and replaced by a unified, custom-designed Printed Circuit Board (PCB) routing interface that grouped sensor lines and minimized inductive loops.
+
+The capacitive sensor probe blades inserted within the soil substrate required robust environmental protection to maintain long-term calibration and prevent hardware degradation. Prior institutional implementations utilizing exposed sensors within humid greenhouse environments experienced rapid corrosion and transmitted erratic moisture data \cite{ZamoraOgue2025}. To eliminate this vulnerability, an industrial-grade conformal hydrophobic coating was applied to the sensor PCB assemblies. This coating created a physical barrier against atmospheric moisture ingress, ensuring stable dielectric permittivity readings without distorting electronic characteristics \cite{Sheng2019}.
+
+\section{Stage 2: Overhead Single-Camera Visual Acquisition Pipeline}
+
+The visual data acquisition node was designed to extract structural canopy metrics autonomously at the edge while operating without artificial lighting. The sequence was executed as follows:
+
+\begin{enumerate}
+    \item \textbf{Always-On Scheduled Capture:} The Raspberry Pi Zero 2W operated in a headless, always-on state to eliminate file-system corruption and boot failure risks associated with power-cycling. Image capture was executed autonomously via a \texttt{cron}-scheduled Python script triggered daily at solar noon (12:00 PM $\pm$ 15 minutes) under natural ambient daylight.
+    \item \textbf{Exposure Normalization and Frame Sampling:} Upon execution, the capture script engaged the camera stream, locked the white balance to daylight presets, and dynamically adjusted the exposure duration until the mean image luminance converged to a standardized target value ($V = 73$ in HSV space). A single uncompressed frame was then captured and saved.
+    \item \textbf{HSV Color Segmentation:} The captured frame was transformed into the HSV color space. Pixels satisfying the calibrated vegetation bounds ($38 \le \text{Hue} \le 85$ on OpenCV's 0--179 scale, $\text{Saturation} \ge 100$, and $\text{Value} \ge 55$) were classified as green canopy.
+    \item \textbf{Voronoi Spatial Attribution and Pot-Area Cell GPR:} Rather than bounding calculation to a rigid circular pot rim, the pipeline utilized Voronoi spatial partitioning (\texttt{pot\_rois.json}) to define non-overlapping polygonal cell boundaries centered on each pot. Each cell claimed all green pixels closest to its pot center up to a maximum radial ceiling of 175 pixels. This pot-area Cell GPR (\texttt{cell\_gpr}) accommodated natural seedling lean beyond pot rims without allowing leaf intrusion from neighboring specimens. A $3 \times 3$ morphological opening kernel (\texttt{MORPH\_K = 3}) was applied to the binary mask to remove isolated noise pixels while preserving cotyledons and leaf margins.
+    \item \textbf{Data Logging and Lossless Frame Archival:} For each pot, raw GPR and cell GPR values were computed and logged into daily CSV records. From Day 12 onward, full-resolution lossless raw noon PNG frames were retained in \texttt{frames/} to enable post-hoc phase-correlation alignment checks and hand-labeled segmentation validation.
+\end{enumerate}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{In-text_SystemArchitecture.png}
+    \caption{System architecture detailing the separation of the ESP32 baseline irrigation logic and the Raspberry Pi Zero 2W vision pipeline.}
+    \label{fig:methodology_flowchart}
+\end{figure}
+
+\section{System Calibration and Pre-Deployment Validation}
+\label{sec:calibration}
+
+Prior to the biological grow-out cycle, the decoupled architecture underwent rigorous pre-deployment calibration:
+
+\begin{enumerate}
+    \item \textbf{Two-Point Soil Moisture Calibration:} Capacitive soil moisture probes were calibrated using a two-point empirical baseline method. Oven-dried substrate (dried at 150 °C for 6 hours) established the $0\%$ relative moisture baseline at an average reading of $2483\,\mathrm{ADC}$ counts. Fully saturated substrate established the $100\%$ relative moisture baseline at $1120\,\mathrm{ADC}$ counts, yielding a full operating span of $1363\,\mathrm{ADC}$ counts. Channel-specific air offsets were determined (P-03 shifted by $-103$; P-05 shifted by $-75$) to align probe baselines in air ($\sim 5.9\%$). Volumetric Water Content (VWC) was mapped from relative moisture percentage by:
+    \begin{equation}
+    \text{True VWC} \approx \text{Relative SM (\%)} \times \frac{274\,\mathrm{mL}\,\text{water}}{601\,\mathrm{mL}\,\text{soil}} \approx \text{Relative SM (\%)} \times 0.456
+    \label{eq:vwc_mapping}
+    \end{equation}
+    \item \textbf{Cron Execution and Storage Autonomy Testing:} The vision node underwent a 72-hour continuous uptime test to verify that the scheduled Python daemon reliably fired at 12:00 PM, executed exposure convergence, segmented canopy pixels, logged CSV rows, and managed disk memory without memory leaks.
+    \item \textbf{Illumination and HSV Tuning:} The HSV segmentation thresholds ($38 \le H \le 85$, $S \ge 100$, $V \ge 55$) were validated across variable daylight conditions using sample Pechay leaves. The parameters cleanly isolated true leaf tissue while rejecting substrate, container plastics, and specular reflections.
+    \item \textbf{Camera Field-of-View and ROI Mapping:} Camera height was locked at $136\,\mathrm{cm}$ above the bench plane. Digital pot centers and Voronoi cell boundaries were calibrated and saved in \texttt{pot\_rois.json}.
+    \item \textbf{Morphological Opening Kernel Sizing:} The morphological opening kernel size was empirically evaluated. While a $9 \times 9$ kernel erroneously erased cotyledons and small leaves ($< 6.7\,\mathrm{mm}$), a $3 \times 3$ kernel preserved $98.4\%$ of true vegetative pixels while eliminating single-pixel salt-and-pepper noise.
+\end{enumerate}
+
+\section{Stage 3: Predictive Modeling Formulation and Verification}
+
+At the conclusion of the 30-day cultivation cycle, cumulative time-series CSV datasets for all 9 plants were extracted, yielding up to 270 row observations. Above-ground fresh-weight biomass ($Y$, grams) was measured at harvest using a calibrated digital scale ($5\,\mathrm{kg}$ capacity, $1\,\mathrm{g}$ resolution).
+
+Crop growth follows a nonlinear sigmoidal trajectory characterized by slow initial development, rapid mid-cycle vegetative expansion, and a plateau as canopy closure occurs \cite{Archontoulis2015, Ding2022}. To model this response surface while guarding against multicollinearity and overfitting, a parsimonious six-term ordinary least squares (OLS) polynomial specification was formulated:
+\begin{equation}
+\hat{Y} = \beta_0 + \beta_1 D + \beta_2 \text{GPR} + \beta_3 \text{SM} + \beta_4 \text{GPR}^2 + \beta_5 (\text{GPR} \times \text{SM}) + \varepsilon
+\label{eq:ols_model}
+\end{equation}
+where $\hat{Y}$ is the predicted harvest fresh-weight biomass (g), $D$ is the day in the growth cycle ($1 \le D \le 30$), $\text{GPR}$ is the pot-area cell Green Pixel Ratio (\%), $\text{SM}$ is the relative soil moisture percentage (or mapped True VWC), $\beta_0 \dots \beta_5$ are estimated regression coefficients, and $\varepsilon$ is the residual error. Because $D$ and $\text{GPR}$ correlate strongly over time, higher-order terms $D^2$ and $D \times \text{GPR}$ were eliminated to suppress multicollinearity, preserving $D$ as a linear age covariate, $\text{GPR}^2$ for saturation curvature, and $\text{GPR} \times \text{SM}$ for the interaction between canopy expansion and soil moisture.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{Predicted_Yield_Curves.png}
+    \caption{Simulated multivariate polynomial regression predictions demonstrating Pechay fresh-weight biomass progression across a 30-day cultivation cycle under varying differential soil moisture treatments.}
+    \label{fig:yield_curves}
+\end{figure}
+
+Because observations within each plant's 30-day series are temporally autocorrelated, random train-test splitting would inflate validation scores. Model generalization was strictly evaluated using Leave-One-Plant-Out Cross-Validation (LOOCV), iteratively fitting the model on 8 plants ($n = 240$ rows) and testing on the held-out 9th plant ($n = 30$ rows) across 9 folds. Predictive performance was evaluated by the coefficient of determination ($R^2$):
+\begin{equation}
+R^2 = 1 - \frac{\sum (Y_{\text{actual}} - \hat{Y})^2}{\sum (Y_{\text{actual}} - \bar{Y})^2}
+\label{eq:r2}
+\end{equation}
+and Mean Absolute Error (MAE):
+\begin{equation}
+\text{MAE} = \frac{1}{m} \sum_{i=1}^{m} |Y_{\text{actual}, i} - \hat{Y}_i|
+\label{eq:mae}
+\end{equation}
+reported both per plant ($m = 9$) and per observation row.
+
+\section{Electrical Power Configuration Profile}
+
+The system's electrical architecture was configured for continuous, autonomous operation. The telemetry layer ran on a $3.3\,\mathrm{V}$ rail with the ESP32-S3 operating continuously (always-on architecture), drawing baseline idle current and peaking at $240\,\mathrm{mA}$ during solenoid valve actuation.
+
+The computer vision layer operated on a $5\,\mathrm{V}$ rail. The Raspberry Pi Zero 2W drew an idle current of $100\text{--}150\,\mathrm{mA}$, peaking at $350\,\mathrm{mA}$ during active camera exposure and HSV segmentation. Total daily energy consumption was approximately 12 to 18 Watt-hours (Wh).
+
+\subsection{Power Failure Mitigation}
+
+To protect against grid outages common in tropical urban environments, the entire station was backed by an uninterruptible power supply (UPS) with pass-through charging. The UPS provided approximately 4 hours of reserve runtime for brief outages.
+
+For extended outages exceeding battery capacity, software recovery mechanisms ensured autonomous restoration:
+\begin{enumerate}
+    \item The ESP32-S3 logged probe telemetry and valve operations to non-volatile memory, automatically resuming threshold checks upon power restoration.
+    \item Outages and missed captures were logged transparently in \texttt{power\_log.csv} and \texttt{error\_log.csv} without synthetic back-filling.
+    \item Hardware time-synchronization between the ESP32-S3 and Raspberry Pi Zero 2W ensured clock coherence across offline reboots.
+\end{enumerate}
+
+%=============================================================================
+%  ADDED NOVEMBER 2026. The sections below describe the system AS BUILT.
+%  The sections above describe the system AS PROPOSED and still contain the
+%  figures listed in the deviation table. Reconcile them during the rewrite
+%  pass: where the two disagree, the as-built description is correct.
+%=============================================================================
+
+\section{Enclosure and Electronics Housings}
+\label{sec:enclosures}
+
+The deployed station is housed in a timber-framed greenhouse enclosure erected
+on the approved campus site. The frame is built from 1.5-inch nominal timber
+members rather than the half-inch PVC of the first prototype, which flexed at
+the joints once standing at full height and could not carry the roof load. A
+pitched roof section in PVC pipe is fastened to the frame by custom
+3D-printed PLA clip-ons secured with screws, and the structure is covered with
+a 200 by 200\,cm ultraviolet-stabilised plastic sheet over four mesh net
+panels of 120 by 60\,cm.
+
+Three enclosures were designed in CAD and printed in-house to carry the
+electronics. All were modelled by Cedric Tan.
+
+\subsection{Tiered Actuator Enclosure}
+
+The actuating hardware is carried in a three-tier stacked enclosure, shown
+assembled in Figure~\ref{fig:cad_actuator}. Each tier is an open frame with
+integrated mounting bosses, and the tiers are separated so that cabling runs
+vertically between levels rather than across them. The allocation is as
+follows: the top level carries the ESP32-S3 controller board and the relay
+banks, the middle level carries the pump and four solenoid valves, and the
+bottom level carries the remaining five valves.
+
+\begin{figure}[ht]
+\centering
+\begin{tabular}{ccc}
+\includegraphics[width=0.30\linewidth]{cad_tier1.png} &
+\includegraphics[width=0.30\linewidth]{cad_tier2.png} &
+\includegraphics[width=0.30\linewidth]{cad_tier3.png} \\
+(a) First tier & (b) Second tier & (c) Third tier \\
+\end{tabular}
+\caption[CAD models of the three actuator enclosure tiers]{CAD models of the
+three tiers of the actuator enclosure. The third tier carries louvred side
+walls for convective ventilation.}
+\label{fig:cad_tiers}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.5\linewidth]{cad_actuator_assembly.png}
+\caption[Assembled tiered actuator enclosure]{The three tiers assembled with
+the lid fitted.}
+\label{fig:cad_actuator}
+\end{figure}
+
+Raising the assembly off the ground on its own structure, rather than seating
+it directly on the soil beside the array, was a deliberate choice. The station
+operates outdoors through the wet season, and splash and runoff at ground level
+are the most likely route for water to reach the relay contacts.
+
+\subsection{Camera and Controller Housing}
+
+The Raspberry Pi Zero 2 W and the Camera Module 3 share a single vented
+enclosure clamped to the PVC roof pipe directly above the array.
+Figure~\ref{fig:cad_pi} shows the internal arrangement and the assembled
+housing.
+
+\begin{figure}[ht]
+\centering
+\begin{tabular}{cc}
+\includegraphics[width=0.46\linewidth]{cad_pi_interior.png} &
+\includegraphics[width=0.46\linewidth]{cad_pi_enclosure.png} \\
+(a) Internal arrangement & (b) Assembled housing \\
+\end{tabular}
+\caption[CAD model of the camera and controller housing]{CAD model of the
+camera and controller housing. The exploded view shows the single-board
+computer with the camera module mounted to it and a cooling fan above and
+below; the assembled view shows the camera aperture, the fan grille, the
+louvred vents and the clip mounts that fix the housing to the roof pipe.}
+\label{fig:cad_pi}
+\end{figure}
+
+Fixing the camera to the structure rather than standing it beside the array
+holds the viewpoint constant between daily captures, which the measurement
+depends on: the per-pot measurement areas are defined in image coordinates, so
+any movement of the camera displaces every region at once.
+
+\section{Summary of Deviations from the Proposed Design}
+\label{sec:deviations}
+
+Table~\ref{tab:deviations} records every respect in which the deployed system
+differs from the design set out in the approved proposal, together with the
+reason. It is given in full because several of the deviations affect how the
+results of Chapter~\ref{chap:results} must be read.
+
+\begin{table}[ht]
+\centering
+\caption{Deviations of the deployed system from the approved proposal}
+\label{tab:deviations}
+\footnotesize
+\begin{tabularx}{\linewidth}{lXX}
+\toprule
+\textbf{Item} & \textbf{As proposed} & \textbf{As built} \\
+\midrule
+Growing medium & Commercial potting mix from the Department of Agriculture &
+Garden soil, carbonized rice hull, and vermicast at 8:4:3 volumetric ratio (53.3\%, 26.7\%, 20.0\%), batch-mixed so every pot receives identical substrate \\
+Container & 200\,mm upper diameter, 200\,mm depth, approximately 3.0\,L &
+Truncated cone: 110\,mm top diameter, 85\,mm base, 80\,mm depth ($601\,\mathrm{cm}^3$ / $0.60\,\mathrm{L}$; $388\,\mathrm{g}$ dry, $662\,\mathrm{g}$ saturated) \\
+Camera & Raspberry Pi Camera Module V2 at 1100\,mm &
+Camera Module 3 (Sony IMX708) at 1360\,mm above soil plane, captured at 1296 by 1296 px, two-times binned from 4608 by 2592 \\
+Illumination & Fixed overhead LED array for standardised illumination &
+Natural light only. Exposure is normalised to a target mean brightness ($V = 73$) at each capture, with gain and white balance locked \\
+Enclosure & PVC-framed structure & Timber-framed structure with a PVC roof
+section, after the PVC frame failed under roof load; custom 3D-printed PLA housings with BMP388 sensor and relay-switched cooling fans ($35\,^\circ\mathrm{C}$ on / $32\,^\circ\mathrm{C}$ off) \\
+Canopy measure & Green Pixel Ratio over a fixed circular region of interest &
+Green Pixel Ratio over a non-overlapping per-pot area bounded at 175\,px,
+after the fixed circle returned zero for living plants that leaned past the
+pot rim \\
+Hue threshold & Expressed in degrees &
+Hue 38 to 85 in OpenCV units on a 0 to 179 scale, with saturation at least 100
+and value at least 55 \\
+Morphological filter & Not specified &
+3 by 3 opening, sized from a physical limit of 2.2\,mm at
+1.34\,px\,mm$^{-1}$ \\
+Controller power & ESP32-S3 polling from deep sleep at 80\,mA &
+Always-on architecture, mains supplied through an uninterruptible power supply \\
+Cycle length & 35 days & 30 days \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Validation of the Canopy Measurement}
+\label{sec:gpr_validation_method}
+
+The calibration procedures of Section~\ref{sec:calibration} establish that the
+apparatus functions: that the probes read correctly, that the capture fires on
+schedule, that the regions fall on the pots. None of them establishes that the
+Green Pixel Ratio corresponds to the canopy an observer would identify. That
+is a separate question, and it is answered by the procedure set out here.
+
+Noon frames are selected from the capture series and each pot image within
+them is annotated independently by two labellers, who mark the leaf blades
+only, excluding stems, shadow and soil. Each manual mask is compared with the
+automatic mask pixel by pixel, yielding true positives, false positives and
+false negatives, from which precision, recall, Intersection over Union and the
+Dice coefficient are computed. The Green Pixel Ratio derived from each manual
+mask is compared with the automatic value to give the measurement bias and the
+limits of agreement by the Bland-Altman method.
+
+The two manual masks are additionally compared with each other. This step is
+essential rather than supplementary: it establishes the agreement that two
+trained humans achieve on the same images, and it is that figure, not unity,
+against which the algorithm must be judged. Leaf boundaries in an overhead
+image carry an irreducible ambiguity, and an algorithm cannot reasonably be
+required to exceed the consistency of the observers defining the ground truth.
+
+The procedure is implemented in \texttt{Dual\_Archi/tools/gpr\_validate.py}
+and its results are reported in Section~\ref{sec:gpr_validation}.

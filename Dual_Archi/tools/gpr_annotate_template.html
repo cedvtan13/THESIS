@@ -156,7 +156,7 @@ $("who").addEventListener("keydown", e => { if (e.key === "Enter") start(); });
 $("bSave").onclick = () => {
   const who = WHO; if (!who) { alert("Type your name and press Start first."); return; }
   const out = { tool: "gpr_validate", version: 1, annotator: who, created: new Date().toISOString(),
-    items: ITEMS.map((it, i) => ({ frame: it.frame, pot: it.pot, w: it.w, h: it.h, done: S[i].done, rle: rleEnc(S[i].mask) })) };
+    items: ITEMS.map((it, i) => ({ frame: it.frame, pot: it.pot, x: it.x, y: it.y, w: it.w, h: it.h, done: S[i].done, rle: rleEnc(S[i].mask) })) };
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(out)], { type: "application/json" }));
   a.download = `labels_${who.replace(/\W+/g, "_")}.json`; a.click();

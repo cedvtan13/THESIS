@@ -72,13 +72,17 @@ def cmd_export(args):
         img = cv2.imread(path)
         if img is None:
             sys.exit(f"cannot read {path}")
-        for pid in sorted(rois):
-            roi = rois[pid]
+        # Move the circles with the camera, exactly as capture_gpr.py did for this
+        # frame, so each crop is the pot area the dataset measured. The crop's
+        # position is saved with the labels, and score uses that same position.
+        frois = rois if args.no_align else cg.aligned_rois(img, rois, log=False)[0]
+        for pid in sorted(frois):
+            roi = frois[pid]
             ok, png = cv2.imencode(".png", crop(img, roi))
             cx, cy, r = cg.roi_geometry(roi)
             items.append({
                 "frame": os.path.basename(path), "pot": pid,
-                "w": roi["w"], "h": roi["h"],
+                "x": roi["x"], "y": roi["y"], "w": roi["w"], "h": roi["h"],
                 "cx": cx - roi["x"], "cy": cy - roi["y"], "r": r,
                 "img": "data:image/png;base64," + base64.b64encode(png).decode(),
             })
@@ -104,6 +108,17 @@ def rle_decode(rle, n):
     return out
 
 
+POS = {}   # (frame, pot) -> (x, y) of the crop the labeller painted
+
+
+def roi_for(rois, key):
+    """The ROI as exported for that crop; the fixed ROI file for older labels (run 1)."""
+    r = dict(rois[key[1]])
+    if key in POS:
+        r["x"], r["y"] = POS[key]
+    return r
+
+
 def load_labels(paths):
     """{annotator: {(frame, pot): bool array}}"""
     by = {}
@@ -117,6 +132,8 @@ def load_labels(paths):
                 continue
             m = rle_decode(it["rle"], it["w"] * it["h"]).reshape(it["h"], it["w"])
             lab[(it["frame"], it["pot"])] = m.astype(bool)
+            if "x" in it:   # crop position saved at export (aligned circles)
+                POS[(it["frame"], it["pot"])] = (it["x"], it["y"])
     return by
 
 
@@ -149,7 +166,7 @@ def cmd_score(args):
     for who, lab in raw_labels.items():
         labels[who] = {}
         for key, man in lab.items():
-            man = man & roi_circle_local(rois[key[1]])
+            man = man & roi_circle_local(roi_for(rois, key))
             if args.leaf_only:
                 man = cv2.morphologyEx(man.astype(np.uint8), cv2.MORPH_OPEN,
                                        np.ones((3, 3), np.uint8)) > 0
@@ -168,7 +185,7 @@ def cmd_score(args):
     rows = []
     for who, lab in sorted(labels.items()):
         for (frame, pot), man in sorted(lab.items()):
-            roi = rois[pot]
+            roi = roi_for(rois, (frame, pot))
             circ = roi_circle_local(roi)
             auto = crop(auto_mask(frame), roi) & circ
             area = int(circ.sum())
@@ -215,7 +232,7 @@ def cmd_score(args):
             common = sorted(set(labels[a]) & set(labels[b]))
             ious, dg = [], []
             for key in common:
-                circ = roi_circle_local(rois[key[1]])
+                circ = roi_circle_local(roi_for(rois, key))
                 ma, mb = labels[a][key], labels[b][key]
                 ious.append(seg_metrics(ma, mb)[5])
                 dg.append(100 * abs(int(ma.sum()) - int(mb.sum())) / circ.sum())
@@ -243,6 +260,8 @@ def main():
     e = sub.add_parser("export")
     e.add_argument("frames", nargs="+")
     e.add_argument("--out", default="gpr_validation")
+    e.add_argument("--no-align", action="store_true",
+                   help="use pot_rois.json as is (frames from before the camera alignment, run 1)")
     s = sub.add_parser("score")
     s.add_argument("labels", nargs="+")
     s.add_argument("--frames-dir", required=True)
