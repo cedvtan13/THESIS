@@ -55,3 +55,8 @@ date,day,pot_id,note
 2026-11-12,15,P-09,"D15 P-09 cell_gpr is inflated: stray greenery from outside plants intruded into the P-09 area (recorded in field_log.txt on Nov 12). Row kept as measured."
 D20,P-04,P-04 bent by irrigation,Straightened and image retaken manually
 D20,P-04,Wilting/Dying,20 sprays applied to P-04 only
+2026-11-16,19,P-01,"P-01 SOIL WET to the touch (Kent, Nov 16 afternoon); no dripping from its hose. Its ~90-95 % readings since Nov 8 are real waterlogging after the seven 100 mL doses of Nov 7-8, not a probe fault."
+2026-11-16,19,P-03,"P-03 SEEDLING DEAD (Kent, Nov 16 afternoon). cell_gpr 0.00 on D17-D19. Not replanted. P-03 is in the planned sensitivity set (P-01, P-03, P-06)."
+2026-11-16,19,P-04,"P-04 seedling alive and looks okay (Kent, Nov 16 afternoon); its low D17 GPR (0.01 %) was not a dead plant."
+2026-11-16,18,ALL,"D18 CAUSE CORRECTED: the D18 rows WERE written at 12:00 on Nov 15 (cron.log: day 18 already in the CSV at 12:10). Most likely a git pull/merge on the Pi around 12:16 (repo commit 2b909b9, Resolve file deletion conflicts) then put back the repo copies of growth_dataset.csv (without D18) and sowing_date.txt (2026-10-06), so the rows were lost and every capture from Nov 15 12:20 to Nov 16 12:40 refused (D=41/42 outside the cycle). Rows re-measured from the saved frame on Nov 16 16:47 (recover_day.py). Data files now protected from git (protect_data.sh)."
+2026-11-16,19,ALL,"D19 BLUE COLOUR CAST: captured 12:47 (late, after the sowing-date fix and a Pi-only crash at 12:16) under overcast light; frame blue/red 1.84 vs about 1.0 normally, so leaf pixels dropped out and GPR read about half of D18. Row kept as measured; flag R."

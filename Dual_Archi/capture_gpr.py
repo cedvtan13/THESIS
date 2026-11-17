@@ -667,6 +667,19 @@ def main():
             sys.exit(f"[capture_gpr] camera alignment too weak (confidence {aconf:.2f}) -- "
                      f"day {d} not written; the next retry will try again")
 
+    # Colour-cast guard (fixkit, Nov 2026). Overcast light under the locked daylight
+    # white balance turns the frame blue; leaf pixels then fall under SAT_MIN and
+    # GPR reads low (D19: blue/red 1.84, GPR about half). Leave such a frame to the
+    # next 10-min retry. The last retry (12:50) writes anyway; the value is printed
+    # to cron.log either way.
+    _med = np.median(frame.reshape(-1, 3), axis=0)
+    _cast = float(_med[0]) / max(float(_med[2]), 1.0)
+    print(f"[capture_gpr] colour cast blue/red = {_cast:.2f} (normal about 1.0)")
+    if (_cast > 1.25 and not args.no_write and not args.test_image
+            and not args.force and datetime.now().minute < 50):
+        sys.exit(f"[capture_gpr] blue colour cast {_cast:.2f} -- day {d} not written; "
+                 f"the next retry will try again")
+
     problems = validate_rois(rois, frame.shape[:2], circular)
     if problems:
         for p in problems:

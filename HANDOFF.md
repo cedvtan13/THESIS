@@ -21,7 +21,10 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
    - Add to it at every update; add corrections as new lines, never edit old entries.
    - The team decides what goes into the manuscript.
 
-### Fix kit (`ThesisCoWork\2026-11-16-greenhouse-kit\`, on Kent's laptop)
+### Fix kit (now in the repo: `tools/greenhouse_kit/`, see its README)
+- Windows `.bat` files and a Mac/Linux `kit.sh` with the same commands.
+- Pulls go to `pi_pulls/` next to THESIS, outside the repo.
+- Kent's original copy is in `ThesisCoWork\2026-11-16-greenhouse-kit\`.
 
 Windows `.bat` files: they SSH to the Pi for you and work on the hotspot without internet. The Pi side lives in `~/fixkit/`.
 
@@ -52,6 +55,18 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Logs** in `DATA/agrisentry_data/` run to Nov 16 16:57.
 - **Change logs:** `DATA/2026-11-16-data-update-log.md`, `DATA/2026-11-17-data-update-log.md`.
 - **Full event log:** `DATA/2026-11-17-run2-event-log.md`.
+
+### State of the Pi after Nov 17 afternoon (Kent)
+- **Git guard ON:** data files skip-worktree, merge hook installed.
+- **Hourly `light_log.py` camera job OFF.**
+- **Cast guard APPLIED from D21:** a blue noon frame (blue/red > 1.25) is retried; 12:50 always writes.
+- **Backups** at 13:15 and 23:45 to `~/backups`.
+- **Still to do:** `fix_d20.bat` (D20 has 18 rows; keep 12:42; it also limits `catch_up.sh` to 12:00 to 12:55).
+- **NEW PROBLEM, probe readings oscillate:** since Nov 16 23:44 all probes jump up 15 to 20 points together and drop back within 20 to 30 min, 12 times by Nov 17 13:44.
+  - It is electrical (probe supply or ADC), not water.
+  - D20 12:42 soil moisture is invalid-high.
+  - Check probe power wiring, connectors, moisture on the boards, and the supply.
+- **Plants still at the seed-leaf stage at D20** (phone photos), so the mask is reading them correctly.
 
 ### Findings (Nov 16 to 17)
 - **errors=5946:** all from Nov 9 (D12). 5,910 are repeated BMP388 read failures during the supply fault, and 36 are probe range and quarantine lines. No errors since.
@@ -389,6 +404,12 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-17 afternoon) -- Day 20 (Claude with Kent):**
+  - Fixes run on the Pi: git guard, light_log off, cast guard applied, field notes.
+  - Pull `pi_pulls/2026-11-17_1606` copied into the repo.
+  - Kit added to `tools/greenhouse_kit/`; `pi_pulls/` added to `.gitignore`.
+  - Probe oscillation found. D20 duplicate still to fix.
 
 - **Sync (2026-11-17) -- Day 20 of 30 (Claude with Kent):**
   - Nov 16: fix kit installed on the Pi; D18 recovered from the saved frame; data pulled and pushed from the laptop (`8ae042d`, log `DATA/2026-11-16-data-update-log.md`).

@@ -36,3 +36,6 @@ _pi_data/
 _archive/
 _bench/
 Dual_Archi/growth_dataset*.csv
+
+# Pi data pulls (frames are large; kept outside git)
+pi_pulls/
