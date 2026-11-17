@@ -55,6 +55,7 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
       - Team suspects the valves actuated (Rey sprayed only P-04).
       - To check at the next pull: sm_log timing, irrigation_log, pi_link.log, power_log.
 - **Logs** in `DATA/agrisentry_data/` run to Nov 16 16:57.
+- **Raw noon frames (`D*.png`, ~3 MB each):** **Rule updated (Nov 18):** Copy `pi_pulls/<x>/agrisentry_data/frames/` into `DATA/agrisentry_data/frames/` and commit/push them to GitHub so the full team can inspect masks and recompute GPR directly from the repo. (Note: Run 2 D1–D20 frames are not in Git yet until copied from Kent's `pi_pulls/2026-11-17_1606` or the next Pi pull.)
 - **Change logs:** `DATA/2026-11-16-data-update-log.md`, `DATA/2026-11-17-data-update-log.md`.
 - **Full event log:** `DATA/2026-11-17-run2-event-log.md`.
 
@@ -383,7 +384,7 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 - **Moving the camera rig has cut the power more than once.** Fix the cables before touching the rig, and only move the camera with the Pi unplugged.
 - **The `.sh` wrappers are Mac-only** (`rsync`, `open`, `uname != Darwin`). On Windows, run the Python over SSH directly.
 - **Git push from a phone hotspot often fails** with `Recv failure: Connection was reset`. Fix: `git config --global http.version HTTP/1.1` and `git config --global http.postBuffer 524288000`.
-- **The Pi's git remote uses SSH, and port 22 times out on the hotspot.** Switch it to HTTPS or move files by `scp`.
+- **The Pi's git remote & authentication:** The Pi's git remote should be set to HTTPS rather than SSH (to avoid hotspot port 22 drops and missing SSH keys). A Personal Access Token (PAT, classic with `repo` scope, expires December 15, 2026) is configured. Token details are safely stored locally in `.github_token` (gitignored to prevent GitHub secret scanning revocation). To configure the Pi, run: `git remote set-url origin https://<TOKEN>@github.com/cedvtan13/THESIS.git` then `git push`.
 - **SSH from Claude's Bash:** needs `dangerouslyDisableSandbox: true`; `groupb.local` often doesn't resolve, so use the IP with `-o HostKeyAlias=groupb.local`. In zsh, a command held in a variable doesn't word-split: write the ssh command out in full (or wrap it in `bash -c`).
 - **The Pi's `/tmp` is cleared on every restart.** Keep reference frames in `~/agrisentry_data/frames/`.
 - **`sync_pi.sh push` sends `.json` files**, so the Mac's `pot_rois.json` overwrites the Pi's. Keep them in sync.

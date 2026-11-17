@@ -30,6 +30,11 @@ __pycache__/
 *.lot
 *.lof
 
+# Local credentials and tokens
+.env
+.github_token
+*.token
+
 # PlatformIO build artifacts
 .pio/
 _pi_data/
@@ -37,5 +42,5 @@ _archive/
 _bench/
 Dual_Archi/growth_dataset*.csv
 
-# Pi data pulls (frames are large; kept outside git)
+# Pi staging pulls (raw frames are copied from here into DATA/agrisentry_data/frames/ for GitHub)
 pi_pulls/
