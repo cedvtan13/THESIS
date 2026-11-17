@@ -54,7 +54,9 @@ Capture conditions:
    - **Fix prepared:**
      - `fix_d20.bat` limits `catch_up.sh` to 12:00 to 12:55;
      - it keeps one D20 set and moves the other to `growth_dataset_setaside_D20_<time>.csv` (nothing is deleted).
-   - **Decision pending (group):** which set to keep. Recommended: **12:42**, because it is inside the protocol window. Flag it R (dim light, P-04 handled before the photo).
+   - **Decision (Kent, Nov 17):** keep **12:42**. It is inside the protocol window and P-04 was upright. Flag it R (dim light, P-04 handled before the photo).
+   - The 09:36 set is moved aside, not deleted, with `fix_d20.bat` at the next visit.
+   - Note on soil moisture: the 12:42 readings are **further** from the bands than the 09:36 ones, because every pot rose 15 to 20 points between the two (see 3.2). The 12:42 set is kept for the capture time, not for its soil readings, and those readings are flagged until the rise is explained.
 2. **All 9 soil readings rose 15 to 20 points between 09:36 and 12:42**, for example P-02 from 45.6 to 63.4 and P-07 from 82.3 to 98.0.
    - The field log only records sprays to P-04.
    - A rise in every pot at once means either water reached every pot (hand watering, sprays, rain through the roof) or a probe or supply problem like D12.
@@ -64,7 +66,12 @@ Capture conditions:
 
 ## 4. Open questions for the group
 
-- What happened between 09:36 and 12:42 (water to all pots? rain? who did what, and when)?
+- What happened between 09:36 and 12:42? Team answer: Rey sprayed only P-04; the team suspects the valves actuated. To be checked against sm_log, irrigation_log, pi_link.log and power_log at the next pull.
 - Who ran the 12:42 retake, and how (`capture_gpr.py --force`)?
-- Which D20 set do we keep? (recommended: 12:42)
-- Why did the Pi reboot at about 09:31? (power loss? someone restarted it?)
+- Why did the Pi reboot at about 09:31? Team: unknown. To be checked in power_log at the next pull.
+
+## 5. Complete event log
+
+Every event of the run, including those not in the field log, is now kept in `DATA/2026-11-17-run2-event-log.md`.
+- It records everything.
+- What goes into the manuscript's deviations table is decided by the team.

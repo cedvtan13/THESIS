@@ -44,8 +44,11 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
   - **D18** was recovered Nov 16 from the saved frame;
   - **D20 has two sets** (09:36 from `catch_up.sh` after a reboot, and a 12:42 manual retake).
     - **Decision (Kent): keep 12:42**, flag R.
+    - The 12:42 set was a hand run of `capture_gpr.py` (with `--force`, which appends; the team recalls about 1 pm). This is why there are 18 rows. Never use `--force` for a retake.
     - The 09:36 set is moved aside with `fix_d20.bat` at the next visit.
-    - Every soil reading rose 15 to 20 points between the two captures (cause to confirm).
+    - Every soil reading rose 15 to 20 points between the two captures.
+      - Team suspects the valves actuated (Rey sprayed only P-04).
+      - To check at the next pull: sm_log timing, irrigation_log, pi_link.log, power_log.
 - **Logs** in `DATA/agrisentry_data/` run to Nov 16 16:57.
 - **Change logs:** `DATA/2026-11-16-data-update-log.md`, `DATA/2026-11-17-data-update-log.md`.
 - **Full event log:** `DATA/2026-11-17-run2-event-log.md`.
