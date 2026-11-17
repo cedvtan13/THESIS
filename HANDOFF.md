@@ -97,7 +97,13 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Primary test:** fit D1 to D15, test D16 to D20. **Secondary:** a rolling 1 to 3 day forecast.
 - **Flagged rows:** run with all rows, and again without them.
 - **Models:** logistic, Gompertz, linear, against persistence baselines.
-- **Next:** Claude writes `tools/growth_model.py` and the results go to `DATA/model_preview/`; then the team debriefs.
+- **Done (Nov 17):** protocol and code committed in `1a4e050` before the run.
+- **Results:** `DATA/model_preview/2026-11-17-growth-model-results.md`.
+  - **By the rule set in advance, the growth model does NOT beat persistence.** Median skill: logistic −0.22, Gompertz −0.31 (all rows); −0.16 and −0.15 (flagged rows removed).
+  - **Why:** the canopy stalled at 0.14 to 0.25 % (seed-leaf stage), and the day-to-day noise (median 0.05 pp) is about as large as the signal (mean 0.175 %).
+  - **Group means D8 to D18:** High 0.244 %, Low 0.164 %, Medium 0.114 %.
+  - **Literature for Sir AJ's request:** Florence et al. 2021, Suarez et al. 2024, Kim et al. 2024, Lin et al. 2022 (all checked).
+- **Next:** team debrief (Phase 6).
 
 ### Next (see the masterplan)
 1. On site:
@@ -412,6 +418,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-17 night):** growth model run per protocol; results in `DATA/model_preview/` (does not beat persistence; canopy stalled).
 
 - **Sync (2026-11-17 evening):** growth model protocol committed before analysis (Phase 5.1).
 

@@ -1,0 +1,81 @@
+run,plant,model,converged,params
+1,P-01,M1_logistic,True,0.1507 0.8918 8.547
+1,P-01,M2_gompertz,True,0.1522 50 0.5251
+1,P-01,M3_linear,True,0.001667 0.1108
+1,P-01,B1_persistence,True,
+1,P-01,B2_recent_mean,True,
+1,P-02,M1_logistic,True,0.1774 3 7.298
+1,P-02,M2_gompertz,True,0.1886 50 0.5897
+1,P-02,M3_linear,True,0.0004762 0.1695
+1,P-02,B1_persistence,True,
+1,P-02,B2_recent_mean,True,
+1,P-04,M1_logistic,True,0.1969 1.249e-11 27.8
+1,P-04,M2_gompertz,True,0.1067 50 2.541
+1,P-04,M3_linear,True,0.005714 -0.01571
+1,P-04,B1_persistence,True,
+1,P-04,B2_recent_mean,True,
+1,P-05,M1_logistic,True,0.1356 3 5.662
+1,P-05,M2_gompertz,True,0.1362 50 0.8234
+1,P-05,M3_linear,True,0.006071 0.05643
+1,P-05,B1_persistence,True,
+1,P-05,B2_recent_mean,True,
+1,P-06,M1_logistic,True,0.8214 0.2875 18.81
+1,P-06,M2_gompertz,True,5 8.149 0.06209
+1,P-06,M3_linear,True,0.01429 -0.05179
+1,P-06,B1_persistence,True,
+1,P-06,B2_recent_mean,True,
+1,P-07,M1_logistic,True,0.2451 0.4534 7.017
+1,P-07,M2_gompertz,True,0.2772 3.689 0.2239
+1,P-07,M3_linear,True,0.001429 0.2036
+1,P-07,B1_persistence,True,
+1,P-07,B2_recent_mean,True,
+1,P-08,M1_logistic,True,0.2533 3 5.033
+1,P-08,M2_gompertz,True,0.2481 50 1.029
+1,P-08,M3_linear,True,0.01548 0.03952
+1,P-08,B1_persistence,True,
+1,P-08,B2_recent_mean,True,
+1,P-09,M1_logistic,True,0.7237 0.2131 13.13
+1,P-09,M2_gompertz,True,0.896 3.649 0.106
+1,P-09,M3_linear,True,0.03464 -0.09714
+1,P-09,B1_persistence,True,
+1,P-09,B2_recent_mean,True,
+2,P-01,M1_logistic,True,0.1507 0.8918 8.547
+2,P-01,M2_gompertz,True,0.1522 50 0.5251
+2,P-01,M3_linear,True,0.001667 0.1108
+2,P-01,B1_persistence,True,
+2,P-01,B2_recent_mean,True,
+2,P-02,M1_logistic,True,0.1774 3 7.298
+2,P-02,M2_gompertz,True,0.1886 50 0.5897
+2,P-02,M3_linear,True,0.0004762 0.1695
+2,P-02,B1_persistence,True,
+2,P-02,B2_recent_mean,True,
+2,P-04,M1_logistic,True,0.1969 1.249e-11 27.8
+2,P-04,M2_gompertz,True,0.1067 50 2.541
+2,P-04,M3_linear,True,0.005714 -0.01571
+2,P-04,B1_persistence,True,
+2,P-04,B2_recent_mean,True,
+2,P-05,M1_logistic,True,0.1356 3 5.662
+2,P-05,M2_gompertz,True,0.1362 50 0.8234
+2,P-05,M3_linear,True,0.006071 0.05643
+2,P-05,B1_persistence,True,
+2,P-05,B2_recent_mean,True,
+2,P-06,M1_logistic,True,0.8214 0.2875 18.81
+2,P-06,M2_gompertz,True,5 8.149 0.06209
+2,P-06,M3_linear,True,0.01429 -0.05179
+2,P-06,B1_persistence,True,
+2,P-06,B2_recent_mean,True,
+2,P-07,M1_logistic,True,0.2451 0.4534 7.017
+2,P-07,M2_gompertz,True,0.2772 3.689 0.2239
+2,P-07,M3_linear,True,0.001429 0.2036
+2,P-07,B1_persistence,True,
+2,P-07,B2_recent_mean,True,
+2,P-08,M1_logistic,True,0.2199 1.932 4.393
+2,P-08,M2_gompertz,True,0.2171 50 1.1
+2,P-08,M3_linear,True,0.003768 0.1332
+2,P-08,B1_persistence,True,
+2,P-08,B2_recent_mean,True,
+2,P-09,M1_logistic,True,0.3035 0.5519 6.273
+2,P-09,M2_gompertz,True,0.3268 6.668 0.3468
+2,P-09,M3_linear,True,0.02329 0.01329
+2,P-09,B1_persistence,True,
+2,P-09,B2_recent_mean,True,
