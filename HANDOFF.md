@@ -57,6 +57,7 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Logs** in `DATA/agrisentry_data/` run to Nov 16 16:57.
 - **Change logs:** `DATA/2026-11-16-data-update-log.md`, `DATA/2026-11-17-data-update-log.md`.
 - **Full event log:** `DATA/2026-11-17-run2-event-log.md`.
+- **Raw frames:** `DATA/frames_run2/` (README lists which frame each day's rows use, with checksums).
 
 ### State of the Pi after Nov 17 afternoon (Kent)
 - **Git guard ON:** data files skip-worktree, merge hook installed.
@@ -420,6 +421,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-18):** raw noon frames D1 to D20 added to `DATA/frames_run2/` (main, replaced, set-aside, overlays; 74 MB, 42 files), copied byte-for-byte from `pi_pulls/2026-11-17_1606`, with SHA-256 checksums in its README. The D12 rows use `replaced/D12_2026-11-09_1200.png`. New frames are added after each pull.
 
 - **Sync (2026-11-17 night):** plan to the Nov 21 project checking (Sat, 1:30 to 4:30 PM, DCPE Conference Room, then the greenhouse) in `2026-11-17-plan-to-nov21-checking.md`.
 
