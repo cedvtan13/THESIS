@@ -4,6 +4,8 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
 
 ## READ FIRST: status Nov 17, 2026 (D20) and rules until harvest
 
+**Project checking: Sat Nov 21, 1:30 to 4:30 PM** (D24). Plan and daily tasks: `2026-11-17-plan-to-nov21-checking.md`.
+
 *Updated by Claude with Kent, Nov 17. The latest state is here; older sections below are history.*
 
 ### Rules until harvest (Nov 27)
@@ -418,6 +420,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-17 night):** plan to the Nov 21 project checking (Sat, 1:30 to 4:30 PM, DCPE Conference Room, then the greenhouse) in `2026-11-17-plan-to-nov21-checking.md`.
 
 - **Sync (2026-11-17 late):** `fix_d20.bat` run on the Pi at 16:57 (keep 12:42; 09:36 set moved aside; `catch_up.sh` limited to the noon window). Logged in the event log and `DATA/2026-11-17-data-update-log.md` section 7. Repo CSV updates at the next pull.
 
