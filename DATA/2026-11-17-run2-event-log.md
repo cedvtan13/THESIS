@@ -128,3 +128,4 @@ Each entry ends with its source. Times are Philippine time.
 - **ALL**: D20 12:42 frame: blue/red 1.57 (blue cast), alignment confidence 0.20. *(check_pi 16:01)*
 - **ALL**: PHONE PHOTOS (Kent, afternoon): all plants still at the seed-leaf (cotyledon) stage at D20, leaves about 1 cm, no true leaves; P-03 empty; P-04 tiny but present; P-06 tube outlet at the pot edge a few cm from the probe; camera mount fine. *(Kent, photos pot1-pot9)*
 - **ALL**: Data pulled 16:06 (pi_pulls/2026-11-17_1606). fix_d20.bat not yet run: D20 still has 18 rows. *(Kent)*
+- **ALL**: D20 DUPLICATE RESOLVED ON THE PI (Kent, 16:57, fix_d20.bat): kept the 12:42 set; the 09:36 set (9 rows) moved to ~/thesis/growth_dataset_setaside_D20_20261117_1657.csv (not deleted). catch_up.sh now captures only between 12:00 and 12:55 (backup catch_up.sh.before_fixkit). Field log line added by the script. The repo copy still has 18 D20 rows until the next pull_from_pi.bat. *(Kent, fix_d20 output)*

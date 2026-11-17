@@ -48,7 +48,7 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
   - **D20 has two sets** (09:36 from `catch_up.sh` after a reboot, and a 12:42 manual retake).
     - **Decision (Kent): keep 12:42**, flag R.
     - The 12:42 set was a hand run of `capture_gpr.py` (with `--force`, which appends; the team recalls about 1 pm). This is why there are 18 rows. Never use `--force` for a retake.
-    - The 09:36 set is moved aside with `fix_d20.bat` at the next visit.
+    - **Done on the Pi (Kent, Nov 17 16:57, `fix_d20.bat`):** 09:36 set moved to `growth_dataset_setaside_D20_20261117_1657.csv`; the repo copy still has 18 D20 rows until the next pull.
     - Every soil reading rose 15 to 20 points between the two captures.
       - Team suspects the valves actuated (Rey sprayed only P-04).
       - To check at the next pull: sm_log timing, irrigation_log, pi_link.log, power_log.
@@ -61,7 +61,7 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Hourly `light_log.py` camera job OFF.**
 - **Cast guard APPLIED from D21:** a blue noon frame (blue/red > 1.25) is retried; 12:50 always writes.
 - **Backups** at 13:15 and 23:45 to `~/backups`.
-- **Still to do:** `fix_d20.bat` (D20 has 18 rows; keep 12:42; it also limits `catch_up.sh` to 12:00 to 12:55).
+- **`fix_d20.bat` run (16:57):** D20 = the 12:42 set only; `catch_up.sh` now captures only between 12:00 and 12:55.
 - **NEW PROBLEM, probe readings oscillate:** since Nov 16 23:44 all probes jump up 15 to 20 points together and drop back within 20 to 30 min, 12 times by Nov 17 13:44.
   - It is electrical (probe supply or ADC), not water.
   - D20 12:42 soil moisture is invalid-high.
@@ -418,6 +418,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-17 late):** `fix_d20.bat` run on the Pi at 16:57 (keep 12:42; 09:36 set moved aside; `catch_up.sh` limited to the noon window). Logged in the event log and `DATA/2026-11-17-data-update-log.md` section 7. Repo CSV updates at the next pull.
 
 - **Sync (2026-11-17 night):** growth model run per protocol; results in `DATA/model_preview/` (does not beat persistence; canopy stalled).
 

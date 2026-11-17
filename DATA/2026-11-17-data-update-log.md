@@ -143,3 +143,12 @@ Water cannot enter and leave a pot in 20 minutes, so this is electrical: the pro
 - **The mask is not the problem:** the seedlings really are that small, matching cell GPR of about 0.1 to 0.3 %.
 - **P-06:** the tube outlet ends at the pot edge, a few centimetres from the probe, not on it. Its earlier spikes are not explained by the outlet position.
 - **Camera mount:** checked by Kent, fine.
+
+## 7. D20 duplicate resolved on the Pi (Kent, Nov 17, 16:57)
+
+`fix_d20.bat` output:
+- `catch_up.sh` now captures only between 12:00 and 12:55 (backup `catch_up.sh.before_fixkit`). A reboot outside the noon window can no longer write a day in the wrong light.
+- Kent typed `12:42`. The 12:42 set was kept; the 09:36 set (9 rows) was moved to `~/thesis/growth_dataset_setaside_D20_20261117_1657.csv` on the Pi. Nothing was deleted.
+- The script added this field log line: `2026-11-17,20,ALL,"D20 DUPLICATE ROWS RESOLVED on Nov 17 16:57: kept the 12:42 capture; ..."`.
+
+**Repo state:** the pull `2026-11-17_1606` was made before this fix, so the repo's `growth_dataset.csv` still has 18 D20 rows. The next `pull_from_pi.bat` brings the fixed file and the set-aside file. The growth model was not affected, because it already used only the 12:42 set.
