@@ -91,6 +91,14 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Canopy stalled after about D11,** at 0.1 to 0.3 % of the pot area (about 1 to 2 cm² of leaf). Raise with Rey (agronomy).
 - **Manuscript error to fix:** 4.2.2, Chapter 5 and the abstract say Low < Medium at D12. With P-01 included, Low (61.4) > Medium (53.9). Without P-01, Low is 46.3, so the ordering is correct.
 
+### Growth model (Phase 5, no harvest weights needed)
+- **Protocol fixed before analysis:** `DATA/2026-11-17-growth-model-protocol.md`, committed before any run.
+- **Design:** 8 plants (P-03 excluded), `cell_gpr`; D20 = the 12:42 set.
+- **Primary test:** fit D1 to D15, test D16 to D20. **Secondary:** a rolling 1 to 3 day forecast.
+- **Flagged rows:** run with all rows, and again without them.
+- **Models:** logistic, Gompertz, linear, against persistence baselines.
+- **Next:** Claude writes `tools/growth_model.py` and the results go to `DATA/model_preview/`; then the team debriefs.
+
 ### Next (see the masterplan)
 1. On site:
    - `tomorrow_fixes.bat`;
@@ -404,6 +412,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-17 evening):** growth model protocol committed before analysis (Phase 5.1).
 
 - **Sync (2026-11-17 afternoon) -- Day 20 (Claude with Kent):**
   - Fixes run on the Pi: git guard, light_log off, cast guard applied, field notes.
