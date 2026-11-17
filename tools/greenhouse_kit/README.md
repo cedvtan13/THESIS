@@ -38,13 +38,14 @@ The laptop must be on the Pi's hotspot. The Pi password is for user `crk`.
 - Windows: `check_pi.bat 172.20.10.3`
 - Mac: `PI_HOST=172.20.10.3 ./kit.sh check`
 
-Pulls go to `pi_pulls/<date_time>/` **next to** the THESIS folder, outside the repo, because the frames are about 3 MB each.
+Pulls go to `pi_pulls/<date_time>/` **next to** the THESIS folder as a staging area; raw noon frames (`~3 MB` each) are then copied into `THESIS/DATA/agrisentry_data/frames/` so they are synced to GitHub.
 
 ## After a pull: getting it into GitHub (from the laptop)
 
-1. Copy the newer data files from the pull into the repo:
+1. Copy the newer data files and raw noon frames from the pull into the repo:
    - `pi_pulls/<x>/thesis/` → `THESIS/Dual_Archi/`
    - `pi_pulls/<x>/agrisentry_data/*.csv` → `THESIS/DATA/agrisentry_data/`
+   - `pi_pulls/<x>/agrisentry_data/frames/` → `THESIS/DATA/agrisentry_data/frames/` (all `D*_*.png` raw noon frames and `overlay/`)
 2. Add a dated entry to `DATA/` (what came in) and to `DATA/2026-11-17-run2-event-log.md` (anything that happened).
 3. Update the READ FIRST section of `HANDOFF.md`.
 4. `git pull`, then `git add <those files>`, `git commit -m "..."`, `git push`.
