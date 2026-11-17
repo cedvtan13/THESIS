@@ -2,6 +2,91 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
 
 **Read "Run 2 problems" first.** The run is in trouble on day 3 for the same reason run 1 was, and the cause is power, not software.
 
+## READ FIRST: status Nov 17, 2026 (D20) and rules until harvest
+
+*Updated by Claude with Kent, Nov 17. The latest state is here; older sections below are history.*
+
+### Rules until harvest (Nov 27)
+1. **No git commands on the Pi.**
+   - On Nov 15 a `git pull`/merge on the Pi put back old copies of `growth_dataset.csv` (wiping the D18 rows written at 12:00) and of `sowing_date.txt` (2026-10-06). Every capture then refused to run until Nov 16.
+   - On Nov 17 a Pi pull hit merge conflicts in the live CSVs.
+   - `protect_data.sh` (fix kit) blocks merges on the Pi.
+   - **Data path:** Pi → laptop (`pull_from_pi.bat`) → GitHub from the laptop.
+   - **Code path:** scp only.
+2. **Don't run `capture_gpr.py` by hand.** If a retake is truly needed, log who did it, when, why and the exact command.
+3. **Don't run `agrisentry.sh start`.** It turns the hourly camera job back on, and that job crashes the Pi at :30.
+4. **No re-flashing the ESP32, no moving pots, no replanting.**
+5. Every manual action goes in `Dual_Archi/field_log.csv` in the format `date,day,pot_id,"note with time"`.
+6. **Complete event log:** `DATA/2026-11-17-run2-event-log.md` records every event of the run (field log plus everything found in the data and logs).
+   - Add to it at every update; add corrections as new lines, never edit old entries.
+   - The team decides what goes into the manuscript.
+
+### Fix kit (`ThesisCoWork\2026-11-16-greenhouse-kit\`, on Kent's laptop)
+
+Windows `.bat` files: they SSH to the Pi for you and work on the hotspot without internet. The Pi side lives in `~/fixkit/`.
+
+| File | What it does |
+|---|---|
+| `find_pi.bat` | finds the Pi |
+| `send_kit_to_pi.bat` | installs the kit and the 13:15 / 23:45 backups to `~/backups` |
+| `check_pi.bat` | daily health check: missing days, sowing date, blue cast, camera shift, pots out of band, logger alive, unlogged doses |
+| `pull_from_pi.bat` | copies all data and frames to `ThesisCoWork\pi_pulls\<date>` |
+| `tomorrow_fixes.bat` | runs `protect_data.sh` (git guard, hourly light_log off, sowing-date check) and `add_field_notes.py` |
+| `apply_cast_guard.bat` | **optional:** blue (overcast) noon frames are retried at the next 10-minute slot; the 12:50 retry always writes |
+| `fix_d20.bat` | limits `catch_up.sh` to 12:00 to 12:55 and resolves the duplicate D20 rows |
+| `fix_d18.bat`, `run_mask_compare.bat` | done Nov 16 |
+
+Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterplan-nov17.md`.
+
+### Data state (repo, Nov 17)
+- **`growth_dataset.csv`:**
+  - D1 to D20 present, except D2 and D3 (lost to the Oct 30 to 31 outage, not back-filled);
+  - **D18** was recovered Nov 16 from the saved frame;
+  - **D20 has two sets** (09:36 from `catch_up.sh` after a reboot, and a 12:42 manual retake).
+    - **Decision (Kent): keep 12:42**, flag R.
+    - The 09:36 set is moved aside with `fix_d20.bat` at the next visit.
+    - Every soil reading rose 15 to 20 points between the two captures (cause to confirm).
+- **Logs** in `DATA/agrisentry_data/` run to Nov 16 16:57.
+- **Change logs:** `DATA/2026-11-16-data-update-log.md`, `DATA/2026-11-17-data-update-log.md`.
+- **Full event log:** `DATA/2026-11-17-run2-event-log.md`.
+
+### Findings (Nov 16 to 17)
+- **errors=5946:** all from Nov 9 (D12). 5,910 are repeated BMP388 read failures during the supply fault, and 36 are probe range and quarantine lines. No errors since.
+- **Unlogged dose:** P-05, at Nov 9 12:48.
+- **Low-GPR days are blue frames.** Overcast light under the locked daylight white balance:
+
+  | Day | Blue/red |
+  |---|---|
+  | normal days | about 1.0 |
+  | D04 | 1.34 |
+  | D05 | 1.53 |
+  | D12 retake | 1.49 |
+  | D19 | 1.84 |
+
+  Loosening the HSV mask doesn't help (tested on the 18 hand-labelled pots: current IoU 0.630 / bias +0.04 pp is already the best). Excess Green indices fail because the rice-hull mulch reads as green.
+- **Pi crashes:** 12 Pi-only crashes since Nov 12, mostly at :30, when the hourly `light_log.py` turns the camera on.
+- **P-06** reads 25 to 35 points higher after every ~17 mL dose. Likely cause: its tube outlet sits next to the probe (to check).
+- **Plants:**
+  - **P-01** is waterlogged (90 to 100 %, soil wet to the touch);
+  - **P-03** is dead (GPR 0 since D17);
+  - **P-04** is wilting (D20: bent by irrigation, straightened, 20 sprays).
+- **Canopy stalled after about D11,** at 0.1 to 0.3 % of the pot area (about 1 to 2 cm² of leaf). Raise with Rey (agronomy).
+- **Manuscript error to fix:** 4.2.2, Chapter 5 and the abstract say Low < Medium at D12. With P-01 included, Low (61.4) > Medium (53.9). Without P-01, Low is 46.3, so the ordering is correct.
+
+### Next (see the masterplan)
+1. On site:
+   - `tomorrow_fixes.bat`;
+   - `fix_d20.bat`;
+   - the decision on `apply_cast_guard.bat`;
+   - physical checks: phone close-ups of P-01, P-04, P-05, P-07 and P-03; the P-06 outlet; the P-01 saucer; the camera mount;
+   - `run_mask_compare.bat`;
+   - `pull_from_pi.bat`.
+2. **Growth model (logbook Nov 9 plan, no harvest weights needed):**
+   - fit `cell_gpr` on D1 to D15 and test on D16 to D20 against a "last value" baseline;
+   - the protocol is committed *before* running, in `DATA/2026-11-17-growth-model-protocol.md`.
+3. Literature on early-season prediction (Sir AJ, Nov 5).
+4. Harvest Nov 27 (D30): 0.01 g pocket scale checked with a new coin; `record_harvest.py`.
+
 ## Current Status & Manuscript Overhaul (November 12, 2026)
 - **Manuscript Overhaul:** Located in `2026-11-11-GroupB-Manuscript-Draft1/`. Chapters 1, 2, and 3 have been completely overhauled:
   - Tense pass (past/present).
@@ -116,6 +201,7 @@ Checked in Kent's snapshot (`DATA/thesis/growth_dataset.csv`, commit `ab88adb`):
 Confirmed Oct 31, 19:00. `roi_view.py` reported mean V 0.1 at 100 ms, auto-switched the capture light on, and brightness moved only to 0.3. The relay ACKs but the lamp does nothing. It matters on dark days and for any night ROI work.
 
 ### 6. The Pi cannot reach GitHub, and holds work that exists nowhere else
+- **Outdated (Nov 17):** the Pi did push over HTTPS on Nov 15 and Nov 17, and both times git damaged live data. Since Nov 17: no git on the Pi; see READ FIRST at the top.
 - On the Pi: `git pull` fails with `ssh: connect to host github.com port 22: Connection timed out`. Port 22 is blocked on the hotspot.
 - `git status` on the Pi: **1 commit ahead of origin**, plus about 40 modified or deleted files uncommitted, including `pot_rois.json`, `sowing_date.txt`, `capture_gpr.py`, `pi_link.py` and `tools/` (including Kent's `tools/roi_view.py`, which is not in the repo).
 - **That work exists only on the SD card.** If the card fails, it is gone.
@@ -300,6 +386,11 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-17) -- Day 20 of 30 (Claude with Kent):**
+  - Nov 16: fix kit installed on the Pi; D18 recovered from the saved frame; data pulled and pushed from the laptop (`8ae042d`, log `DATA/2026-11-16-data-update-log.md`).
+  - Nov 17: D20 pushed from the Pi by Rey (`c52f561`, merge `2f10bb1`); D20 has duplicate rows (09:36 and 12:42), fix prepared (`fix_d20.bat`); log `DATA/2026-11-17-data-update-log.md`.
+  - Rules added at the top: no git on the Pi, how to push.
 
 - **Sync Check (2026-11-12 01:13:18) -- Day 15 of 30:**
   - Run 2 timeline: 15 days remaining until harvest on 2026-11-27.

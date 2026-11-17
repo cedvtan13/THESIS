@@ -1,0 +1,121 @@
+# Run 2 event log (complete, internal)
+
+Every event of the final run (sown 2026-10-29), in date order: the field log entries plus everything found later in the data, logs, git history and team reports. **This file records everything; what appears in the manuscript is the team's decision.**
+
+Each entry ends with its source. Times are Philippine time.
+
+- *(field_log.csv)* means the Pi field log.
+
+- *(found by Claude ...)* means it was reconstructed from cron.log, sm_log, irrigation_log, power_log, the frames or git.
+
+
+**Started:** 2026-11-17. Add new events at the end of their date; never edit old entries; add corrections as new lines.
+
+
+## 2026-10-29
+- **ALL**: New run, sowing date 2026-10-29 = D1. Previous run (sown 2026-10-06) archived to /home/crk/archive/run_sown_2026-10-06_archived_20261029_130528.  *(field_log.csv)*
+- **ALL**: Sowing done ~12:30 (seed count per pot to be added). Panel (Sir Luis via Sir AJ) told the team to plant and start the system; panel check ~15:00.  *(field_log.csv)*
+- **ALL**: Pi was off/boot-looping from ~21:17 Oct 28 until 12:57 Oct 29, so the 12:00 capture did not run. new-run at 13:05; D1 captured by hand at 13:14 (technical fault, one-off).  *(field_log.csv)*
+- **ALL**: Camera shifted ~50 px (horizontal) between 13:06 and 13:11, then stable. Pot circles re-fitted on the 13:11 daylight frame (Hough, r=77). Old: pot_rois_before_D1_realign.json.  *(field_log.csv)*
+- **ALL**: Pi restarted repeatedly ~13:20 and ~14:24 (power dropouts while the camera rig was being moved); sm_log missed 13:44 and 14:14. Camera repositioned by the team and a plastic sheet removed from view; pot circles re-fitted at 14:38 on frames/roi_fit_D01.png (r=77). The D1 row (13:14) used the 13:15 circles; GPR was 0 for all pots, so it is unaffected.  *(field_log.csv)*
+- **P-01;P-07;P-08;P-09**: 14:45: team nudged pots P-07, P-08, P-09; their circles re-fitted and P-01 re-centred (zoomed rim crops on frames/roi_fit_D01_b.png). Other circles unchanged.  *(field_log.csv)*
+- **ALL**: Sowing: 2 seeds per pot (added Nov 1).  *(field_log.csv)*
+
+## 2026-10-30 (D2)
+- **ALL**: MISSED DAY: Pi off at noon (power). No GPR; soil log has one row (00:27). Not back-filled (decision Cedric, Nov 1).  *(field_log.csv)*
+
+## 2026-10-31 (D3)
+- **ALL**: GPR MISSED: Pi off at noon (power). Soil moisture valid from 17:21. Evening phone photos kept as supplementary evidence only (PHOTOS/run2_D03_2026-10-31_phone_SUPPLEMENTARY); they show the first seedlings in P-04 and P-08.  *(field_log.csv)*
+
+## 2026-11-01 (D4)
+- **ALL**: Pi off ~21:46 Oct 31 to ~11:42 Nov 1 (ESP32 also lost power). Powered on by Cedric 11:42. 11:44 check frame (frames/roi_check_D04.png): seedlings visible in P-04, P-05, P-07, P-08, P-09; P-03/P-06 hidden by a person; camera ~8 px from Oct 29 14:41.  *(field_log.csv)*
+- **ALL**: HAND WATERING: the team has been watering pots by hand with a bottle since sowing (dates, pots and amounts to be added). This explains soil moisture rising with 0 automatic doses (e.g. P-03 55 -> 73 %, Oct 29-31).  *(field_log.csv)*
+- **ALL**: Decision (Cedric): hand watering stops from Nov 1. All watering from now on is by the ESP32 only.  *(field_log.csv)*
+
+## 2026-11-02 (D5)
+- **P-07**: [glare_check] noon light: P-07 MILD (clip 2.9 %, 1.5x)  *(field_log.csv)*
+
+## 2026-11-03 (D6)
+- **P-07**: D6 GPR 0 is a detection miss, not no plant: 2 seedlings visible, but P-07 was in direct sun (pot V ~198 vs ~71 for shaded pots; leaf V clipped at 255) and the leaves read hue 30-33, below the green threshold H 38. Row left as measured.  *(field_log.csv)*
+- **ALL**: Camera drift measured on the D6 noon frame vs Oct 29 14:41: ~+16 px right (rim fits +11..+22 x on 8 pots); D4 ~+7, D5 ~+5, so it moved mostly between D5 and D6. Pots still well inside their 175 px cells (cell_gpr unaffected); pot circles not changed yet.  *(field_log.csv)*
+- **ALL**: Pot circles re-centred at ~16:00 for the ~16 px camera drift (rim fits on the D6 noon frame; P-01/P-04/P-07 by eye). Applies from D7; D4-D6 rows keep the old circles (cell_gpr unaffected). Old: pot_rois_before_D6_recentre.json.  *(field_log.csv)*
+- **P-01;P-04;P-07;P-09**: [glare_check] noon light: P-01 GLARE (clip 7.9 %, 1.7x); P-04 GLARE (clip 5.8 %, 1.6x); P-07 GLARE (clip 11.1 %, 2.0x); P-09 DARK (clip 0.0 %, 0.5x)  *(field_log.csv)*
+- **ALL**: HAND WATERING (Cedric): each pot sprayed ~12 times with a spray bottle, between the 14:46 and 15:50 soil readings. Soil change 14:46 -> 15:50: P-03 62.6 -> 75.3 % (spray likely near the probe); other pots changed by -0.3 to +1.4 points. Exception to the Nov 1 stop; amount per spray not measured.  *(field_log.csv)*
+
+## 2026-11-04 (D7)
+- **ALL**: 11:45 check frame (frames/roi_check_D07.png): camera ~1 px from D6 noon, pot circles on the rims. Seedlings visible in P-02 (new today), P-04, P-05, P-07, P-08, P-09; none yet in P-01, P-03, P-06.  *(field_log.csv)*
+- **P-03**: D7 cell_gpr 0.70 is NOT a plant: a green object (leaf/grass?) on the cloth outside the pot, upper-left edge of the P-03 cell (717 px). Pot itself still empty (raw_gpr 0). Remove it before the next noon capture. Row left as measured.  *(field_log.csv)*
+- **P-03**: HAND WATERING (Cedric): P-03 sprayed ~12 times between the 11:39 and 12:03 soil readings (65.7 -> 74.5 %). D7 noon row taken after the spray.  *(field_log.csv)*
+- **P-04;P-07;P-09**: [glare_check] noon light: P-04 MILD (clip 1.7 %, 1.4x); P-07 GLARE (clip 5.5 %, 1.6x); P-09 DARK (clip 0.0 %, 0.5x)  *(field_log.csv)*
+- **ALL**: PI FREEZE: Pi froze on the D7 afternoon (journal stops ~1h56m into that boot, right after wifi_watchdog turned the radio on; Wi-Fi had ssid-not-found and failed scans; no under-voltage logged). ACT LED blinked steadily every ~500 ms. Cedric restarted it with the switch ~19:22. Fix ~21:57: hardware watchdog on (RuntimeWatchdogSec=15, auto-reboot on freeze) and throttle_log.sh every 5 min -> ~/agrisentry_data/throttle_log.csv. Power supply still to be replaced.  *(field_log.csv)*
+
+## 2026-11-05 (D8)
+- **ALL**: POWER SUPPLY CHANGED (Cedric): 12 V brick replaced, 1 A -> 2.5 A, during the D8 morning visit (likely the ~11:10 restart of both Pi and ESP32). Before that the Pi had stopped logging from ~09:30 with no under-voltage flag (Wi-Fi disconnected, no hotspot). Watch throttle_log.csv and power_log.csv from here to see if restarts stop.  *(field_log.csv)*
+- **P-01;P-03;P-06**: TRANSPLANT (Cedric, ~11:00-11:25): spare seedlings moved into the empty pots P-01, P-03, P-06 (donor pots and any thinning still to be recorded). Then hand-sprayed ~12 sprays (pots to confirm). LAST hand watering: none from D8 on.  *(field_log.csv)*
+- **P-01;P-04;P-07**: SHADE (Cedric, ~11:35-11:45): small cloths placed over P-01, P-04, P-07 (right column, where the noon sun patches land) to cut glare; P-07 first. Left in place after Cedric left. Uneven light vs the other 6 pots until the full shade cloth (planned D9).  *(field_log.csv)*
+- **ALL**: Germination mode OFF -- treatment bands ON  *(field_log.csv)*
+- **P-04;P-07**: [glare_check] noon light: P-04 MILD (clip 1.6 %, 1.5x); P-07 MILD (clip 2.4 %, 1.6x)  *(field_log.csv)*
+- **P-09**: ACCIDENTAL MANUAL WATERING (team, ~15:15, reported): during a flow-rate test from the ESP32 web page, P-09 was opened for ~5 s instead of P-06 (wrong button). About 90 mL at 18 mL/s. Not in irrigation_log.csv (manual web commands are not logged there). P-09 read 90.8 % at 15:10, already above its 70-80 % band. Check the next soil readings for the rise.  *(field_log.csv)*
+
+## 2026-11-06 (D9)
+- **P-07;P-09**: [glare_check] noon light: P-07 MILD (clip 1.6 %, 1.6x); P-09 DARK (clip 0.0 %, 0.6x)  *(field_log.csv)*
+
+## 2026-11-07 (D10)
+- **ALL**: POWER: Pi restarted at 11:59, 12:06, 13:07, 13:22 and 13:31 with nobody touching the rig; at 12:06, 13:22 and 13:31 the ESP32 restarted too (full power loss). Under-voltage flag 0 throughout. The team removed the fans at ~13:40; Pi up again from 13:42. Watch power_log.csv to see whether the restarts stop.  *(field_log.csv)*
+- **ALL**: CAMERA MOVED: shift of each noon frame vs the D6 frame the pot circles were fitted on (phase correlation on edges, checked on zoomed crops): D7 +1.5 px, D8 +9, D9 +31, D10 12:24 +141, D10 13:47 -9 (x; y within 10 px). The mount is moving on its own (~150 px within 1.5 h on D10). D10 noon was captured at 12:24 (Pi down 11:59-12:05) with the circles 141 px off: circle GPR 0.00 on all 9 pots, P-09 cell 2.89 % from a green object outside the pot.  *(field_log.csv)*
+- **ALL**: FIX: circles moved +31, +3 px to fit the D9 noon frame, saved as align_ref.png (old: pot_rois_before_D10_align.json). From now on every capture is matched to align_ref.png and the circles follow the camera (capture_gpr.py CAMERA ALIGNMENT; shifts in align_log.csv; glare_check and time_test do the same). D10 rows RE-MEASURED from the saved 12:24 frame with the circles moved +110 px vs align_ref (timestamp and soil moisture kept; backup growth_dataset.csv.before_remeasure_D10_20261107_1354). D10 glare re-checked: no glare (P-09 0.65x). D9 checked: its 31 px offset changes nothing (seedlings in the pot centres); left as measured.  *(field_log.csv)*
+- **ALL**: CAPTURE-TIME TEST (Sir Luis, Nov 5 checking: capture at a less glary time, e.g. 13:00): extra test photos at 13:00 and 14:00 on Nov 7-9 (D10-D12), next to the official 12:00 capture, scored the same way for GPR and glare (tools/time_test.py -> time_test_log.csv, frames/time_test/). growth_dataset.csv is not touched. Decision on Nov 9.  *(field_log.csv)*
+- **P-01;P-02;P-03;P-04;P-06**: HAND WATERING (rescue, team decision): seedlings in P-01, P-02, P-03, P-04 and P-06 were seen wilting, so a classmate, on the team’s instruction, sprayed each of these 5 pots ~12 sprays on the topsoil and ~10 sprays on the plant (~22 sprays per pot; spray volume not measured). P-05 and P-07 to P-09 were not sprayed. Exact time not known (reported at ~14:05 as ‘a while ago’). The probes did not register it: P-01 60.7, P-02 52.8, P-03 72.9, P-04 85.7, P-06 65.3 % at 14:07, the same as at 13:17, so the water stayed in the top layer. Team observation: the topsoil was dry while the soil ~1 cm down was wet; the seedlings’ roots are still near the surface. The probes read all five pots ABOVE their bands (Low pots 53-73 % vs 30-40 %), so the wilting is surface drying at the seedling stage, not the moisture treatment. Unequal across pots: a deviation to report.  *(field_log.csv)*
+- **ALL**: DATA CLEANUP: today’s power cuts left runs of zero bytes in sm_log.csv (before the 12:06 row), band_log.csv (before the 12:32 P-01 row) and power_log.csv (4 older spots, Oct 29 and Nov 3). Each run sat in front of a complete row; the zeros were removed and every row kept. Backups: *.csv.bak_nul_D10 in ~/agrisentry_data.  *(field_log.csv)*
+- **ALL**: RULE (team decision, from D10 to D14 = Nov 7-11): seedling-stage misting. While the seedlings have only seed leaves and shallow roots, if the topsoil is dry or seedlings wilt, ALL 9 pots get the same number of sprays at the same time (no pot singled out), and each misting is logged here with time, number of sprays and who did it. Measure the spray bottle once (10 sprays into a syringe or measuring cup) so sprays can be logged in mL. Reason: surface drying at the seedling stage, not the moisture treatment (probes read the pots above band); equal misting keeps the groups comparable and barely moves the probe readings. From D15 (Nov 12) no rescue watering of any pot: wilting in the Low group is then the treatment effect. The D10 rescue spraying of P-01, P-02, P-03, P-04 and P-06 only (entry above) came before this rule.  *(field_log.csv)*
+- **P-01;P-02**: P-01 PROBE FAULT: at ~22:20 P-01 dropped from 61.9 % to 0.0 % in one step and stayed at 0-8 % overnight; P-02 dropped from 56.3 to 42.8 % at the same moment. Not real drying. Suspected cause (team, Nov 8): another group attached their own water-level sensor to our P-01 pot without our setup; to be confirmed with them.  *(field_log.csv)*
+
+## 2026-11-08 (D11)
+- **P-01**: P-01 OVERWATERED BY THE CONTROLLER: believing the 0 % reading, the ESP32 gave P-01 its maximum dose (100 mL) 7 times between Nov 7 22:06 and Nov 8 ~11:22 (count from the ESP32; last dose at ~11:22). Only 3 are in irrigation_log.csv (22:06, 00:07, 02:22); the other 4 happened while the Pi was down and were not logged. Up to ~700 mL in a Low-band pot (30-40 %). Team: P-01 is very moist. At 12:48 the probe read 98.9 %. P-01's moisture treatment is compromised from the night of D10; keep measuring its GPR and report it separately.  *(field_log.csv)*
+- **ALL**: PI DOWN 03:56-12:26: the Pi stopped (last throttle_log row 03:55, Wi-Fi disconnected/searching, no under-voltage) and the hardware watchdog did not bring it back. The ESP32 kept running and watering. Restarted by the team ~12:26 (both boards). The 12:00 capture ran on the 12:30 retry. Same pattern as the D7 and D8 freezes: Pi with no hotspot to join.  *(field_log.csv)*
+- **P-01**: FIX: ESP32 firmware updated at 12:47 (v6-web + HOLD command; flash OK). P-01 put on HOLD at 12:48: its probe is still read and logged every 15 min, but it gets no automatic watering. The hold is kept across restarts. Undo with: pi_link.py --send UNHOLD,1 (pi-link stopped). P-01 stays in the photos and growth_dataset.csv.  *(field_log.csv)*
+- **P-01**: DATA NOTE: the D11 noon row (12:30) has P-01 sm_pct 1.9, a fault reading from the failed probe (it read 98.9 % at 12:48). Treat P-01 soil moisture from Nov 7 22:20 to Nov 8 12:30 as invalid. Its GPR (cell 0.26 %) is fine: the transplanted seedling is alive.  *(field_log.csv)*
+- **P-01;P-02;P-03**: CAUSE CHECK: the team removed the other group's water-level sensor from P-01 at ~12:49. Readings then went straight back near their values before Nov 7 22:20: P-01 1.9 -> 98.9 %, P-02 44.3 -> 53.3 %, P-03 87.4 -> 73.0 %. Three channels shifting together, and P-01 reading below the probe-in-air value (0 % vs ~5 %), point to electrical interference from that sensor (current through the wet soil or shared wiring), not to drying or a broken probe.  *(field_log.csv)*
+- **ALL**: D11 PHOTO RETAKEN at 12:52 and the D11 rows replaced: the 12:30 photo had the other group's device on P-01 (a small board with a green wire on the rim, ~218 px counted as green) and the fault soil reading for P-01 (1.9 %). New photo: circles moved with the camera (-21.4, +11.6 px vs the D9 reference, checked by eye on rim close-ups), valid soil readings (P-01 98.9 %), no glare. Backups: growth_dataset.csv.before_D11_retake, frames/replaced/D11_2026-11-08_1230.png. The 12:52 photo still shows that board and green wire on P-01's rim: about 200 of P-01's 240 cell green pixels are wire; the seedling is ~39 px (pot circle GPR 0.21 %). Remove it before D12.  *(field_log.csv)*
+- **ALL**: FIRMWARE 12:54: new safety rule, a probe reading below 10 % is treated as a fault (SENSOR_IMPLAUSIBLE in error_log.csv) and that pot is not watered until it reads like soil again; it would have blocked all 7 P-01 doses. 12:56: P-01 taken off HOLD (UNHOLD,1), back on normal automatic control; it reads 99.2 %, so no water until it dries below its 30-40 % band.  *(field_log.csv)*
+- **ALL**: CAPTURE ALIGNMENT: reference re-based on the checked D11 12:52 frame (align_ref.png; circles -21, +12 px; old files pot_rois_before_D11_rebase.json, align_ref_D09.png). capture_gpr.py now refuses to write a day when the match with the reference is too weak and leaves it to the next 10-min retry; only the 12:50 retry writes anyway (align_log.csv applied=0).  *(field_log.csv)*
+
+## 2026-11-09 (D12)
+- **ALL**: PROBE POWER (VCC) FAULT: from ~00:10 the soil probes read raw 56-145 (no supply voltage); P-02 to P-09 were quarantined by ~02:25 and P-01 at 08:55, so soil readings are blank (NaN) from ~00:10 and no pot was watered until the fix. Also BMP388 I2C read failures at 09:29 and Pi restarts at 09:30, 11:49 and 12:22. The team fixed the VCC at ~12:35. Quarantine cleared (CLEAR_FAULTS) at ~12:41; a fresh reading worked at 12:41.  *(field_log.csv)*
+- **ALL**: CHECK NEEDED: after the VCC fix every probe reads 8-31 points below its last good value (Nov 8 23:55 -> Nov 9 12:41: P-01 100->91.7, P-02 55.9->39.8, P-03 84.2->52.8, P-04 88.6->72.0, P-05 60.9->37.2, P-06 68.2->52.5, P-07 94.9->82.9, P-08 77.9->62.9, P-09 100->90.0). Overnight readings normally rise, so this looks like a changed probe supply voltage shifting the calibration (the capacitive probes output depends on VCC), not drying. Treat soil readings from 12:41 on as unverified until confirmed (e.g. what the VCC is now; one probe in air should read ~4-7 %).  *(field_log.csv)*
+- **ALL**: D12 PHOTO RETAKEN at 12:42 at the team's request and the D12 rows replaced, because the 12:00 rows had no soil readings (NaN). Circles moved with the camera (+19.5, +1.9 px, confidence 0.66), no glare. Note: the light at 12:42 was ~3x dimmer than at 12:00 (exposure 12.1 ms vs 4.3 ms), and the 12:42 GPR is lower on most pots (e.g. P-05 0.11 -> 0.02, P-08 0.17 -> 0.10 cell %). The 12:00 rows are kept in growth_dataset.csv.before_D12_retake, the 12:00 frame in frames/replaced/.  *(field_log.csv)*
+- **ALL**: DECISION (team): keep the 12:42 photo and its soil readings as the D12 rows, although its light was dimmer than at 12:00. The 12:00 rows stay only as a backup (growth_dataset.csv.before_D12_retake).  *(field_log.csv)*
+- **ALL**: DECISION CHANGED (team, Nov 9 evening): the D12 rows now combine the 12:00 photo (all GPR and pixel columns, timestamp 12:00) with the 12:42 soil readings (sm_pct), because nothing changed in the pots between 12:00 and 12:42 and the 12:42 light was ~3x dimmer (exposure 12.1 ms vs 4.3 ms): it pushed seedling colour saturation below the S>=100 threshold (P-04 seedling S ~55-85 at 12:42 vs ~130 on D11), so small seedlings were missed (P-05 0.02 -> 0.11, P-06 0.00 -> 0.02 cell %). sm_pct is from 12:42, after the VCC fix, and is still unverified. P-01 12:00 cell GPR 0.35 % includes the other group's green wire on the rim (not plant). Made with tools/merge_day_rows.py; backup growth_dataset.csv.before_D12_merge. Rule from now on: do not retake the photo in worse light; if only the soil reading fails, merge a later reading into the noon rows the same way.  *(field_log.csv)*
+- **P-05**: UNLOGGED DOSE: the ESP32 dose counter for P-05 jumps from 2 to 4 at 12:48, so one P-05 dose is missing from irrigation_log.csv (probably during the Pi outage or the supply fault). *(found by Claude in the data/logs)*
+- **ALL**: ERROR LOG: all 5,946 error_log.csv lines are from Nov 9: 5,910 repeated BMP388 read failures during the supply fault, 27 SENSOR_RANGE and 9 POD_QUARANTINE. No errors after Nov 9 (checked to Nov 16 16:44). *(found by Claude in the data/logs)*
+- **ALL**: IRRIGATION: P-05 dosed 55.7 mL at 12:48 from a 37.5 % reading, right after the supply fix, when every probe read 8 to 31 points low (see CHECK NEEDED). The dose was probably triggered by the low post-fault reading. *(found by Claude in the data/logs)*
+
+## 2026-11-10 (D13)
+- **P-08**: D13 P-08 cell_gpr 0.51 % is inflated: a green object lying on the shade cloth inside P-08 area, outside the pot (bottom right), was counted (~300 of 493 cell px). It is NOT a plant. Gone on D14. The seedling itself is steady: pot circle 184 px (D13) -> 198 px (D14). Row kept as measured; seen on the D13 overlay.  *(field_log.csv)*
+- **P-08; P-09**: Stray leaf removed from inside the P-08 area and a small weed removed from P-09; D13 GPR of both inflated. *(field_log.txt, Kent/Rey; not in field_log.csv)*
+
+## 2026-11-12 (D15)
+- **P-09**: D15 P-09 cell_gpr is inflated: stray greenery from outside plants intruded into the P-09 area (recorded in field_log.txt on Nov 12). Row kept as measured.  *(field_log.csv)*
+- **ALL**: IRRIGATION: P-06 dosed 18.8 mL at 10:27 from 49.1 %; P-06 read 79.5 % at 12:10 (a 30-point rise from about 6 points of water). Same pattern on Nov 15. Suspected: tube outlet next to the probe. *(found by Claude in the data/logs)*
+- **ALL**: POWER: Pi-only outages at 12:00 (Nov 12), 10:30 and 16:30 (Nov 13), 06:30 and 16:30 (Nov 14), 06:30, 08:30 and 10:31 (Nov 15), 09:32, 09:55 and 12:16 (Nov 16); full power loss 10:30 Nov 16. Most at :30, when hourly light_log.py starts the camera. ESP32 kept running in all Pi-only outages. *(found by Claude in the data/logs)*
+
+## 2026-11-14 (D17)
+- **P-03; P-04**: GPR 0.00 (P-03) and 0.01 (P-04) at the D17 noon capture; P-03 stays 0 from here (dead, confirmed Nov 16). D17 frame mildly blue (blue/red 1.20). *(found by Claude in the data/logs)*
+
+## 2026-11-15 (D18)
+- **ALL**: D18 captured at 12:00 and its rows WRITTEN (cron.log 12:10: day 18 already in the CSV). Around 12:16 a git pull/merge on the Pi (repo commit 2b909b9, Resolve file deletion conflicts) put back the repo copies of growth_dataset.csv (no D18) and sowing_date.txt (2026-10-06). From 12:20 every capture refused: D=41 outside the cycle. *(found by Claude in the data/logs)*
+- **P-06**: dosed 16.7 mL at 18:27 from 49.7 %; read 85.4 % at 22:27 and 91.6 % at 02:27 Nov 16. *(found by Claude in the data/logs)*
+
+## 2026-11-16 (D18)
+- **ALL**: D18 ROWS RECOVERED on Nov 16: the noon frame D18_2026-11-15_1200.png was saved but its rows were never written. Measured from the saved frame with the noon-capture code (recover_day.py); soil moisture from the sm_log reading at 12:00.  *(field_log.csv)*
+- **ALL**: Captures 12:00 to 12:40 refused (D=42, wrong sowing date). Sowing date fixed (Cedric, commit d0fbe24 12:54); Pi-only crash at 12:16; D19 written at 12:47 in overcast light: exposure 14.5 ms, brightness 69.4, frame blue/red 1.84 (normal about 1.0), so GPR about half of D18 in all pots. *(found by Claude in the data/logs)*
+- **ALL**: FIX KIT installed on the Pi (Kent, 16:36): backups at 13:15 and 23:45 to ~/backups; first backup 16:36 (21 frames). Health check 16:39. *(Kent, check_pi output)*
+- **ALL**: D18 rows re-measured from the saved frame at 16:47 (recover_day.py, alignment -29.0, +7.4 px, confidence 0.27; soil moisture from sm_log 12:00:19). D15 P-09 note copied from field_log.txt. Mask comparison run; data pulled to the laptop 16:57; pushed from the laptop (8ae042d). *(Kent, fix kit output)*
+- **P-01; P-03; P-04; P-06**: Physical check (Kent, afternoon): P-01 soil wet to the touch, no dripping from its hose; P-03 seedling looks dead; P-04 alive and looks okay; P-06 hose not dripping. *(Kent, chat)*
+
+## 2026-11-17 (D20)
+- **ALL**: Pi rebooted about 09:31 (cause to confirm). catch_up.sh (runs a capture 2 min after any reboot if today has no frame) captured D20 at 09:36: morning light, outside the 12:00 to 12:50 protocol. The 12:00 cron then refused (day already written). *(found by Claude in the data/logs)*
+- **P-04**: Bent by irrigation; straightened by hand and the image retaken manually at 12:42 (who and which command: to confirm). Wilting/dying: 20 sprays to P-04 only (time: to confirm). *(field_log.csv, Rey, format to be corrected)*
+- **ALL**: Between the 09:36 and 12:42 captures every probe rose 15 to 20 points (P-02 45.6 to 63.4, P-03 44.5 to 64.2, P-05 58.6 to 78.4, P-07 82.3 to 98.0). Only P-04 sprays are logged. Cause to confirm (water to all pots? rain? probe or supply?). *(found by Claude in the data/logs)*
+- **ALL**: D20 has 18 rows (09:36 and 12:42 sets). Decision (Kent): keep 12:42 (inside the noon window, P-04 upright), flag R; the 09:36 set to be moved aside with fix_d20.bat (not deleted). The 12:42 frame was dim (exposure 10.9 ms, brightness 70.0). *(found by Claude in the data/logs)*
+- **ALL**: D20 pushed from the Pi by Rey (c52f561); git pull on the Pi hit merge conflicts in the live CSVs; aborted; then merged and pushed (2f10bb1, Way B). Last git operation allowed on the Pi. *(Rey, terminal output)*
