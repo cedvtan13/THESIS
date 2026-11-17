@@ -55,10 +55,10 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
       - Team suspects the valves actuated (Rey sprayed only P-04).
       - To check at the next pull: sm_log timing, irrigation_log, pi_link.log, power_log.
 - **Logs** in `DATA/agrisentry_data/` run to Nov 16 16:57.
-- **Raw noon frames (`D*.png`, ~3 MB each):** **Rule updated (Nov 18):** Copy `pi_pulls/<x>/agrisentry_data/frames/` into `DATA/agrisentry_data/frames/` and commit/push them to GitHub so the full team can inspect masks and recompute GPR directly from the repo. (Note: Run 2 D1–D20 frames are not in Git yet until copied from Kent's `pi_pulls/2026-11-17_1606` or the next Pi pull.)
+- **Raw noon frames (`D*.png`, ~3 MB each):** **Rule updated (Nov 18):** Copy `pi_pulls/<x>/agrisentry_data/frames/` into `DATA/agrisentry_data/frames/` and commit/push them to GitHub so the full team can inspect masks and recompute GPR directly from the repo. D1 to D20 pushed Nov 18 (`ccc4724`, moved to this path the same day).
 - **Change logs:** `DATA/2026-11-16-data-update-log.md`, `DATA/2026-11-17-data-update-log.md`.
 - **Full event log:** `DATA/2026-11-17-run2-event-log.md`.
-- **Raw frames:** `DATA/frames_run2/` (README lists which frame each day's rows use, with checksums).
+- **Raw frames:** `DATA/agrisentry_data/frames/`, D1 to D20 in git since Nov 18 (README lists which frame each day's rows use, with SHA-256 checksums). Add each new day after a pull.
 
 ### State of the Pi after Nov 17 afternoon (Kent)
 - **Git guard ON:** data files skip-worktree, merge hook installed.
@@ -422,6 +422,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-18, later):** frames moved from `DATA/frames_run2/` to `DATA/agrisentry_data/frames/` in the Pi's layout, to match Cedric's rule (36ecd26). Same files and checksums.
 
 - **Sync (2026-11-18):** raw noon frames D1 to D20 added to `DATA/frames_run2/` (main, replaced, set-aside, overlays; 74 MB, 42 files), copied byte-for-byte from `pi_pulls/2026-11-17_1606`, with SHA-256 checksums in its README. The D12 rows use `replaced/D12_2026-11-09_1200.png`. New frames are added after each pull.
 
