@@ -72,6 +72,37 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
   - `remask_all.py` used a pot pitch of 230 mm instead of 330, so the clean CSV's `terr_*` columns were on another scale. Regenerated; only `terr_gpr` and `terr_total_px` changed.
   - `gpr_by_group_clean_D21.png` was a copy of the D19 original plot. Rebuilt from `DATA/thesis_clean` and labelled "CLEAN MASK (exploratory)".
 
+### Backup batch for a possible replant (planned Nov 19; full plan: `2026-11-19-replant-plan.md`)
+*Not a team decision yet: agree on it in the group chat first.*
+
+- **Idea:** sow a backup batch now (new D1 = Thu Nov 20) in pots identical to the rig pots, kept off the rig and out of the camera's view.
+  - **If the panel asks for a redo on Nov 21:** end run 2 and swap the new pots into the rig on the new D7 (Wed Nov 26). Then `bands-on` and the first official capture on D8 (Thu Nov 27).
+  - **If not:** keep run 2 going (Option 1, extend to D40). The new pots become a comparison of the old and new soil.
+- **Timeline:**
+  - The second checking (Dec 7 to 13) falls on the new D18 to D24. D30 is Dec 19, after it.
+  - **Ask Sir AJ** whether the second checking needs harvest weights. If it does, harvest at about D24 (needs a source for a ~25-day pechay harvest).
+- **Methods, written before sowing:** D1 to D7 = off-rig establishment (no GPR); D8 to D30 = the official treatment series; thin to 1 seedling by D7.
+- **Soil:**
+  - Mix the new soil (recipe to choose; 3:1:1 plain DA garden soil : vermicast : rice hull is one option) in **one batch**. Skip the ready-made mix and the chicken dung.
+  - **Measure the pH of the old and new mixes**: the 8:4:3 mix has a lot of alkaline carbonized rice hull, and the Day 0 pH was never taken.
+  - Sow a few comparison pots in the old mix and the new mix side by side.
+- **A new soil needs a new probe calibration:** oven-dried (150 °C, 6 h) and saturated samples, then new `dryADC`/`wetADC` in `main.cpp` and a re-flash. The old 2483/1120 values don't apply to a different mix.
+- **Days 2 to 6 (no probes in the new pots):** water by weight to 50 to 60 % of each pot's dry-to-saturated mass, and log each watering.
+- **Swap day (only if replanting), in order:**
+  1. harvest and weigh run 2's plants (final data; don't discard them);
+  2. pull a copy of the data;
+  3. calibrate the probes and re-flash;
+  4. thin to 1 seedling and move the pots in;
+  5. re-fit the pot circles and make a new `align_ref.png`;
+  6. `agrisentry.sh new-run 2026-11-20` (the sowing date);
+  7. dry-run the capture.
+- **Fix before the swap, or the new run fails the same way:**
+  - the power supply;
+  - the probe shift and oscillation;
+  - drainage (P-01's saucer);
+  - P-06's tube outlet next to its probe.
+  - Consider randomising which position gets which band (each group is currently one row).
+
 ### Rules until harvest (Nov 27)
 1. **No git commands on the Pi.**
    - On Nov 15 a `git pull`/merge on the Pi put back old copies of `growth_dataset.csv` (wiping the D18 rows written at 12:00) and of `sowing_date.txt` (2026-10-06). Every capture then refused to run until Nov 16.
@@ -488,6 +519,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-19, evening):** replant plan written (`2026-11-19-replant-plan.md`): backup batch sown Nov 20 in identical pots off the rig, swapped in on D7 (Nov 26) only if the panel asks for a redo on Nov 21. Not yet a team decision.
 
 - **Sync (2026-11-19, later):** clean mask scored against the hand labels (`GPR_VALIDATION/2026-11-19-clean-mask-validation.md`, script `Dual_Archi/tools/validate_clean_mask.py`). It fails: IoU 0.502 vs 0.630, bias +0.58 vs +0.04 pp. The original stays the thesis measure.
 
