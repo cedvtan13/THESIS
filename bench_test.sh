@@ -2,7 +2,7 @@
 # bench_test.sh -- full rig health check. Run it on the Mac OR on the Pi.
 #   ESP32 link, BMP388, soil moisture (raw + %), optional relays, and a real
 #   camera capture with the ROI/HSV masking overlay. The photo always ends up
-#   on the MAC in ~/Desktop/AgriSentry Bench Photos/ and is opened there.
+#   on the MAC in ~/Desktop/Thesis Bench Photos/ and is opened there.
 #   Writes no data CSVs. Leaves the pi-link service STOPPED (testing mode).
 #
 #   ./bench_test.sh                 sensors + camera
@@ -16,7 +16,7 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
-PHOTO_DIR="Desktop/AgriSentry Bench Photos"          # relative to the Mac's home
+PHOTO_DIR="Desktop/Thesis Bench Photos"          # relative to the Mac's home
 NAME="overlay_$(date +%Y-%m-%d_%H%M%S).png"
 PI_IMG=/tmp/agrisentry_bench/bench_overlay.png
 want_photo() { [[ " $* " != *" --no-camera "* ]]; }

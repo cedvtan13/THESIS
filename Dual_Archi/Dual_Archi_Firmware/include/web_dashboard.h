@@ -9,7 +9,7 @@ static const char DASHBOARD_HTML[] PROGMEM = R"HTML(<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AgriSentry Live</title>
+<title>Pechay Greenhouse Live</title>
 <style>
 :root{--bg:#f4f5f2;--card:#fff;--ink:#1d2b2e;--ink2:#5d6870;--line:#dfe2df;
 --low:#cc7722;--opt:#109e92;--high:#3d5bd9;--ok:#2e9e5b;--warn:#c9821c;--bad:#c94a3a;--hl:#ffe9a8}
@@ -53,7 +53,7 @@ details.water summary{font-weight:700;cursor:pointer}
 footer{padding:4px 16px 24px;font-size:12px;color:var(--ink2)}
 @media (max-width:420px){.tile{padding:8px}.tile .pct{font-size:22px}.grid{gap:6px}}
 </style></head><body>
-<header><h1>AgriSentry · live soil moisture</h1>
+<header><h1>Pechay Greenhouse · live soil moisture</h1>
 <div class="sub">Fresh probe readings every 2 s, straight from the ESP32</div></header>
 <div class="chips">
 <span class="chip"><span class="dot" id="dot"></span><span id="conn">connecting…</span></span>

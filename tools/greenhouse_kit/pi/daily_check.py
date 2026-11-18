@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""daily_check.py -- read-only health report for the AgriSentry run.
+"""daily_check.py -- read-only health report for the Pechay greenhouse run.
 
 Runs ON THE PI. Needs no internet and changes nothing. Checks:
   * every day from D1 to today has 9 rows in growth_dataset.csv
@@ -93,7 +93,7 @@ def main():
     today = (now.date() - sown).days + 1
     capture_done_window = now.hour > 12 or (now.hour == 12 and now.minute >= 55)
     last_due = today if capture_done_window else today - 1
-    say(f"AgriSentry daily check  {now:%Y-%m-%d %H:%M}   sowing {sown}   today D{today}")
+    say(f"Pechay Run 2 daily check  {now:%Y-%m-%d %H:%M}   sowing {sown}   today D{today}")
     say("=" * 72)
     problems = []
     if str(sown) != RUN_SOWING:

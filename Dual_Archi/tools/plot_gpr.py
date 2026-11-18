@@ -138,7 +138,7 @@ def main():
 
     axes[0].set_ylabel("Green pixel ratio, pot area (%)", color=MUTED)
     axes[0].yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.1f}%"))
-    fig.suptitle(f"AgriSentry run 2: green pixel ratio per pot, D1–D{last} (noon capture)",
+    fig.suptitle(f"Pechay Growth Monitoring (Run 2): Green Pixel Ratio per Pot, D1–D{last} (Noon Capture)",
                  x=0.06, y=0.96, ha="left", fontsize=15, color=INK)
     fig.text(0.06, 0.885, "cell_gpr: green pixels in each pot's area ÷ area. Missed days are left blank, "
              "never filled in.", fontsize=10.5, color=MUTED)

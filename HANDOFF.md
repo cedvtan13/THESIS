@@ -14,7 +14,13 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
    - On Nov 17 a Pi pull hit merge conflicts in the live CSVs.
    - `protect_data.sh` (fix kit) blocks merges on the Pi.
    - **Data path:** Pi → laptop (`pull_from_pi.bat`) → GitHub from the laptop.
-   - **Code path:** scp only.
+   - **Code path:** `scp` only.
+   - **Deploying the Nov 18 dual-masking update to the Pi (Kent):** After running `git pull` on your Windows laptop, copy the updated capture script and parallel clean dataset (`D1`–`D21` already populated) to the Pi via `scp` (replacing `<PI_IP>` with the IP from `find_pi.bat` or `groupb.local`):
+     ```bat
+     scp Dual_Archi\capture_gpr.py Dual_Archi\growth_dataset_clean.csv crk@<PI_IP>:~/THESIS/Dual_Archi/
+     scp Dual_Archi\tools\remask_all.py crk@<PI_IP>:~/THESIS/Dual_Archi/tools/
+     ```
+     Once deployed, `capture_gpr.py` writes **both** tracks automatically on every noon capture (`growth_dataset.csv` + `frames/overlay/` for the original baseline, and `growth_dataset_clean.csv` + `frames/overlay_clean/` for the sunny-WB + pot-anchored clean mask). Never overwrite `growth_dataset.csv` on the Pi.
 2. **Don't run `capture_gpr.py` by hand.** If a retake is truly needed, log who did it, when, why and the exact command.
 3. **Don't run `agrisentry.sh start`.** It turns the hourly camera job back on, and that job crashes the Pi at :30.
 4. **No re-flashing the ESP32, no moving pots, no replanting.**
@@ -138,13 +144,13 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Panel Revision Letter:** `REVISION_LETTER.md` in root contains the complete 9-item formal revision letter to Dr. Cañete, Engr. D’Silva, and Engr. Labarosa with all measurements and rationale filled in.
 - **Fast Build & Live Preview:** Run `./compile.sh` inside `2026-11-11-GroupB-Manuscript-Draft1` to compile the 78-page `thesis.pdf` in ~5 seconds. Run `python3 auto_watch.py` for background auto-recompilation on save.
 - **Run 2 State:** Sown Oct 29, 2026 (D1). D8 bands activated Nov 5 at 11:44 AM. Currently at D14/D15. D2–D3 outage reported transparently in Chapter 4 without synthetic data. Harvest scheduled on D30 (November 27, 2026).
-- **Daily Inspection Command (`./check_system.sh`):** Connect laptop to Pi hotspot (or pass `PI_HOST=<ip>`), run `./check_system.sh` (or tell AI **"check system"**). It checks NTP clock sync, service daemons, Run 2 progress, pot moisture vs. bands, noon capture GPR, runs `roi_drift.py` on the latest frame to check camera/pot alignment, copies the alignment verification image to `~/Desktop/AgriSentry_ROI_Check.jpg`, and pulls latest telemetry to `_pi_data/`.
+- **Daily Inspection Command (`./check_system.sh`):** Connect laptop to Pi hotspot (or pass `PI_HOST=<ip>`), run `./check_system.sh` (or tell AI **"check system"**). It checks NTP clock sync, service daemons, Run 2 progress, pot moisture vs. bands, noon capture GPR, runs `roi_drift.py` on the latest frame to check camera/pot alignment, copies the alignment verification image to `~/Desktop/Thesis_ROI_Check.jpg`, and pulls latest telemetry to `_pi_data/`.
 - **Handoff & Work Sync Command (`./sync_work.sh [hardware|manuscript|auto]`):**
   - For hardware/field checks: `./sync_work.sh hardware "D15 field check notes"` (or tell AI **"update handoff"**). Updates `HANDOFF.md` with Run 2 Day index, local telemetry stats, commits, and pushes to git.
   - For manuscript work: `./sync_work.sh manuscript "revised Ch3"` (or tell AI **"update manuscript"**). Recompiles `thesis.pdf` via Tectonic, updates word counts in `MANUSCRIPT.md`, commits, and pushes to git.
 
 ## Project
-AgriSentry is an undergraduate thesis: "Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse".
+Undergraduate thesis: **"Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse"**.
 - 9 pechay pots in 3 soil-moisture groups.
 - Every day at noon, a top-down camera measures each pot's canopy Green Pixel Ratio (GPR).
 - After harvest, an OLS polynomial regression with leave-one-plant-out cross-validation (LOOCV) predicts each plant's harvest weight.

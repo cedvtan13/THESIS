@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# system.sh -- start / stop / check the AgriSentry system on the Pi, from the Mac.
+# system.sh -- start / stop / check the greenhouse monitoring system on the Pi, from the Mac.
 #   ./system.sh start        pi-link logger + 12:00 GPR capture ON  (deployment)
 #   ./system.sh stop         both OFF                                (testing)
 #   ./system.sh status       what's running, day number, CSV row counts

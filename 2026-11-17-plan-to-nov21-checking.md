@@ -13,7 +13,7 @@
 | Advisers | Engr. Alvin Joseph Macapagal (adviser), Engr. Linda Saavedra (assistant adviser) |
 | Run day on Saturday | **D24** (D1 = Oct 29). The D24 noon capture (12:00 to 12:50) happens **before** the checking |
 
-**Title check.** The schedule lists the title as "AgriSentry: An Edge-Vision IoT System for Automated Irrigation and Plant Monitoring in Residential Urban Farming". The manuscript we submitted uses "Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse". Ask Sir AJ or the department office which one is official, and use that title on the slides.
+**Official Title:** "Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse" (ensure all slides, documents, and scripts use this exact title; "AgriSentry" and "IoT irrigation system" have been removed).
 
 ## 1. What we are aiming for on Saturday
 
@@ -191,6 +191,6 @@ git push
 > 3. We ran the pre-harvest growth model from our Nov 9 logbook plan, with the rules committed before the run. It does not beat a "no change" forecast, because the canopy stopped growing. We will report this as it is.
 > 4. Our proposal: extend the run to D40 (harvest Dec 7) instead of replanting. With 7 to 8 plants we would make the main yield model weight vs GPR only and report the larger model as exploratory, written down before harvest. If the panel prefers a replant, our fallback is to transplant older seedlings on Nov 22 and harvest by Dec 9.
 >
-> Which option would you support, so we can present it on Saturday? Also, the checking schedule lists our title as "AgriSentry: An Edge-Vision IoT System for Automated Irrigation and Plant Monitoring in Residential Urban Farming". Should we use that one or the title in our manuscript?
+> Which option would you support, so we can present it on Saturday?
 >
 > Thank you, Sir.

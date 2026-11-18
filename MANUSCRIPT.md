@@ -1,4 +1,4 @@
-# AgriSentry: Manuscript Tracking & Revision Guide
+# Manuscript Tracking & Revision Guide: Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse
 
 > **Quick Reference for Agents & Proponents:**  
 > This file tracks the exact state, empirical parameters, verified corrections, and LaTeX specifications for the undergraduate thesis manuscript:  

@@ -1,4 +1,4 @@
-# AgriSentry deliverables (Table I), status at D8 (2026-11-05)
+# Thesis Deliverables (Table I): Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse
 
 | # | Deliverable | Folder | Status |
 |---|---|---|---|

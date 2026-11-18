@@ -5,7 +5,7 @@ const img = (f) => path.join(D, f);
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE"; // 13.333 x 7.5
-pres.title = "AgriSentry Run 2 progress check (D8)";
+pres.title = "Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay Under Differential Soil Moisture Treatments in a Greenhouse — Run 2 Progress Check";
 pres.author = "Rey Adag, Kent Godinez, Cedric Tan";
 pres.theme = { headFontFace: "Arial", bodyFontFace: "Arial" };
 
@@ -28,7 +28,7 @@ function content(title, badge) {
     s.addText(badge, { x: 11.55, y: 0.45, w: 1.2, h: 0.6, fontFace: BF, fontSize: 14, bold: true, color: GREEN,
       align: "center", valign: "middle", margin: 0, isTextBox: true });
   }
-  s.addText("AgriSentry · Run 2 · D8 progress check, Nov 5, 2026", { x: 0.6, y: 7.0, w: 8, h: 0.3, fontFace: BF,
+  s.addText("Pechay Growth & Yield Monitoring · Run 2 · Progress Check", { x: 0.6, y: 7.0, w: 8, h: 0.3, fontFace: BF,
     fontSize: 10, color: MUTED, margin: 0, isTextBox: true });
   s.addText(String(n), { x: 12.13, y: 7.0, w: 0.6, h: 0.3, fontFace: BF, fontSize: 10, color: MUTED, align: "right",
     margin: 0, isTextBox: true });
@@ -67,8 +67,8 @@ function bullets(arr, size = 15) {
   const s = pres.addSlide(); n++;
   s.background = { color: DARK };
   s.addImage({ path: img("d08raw.jpg"), x: 7.83, y: 0, w: 5.5, h: 5.5, altText: "Top view of the 9 pots, D8 noon" });
-  s.addText("AgriSentry", { x: 0.7, y: 1.2, w: 6.8, h: 1.0, fontFace: HF, fontSize: 48, bold: true, color: WHITE, margin: 0, isTextBox: true });
-  s.addText("Automated irrigation and camera-based growth monitoring of pechay", { x: 0.7, y: 2.3, w: 6.6, h: 1.0,
+  s.addText("Computer Vision-Based Growth Monitoring and Yield Prediction for Pechay", { x: 0.7, y: 1.2, w: 6.8, h: 1.0, fontFace: HF, fontSize: 32, bold: true, color: WHITE, margin: 0, isTextBox: true });
+  s.addText("Under Differential Soil Moisture Treatments in a Greenhouse", { x: 0.7, y: 2.3, w: 6.6, h: 1.0,
     fontFace: BF, fontSize: 20, color: "D6E6D2", margin: 0, isTextBox: true });
   s.addText("Run 2 progress check · Day 8 of 30 · November 5, 2026", { x: 0.7, y: 3.5, w: 6.8, h: 0.5,
     fontFace: BF, fontSize: 16, bold: true, color: MOSS, margin: 0, isTextBox: true });
@@ -352,4 +352,4 @@ function bullets(arr, size = 15) {
     { x: 0.6, y: 6.6, w: 12.1, h: 0.5, fontFace: BF, fontSize: 12, color: "B8CCB4", margin: 0, isTextBox: true });
 }
 
-pres.writeFile({ fileName: path.join(D, "AgriSentry_D8_checking.pptx") }).then((f) => console.log("wrote", f));
+pres.writeFile({ fileName: path.join(D, "Pechay_Run2_D8_checking.pptx") }).then((f) => console.log("wrote", f));

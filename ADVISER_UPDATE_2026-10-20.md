@@ -1,4 +1,4 @@
-# AgriSentry: progress on the adviser's comments (Oct 20, 2026, D15)
+# Progress on the Adviser's Comments (Oct 20, 2026, D15) — Pechay Growth Monitoring & Yield Prediction
 
 Our response to Engr. Macapagal's three comments from last week's meeting.
 

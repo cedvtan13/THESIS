@@ -123,6 +123,7 @@ import numpy as np
 BASE = os.path.expanduser("~/thesis")
 ROI_FILE = os.path.join(BASE, "pot_rois.json")
 OUT_CSV = os.path.join(BASE, "growth_dataset.csv")
+OUT_CLEAN_CSV = os.path.join(BASE, "growth_dataset_clean.csv")
 SOWING_FILE = os.path.join(BASE, "sowing_date.txt")
 FRAME_DIR = os.path.expanduser("~/agrisentry_data/frames")   # daily raw noon frames
 
@@ -157,6 +158,13 @@ POT_PITCH_MM = 330.0        # centre-to-centre. Territory circle diameter.
 # Keep these values in OpenCV units. Fix the manuscript text, not the code.
 HUE_LO, HUE_HI = 38, 85
 SAT_MIN, VAL_MIN = 100, 55      # Filters out dry soil and shade cloth glare
+CLEAN_HUE_LO, CLEAN_HUE_HI = 36, 85
+CLEAN_SAT_MIN, CLEAN_VAL_MIN = 100, 55
+WEAK_HUE_LO, WEAK_HUE_HI = 34, 88
+WEAK_SAT_MIN, WEAK_VAL_MIN = 80, 48
+MIN_BLOB_AREA = 12
+POT_INNER_R_PX = 68.0
+REF_R, REF_G, REF_B = 62.3, 72.3, 60.5
 
 # Opening kernel, in PIXELS but chosen from a PHYSICAL size. A k x k opening
 # erases anything thinner than k px. At PX_PER_MM = 1.34, k = 3 erases features
@@ -403,6 +411,23 @@ def roi_mask(shape_hw, roi, circular):
     return m
 
 
+def sunny_wb_bgr(frame):
+    """Normalize BGR frame to sunny-day neutral reference on mid-tone pixels."""
+    f = frame.astype(np.float32)
+    lum = f.mean(axis=2)
+    valid = (lum > 15) & (lum < 235)
+    if np.count_nonzero(valid) < 1000:
+        valid = np.ones(frame.shape[:2], dtype=bool)
+    bm = float(f[..., 0][valid].mean())
+    gm = float(f[..., 1][valid].mean())
+    rm = float(f[..., 2][valid].mean())
+    out = np.empty_like(f)
+    out[..., 0] = f[..., 0] * (REF_B / max(bm, 1.0))
+    out[..., 1] = f[..., 1] * (REF_G / max(gm, 1.0))
+    out[..., 2] = f[..., 2] * (REF_R / max(rm, 1.0))
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
 def hsv_mask(hsv):
     """Raw HSV threshold, no morphology."""
     return cv2.inRange(hsv,
@@ -411,13 +436,40 @@ def hsv_mask(hsv):
 
 
 def green_mask(hsv):
-    """Threshold + opening for the WHOLE frame, computed once.
-
-    Hoisted out of the per-pot loop: on a Zero 2W the opening is the single most
-    expensive step, and running it nine times over the full 2304x1296 frame was
-    ~9x more work than needed. Opening the whole frame is also slightly more
-    correct -- per-ROI opening would treat each ROI edge as a boundary."""
+    """Original validated threshold + 3x3 opening for the whole frame."""
     return cv2.morphologyEx(hsv_mask(hsv), cv2.MORPH_OPEN, MORPH_KERNEL)
+
+
+def clean_green_mask(frame, rois):
+    """Sunny-reference WB + 3x3 opening + pot-anchored blob filter + 1-px edge recovery.
+
+    Returns (clean_final_uint8, clean_raw_inner_uint8) without modifying frame."""
+    wb = sunny_wb_bgr(frame)
+    hsv = cv2.cvtColor(wb, cv2.COLOR_BGR2HSV)
+    raw_hsv = cv2.inRange(hsv,
+                          np.array([CLEAN_HUE_LO, CLEAN_SAT_MIN, CLEAN_VAL_MIN], np.uint8),
+                          np.array([CLEAN_HUE_HI, 255, 255], np.uint8))
+    core = cv2.morphologyEx(raw_hsv, cv2.MORPH_OPEN, MORPH_KERNEL)
+    h, w = hsv.shape[:2]
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    inner = np.zeros((h, w), dtype=bool)
+    for r in rois.values():
+        cx, cy, _ = roi_geometry(r)
+        inner |= ((xx - cx) ** 2 + (yy - cy) ** 2) <= (POT_INNER_R_PX ** 2)
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(core, connectivity=8)
+    clean_core = np.zeros((h, w), dtype=np.uint8)
+    for idx in range(1, n):
+        if stats[idx, cv2.CC_STAT_AREA] >= MIN_BLOB_AREA:
+            comp = (labels == idx)
+            if np.any(comp & inner):
+                clean_core[comp] = 255
+    weak = cv2.inRange(hsv,
+                       np.array([WEAK_HUE_LO, WEAK_SAT_MIN, WEAK_VAL_MIN], np.uint8),
+                       np.array([WEAK_HUE_HI, 255, 255], np.uint8))
+    dil = cv2.dilate(clean_core, MORPH_KERNEL)
+    final = ((clean_core > 0) | ((dil > 0) & (weak > 0))) & inner
+    inner_raw = (raw_hsv > 0) & inner
+    return (final.astype(np.uint8) * 255), (inner_raw.astype(np.uint8) * 255)
 
 
 def cell_masks(shape_hw, rois, r_px=CELL_R_PX):
@@ -459,12 +511,12 @@ def canopy_bbox(mask, area):
 # ---------------------------------------------------------------------------
 # HISTORY
 # ---------------------------------------------------------------------------
-def previous_gpr_all():
+def previous_gpr_all(csv_path=OUT_CSV):
     """{pot_id: (day, raw_gpr)} for the most recent row of each pot."""
-    if not os.path.exists(OUT_CSV):
+    if not os.path.exists(csv_path):
         return {}
     out = {}
-    with open(OUT_CSV, newline="") as f:
+    with open(csv_path, newline="") as f:
         for row in csv.DictReader(f):
             try:
                 out[row["pot_id"]] = (int(row["day"]), float(row["raw_gpr"]))
@@ -595,6 +647,58 @@ def math_hypot(dx, dy):
     return (dx * dx + dy * dy) ** 0.5
 
 
+def _measure_pot_row(d, stamp, pot_id, sm_str, area, total, t_area, t_total,
+                     c_mask, c_total, mask_all, mask_raw, prev):
+    """Compute one CSV row for a pot given its masks and previous baseline."""
+    g = masked_count(mask_all, area)
+    g_raw = masked_count(mask_raw, area)
+    gpr = g / total * 100.0 if total else 0.0
+    gpr_raw = g_raw / total * 100.0 if total else 0.0
+    cw, ch = canopy_bbox(mask_all, area)
+    t_green = masked_count(mask_all, t_area)
+    t_gpr = t_green / t_total * 100.0 if t_total else 0.0
+    c_green = masked_count(mask_all, c_mask)
+    c_gpr = c_green / c_total * 100.0 if c_total else 0.0
+
+    flag = 0
+    if pot_id in prev:
+        pday, pgpr = prev[pot_id]
+        gap = max(1, d - pday)
+        if abs(gpr - pgpr) > ANOMALY_DELTA_PER_DAY * gap:
+            flag = 1
+
+    row = [d, stamp, pot_id, sm_str, f"{gpr:.2f}", "",
+           g, total, flag,
+           f"{gpr_raw:.2f}", f"{t_gpr:.2f}", t_green, t_total,
+           cw, ch, MORPH_K,
+           f"{c_gpr:.2f}", c_green, c_total]
+    return row, (gpr, gpr_raw, t_gpr, c_gpr, g, cw, ch, flag)
+
+
+def _save_overlay(frame, mask, cells, rois, out_path):
+    """Draw magenta green mask and yellow cell contours to a JPEG."""
+    ov = frame.copy()
+    ov[mask > 0] = (255, 0, 255)
+    for pid, m in cells.items():
+        cnt, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(ov, cnt, -1, (0, 255, 255), 2)
+        cx, cy, _ = roi_geometry(rois[pid])
+        cv2.putText(ov, pid, (int(cx) - 30, int(cy) - 60),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    cv2.imwrite(out_path, ov, [cv2.IMWRITE_JPEG_QUALITY, 85])
+
+
+def _append_csv_rows(csv_path, rows):
+    new_file = not os.path.exists(csv_path)
+    os.makedirs(os.path.dirname(csv_path), exist_ok=True)
+    with open(csv_path, "a", newline="") as f:
+        w = csv.writer(f)
+        if new_file:
+            w.writerow(CSV_HEADER)
+        w.writerows(rows)
+
+
 # ---------------------------------------------------------------------------
 def main():
     ap = argparse.ArgumentParser(description="Daily noon GPR capture")
@@ -688,8 +792,9 @@ def main():
                  "(see make_rois.py)")
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    green_all = green_mask(hsv)          # computed once, not nine times
+    green_all = green_mask(hsv)          # original baseline, computed once
     green_raw = hsv_mask(hsv)            # diagnostic: same thing, no opening
+    clean_all, clean_raw = clean_green_mask(frame, rois)
 
     # --- soil moisture, via the daemon so the serial port has one owner ---
     sm_values = None
@@ -703,12 +808,14 @@ def main():
                   "expected 9 -- writing NaN", file=sys.stderr)
         sm_values = [None] * 9
 
-    prev = previous_gpr_all()
+    prev = previous_gpr_all(OUT_CSV)
+    prev_clean = previous_gpr_all(OUT_CLEAN_CSV)
     stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     overlay = frame.copy() if args.debug_overlay else None
     terr_r_px = (POT_PITCH_MM * PX_PER_MM) / 2.0
     cells = cell_masks(frame.shape[:2], rois)
     rows = []
+    clean_rows = []
 
     print(f"[capture_gpr] D={d}  kernel {MORPH_K}x{MORPH_K} "
           f"({MORPH_K / PX_PER_MM:.1f} mm)  territory r={terr_r_px:.0f} px")
@@ -720,31 +827,9 @@ def main():
 
         area = roi_mask(frame.shape[:2], roi, circular)
         total = int(np.count_nonzero(area))
-        g = masked_count(green_all, area)
-        g_raw = masked_count(green_raw, area)
-        gpr = g / total * 100.0 if total else 0.0
-        gpr_raw = g_raw / total * 100.0 if total else 0.0
-        cw, ch = canopy_bbox(green_all, area)
-
-        # territory: the pot's Voronoi cell. Does not saturate when the canopy
-        # outgrows the rim, which happens around D=24-28.
         t_area = circle_mask(frame.shape[:2], cx, cy, terr_r_px)
         t_total = int(np.count_nonzero(t_area))
-        t_green = masked_count(green_all, t_area)
-        t_gpr = t_green / t_total * 100.0 if t_total else 0.0
-
-        # pot-area (cell) GPR -- the main growth measure from run 2 on
         c_total = int(np.count_nonzero(cells[pot_id]))
-        c_green = masked_count(green_all, cells[pot_id])
-        c_gpr = c_green / c_total * 100.0 if c_total else 0.0
-
-        # anomaly flag, scaled by the gap since this pot was last recorded
-        flag = 0
-        if pot_id in prev:
-            pday, pgpr = prev[pot_id]
-            gap = max(1, d - pday)
-            if abs(gpr - pgpr) > ANOMALY_DELTA_PER_DAY * gap:
-                flag = 1
 
         sm = sm_values[i]
         sm_str = "NaN" if sm is None else f"{sm:.1f}"
@@ -752,14 +837,17 @@ def main():
         # smooth_gpr is intentionally blank. The 3-day centred moving average
         # needs days either side of each point, so it is computed offline after
         # harvest, not here (Appendix G closing note).
-        rows.append([d, stamp, pot_id, sm_str, f"{gpr:.2f}", "",
-                     g, total, flag,
-                     f"{gpr_raw:.2f}", f"{t_gpr:.2f}", t_green, t_total,
-                     cw, ch, MORPH_K,
-                     f"{c_gpr:.2f}", c_green, c_total])
+        row, (gpr, gpr_raw, t_gpr, c_gpr, g, cw, ch, flag) = _measure_pot_row(
+            d, stamp, pot_id, sm_str, area, total, t_area, t_total,
+            cells[pot_id], c_total, green_all, green_raw, prev)
+        clean_row, (_, _, _, cc_gpr, cg_px, _, _, _) = _measure_pot_row(
+            d, stamp, pot_id, sm_str, area, total, t_area, t_total,
+            cells[pot_id], c_total, clean_all, clean_raw, prev_clean)
+        rows.append(row)
+        clean_rows.append(clean_row)
 
-        print(f"{pot_id}  SM={sm_str:>6}  cell={c_gpr:6.2f}%  GPR={gpr:6.2f}%  "
-              f"(noopen {gpr_raw:5.2f}%, terr {t_gpr:5.2f}%)  "
+        print(f"{pot_id}  SM={sm_str:>6}  cell={c_gpr:6.2f}% (clean={cc_gpr:5.2f}%)  "
+              f"GPR={gpr:6.2f}%  (noopen {gpr_raw:5.2f}%, terr {t_gpr:5.2f}%)  "
               f"({g}/{total} px)  bbox {cw}x{ch}  flag={flag}")
 
         if overlay is not None:
@@ -784,15 +872,13 @@ def main():
         print("[capture_gpr] --no-write: CSV untouched")
         return
 
-    new_file = not os.path.exists(OUT_CSV)
-    os.makedirs(os.path.dirname(OUT_CSV), exist_ok=True)
-    with open(OUT_CSV, "a", newline="") as f:
-        w = csv.writer(f)
-        if new_file:
-            w.writerow(CSV_HEADER)
-        w.writerows(rows)
-
+    _append_csv_rows(OUT_CSV, rows)
     print(f"[capture_gpr] day {d} written to {OUT_CSV}")
+    try:
+        _append_csv_rows(OUT_CLEAN_CSV, clean_rows)
+        print(f"[capture_gpr] day {d} written to {OUT_CLEAN_CSV}")
+    except Exception as e:
+        print(f"[capture_gpr] WARNING: clean CSV not saved ({e})", file=sys.stderr)
 
     # Keep the raw frame (lossless, so HSV is unchanged) for recomputation. The
     # rows are already written; a failed save must not cost the day.
@@ -807,20 +893,15 @@ def main():
         except OSError as e:
             print(f"[capture_gpr] WARNING: frame not saved ({e})", file=sys.stderr)
         try:      # daily check picture: magenta = counted green, yellow = each pot's cell
-            ov = frame.copy()
-            ov[green_all > 0] = (255, 0, 255)
-            for pid, m in cells.items():
-                cnt, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                cv2.drawContours(ov, cnt, -1, (0, 255, 255), 2)
-                cx, cy, _ = roi_geometry(rois[pid])
-                cv2.putText(ov, pid, (int(cx) - 30, int(cy) - 60),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
-            od = os.path.join(FRAME_DIR, "overlay")
-            os.makedirs(od, exist_ok=True)
-            cv2.imwrite(os.path.join(od, f"D{d:02d}_overlay.jpg"), ov,
-                        [cv2.IMWRITE_JPEG_QUALITY, 85])
+            _save_overlay(frame, green_all, cells, rois,
+                          os.path.join(FRAME_DIR, "overlay", f"D{d:02d}_overlay.jpg"))
         except Exception as e:      # never cost the day for a check picture
             print(f"[capture_gpr] WARNING: overlay not saved ({e})", file=sys.stderr)
+        try:
+            _save_overlay(frame, clean_all, cells, rois,
+                          os.path.join(FRAME_DIR, "overlay_clean", f"D{d:02d}_overlay.jpg"))
+        except Exception as e:
+            print(f"[capture_gpr] WARNING: clean overlay not saved ({e})", file=sys.stderr)
     if LAST_EXPOSURE:
         new_log = not os.path.exists(EXPOSURE_LOG)
         with open(EXPOSURE_LOG, "a", newline="") as f:

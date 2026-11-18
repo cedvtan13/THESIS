@@ -1,6 +1,6 @@
 # Vision reliability: ROI and GPR (part of Deliverable 7)
 
-AgriSentry run 2, evidence to D8 (2026-11-05). Three questions: do the pot circles stay on the pots (ROI), does GPR count the right pixels (accuracy), and is the light kept the same (consistency)?
+Pechay Growth Monitoring & Yield Prediction (Run 2), evidence to D8 (2026-11-05). Three questions: do the pot circles stay on the pots (ROI), does GPR count the right pixels (accuracy), and is the light kept the same (consistency)?
 
 ## Files in this folder
 | File | What it is |

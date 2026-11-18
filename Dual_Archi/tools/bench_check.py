@@ -53,7 +53,7 @@ def sensor_verdict(raw):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="AgriSentry bench check")
+    ap = argparse.ArgumentParser(description="Greenhouse rig bench check")
     ap.add_argument("--relays", action="store_true",
                     help="also click every relay (needs ACTUATORS_ENABLED=true firmware)")
     ap.add_argument("--relay-ms", type=int, default=500)

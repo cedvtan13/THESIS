@@ -34,7 +34,7 @@ for p, r in rois.items():
         cv2.putText(o, f"GPR {100 * c / t:.2f}%", (int(cx) - 70, int(cy) + int(rad) + 34),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, col, th)
 band = np.full((70, o.shape[1], 3), 30, np.uint8)
-cv2.putText(band, f"AgriSentry  {datetime.now():%Y-%m-%d %H:%M}   yellow = pot circle (ROI)   "
+cv2.putText(band, f"Pechay GPR  {datetime.now():%Y-%m-%d %H:%M}   yellow = pot circle (ROI)   "
             "cyan = pot area   magenta = counted green", (12, 45),
             cv2.FONT_HERSHEY_SIMPLEX, 0.62, (255, 255, 255), 2)
 cv2.imwrite(out, np.vstack([band, o]), [cv2.IMWRITE_JPEG_QUALITY, 90])

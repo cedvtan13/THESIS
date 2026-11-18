@@ -1,6 +1,6 @@
 sudo tee /etc/systemd/system/pi-link.service > /dev/null << 'EOF'
 [Unit]
-Description=AgriSentry ESP32-S3 serial bridge (pi_link)
+Description=Greenhouse ESP32-S3 serial bridge (pi_link)
 After=network.target
 Wants=network.target
 

@@ -1,4 +1,4 @@
-# AgriSentry: Deployment Notes & Command Cheat Sheet
+# Deployment Notes & Command Cheat Sheet — Pechay Growth Monitoring & Yield Prediction
 
 _Last updated: 2026-10-11_
 
@@ -19,7 +19,7 @@ cd ~/Desktop/THESIS
    ```
    - `PING/PONG` should say **5/5**.
    - Every pot (P-01 to P-09) should **PASS**: raw ADC between about 1120 (wet) and 2483 (dry). If all nine read about 550 and show WARN, the sensors aren't connected.
-   - The camera photo with the pot circles is saved to **Desktop → AgriSentry Bench Photos** and opens by itself. Check that every pot sits inside its cyan circle.
+   - The camera photo with the pot circles is saved to **Desktop → Thesis Bench Photos** and opens by itself. Check that every pot sits inside its cyan circle.
 3. **Start the system:**
    ```bash
    ./system.sh start
@@ -93,13 +93,13 @@ A normal `./system.sh stop` or reboot is **not** logged as an outage. This log i
 | Is everything running? Day number? Row counts? | `./system.sh status` |
 | Start the system (logging + noon photo) | `./system.sh start` |
 | Stop the system (testing mode) | `./system.sh stop` |
-| Test sensors + camera, photo saved to Desktop → AgriSentry Bench Photos | `./bench_test.sh` |
+| Test sensors + camera, photo saved to Desktop → Thesis Bench Photos | `./bench_test.sh` |
 | Same, but skip the photo | `./bench_test.sh --no-camera` |
 | Same, plus click every relay | `./bench_test.sh --relays` |
 | Test relays one at a time (interactive) | `./actuator_test.sh` |
 | Measure each valve's flow rate | `./flow_test.sh` (see below) |
 | Live camera view for arranging pots | `./live_feed.sh` (see below) |
-| **See what GPR measures right now** (photo + mask, per pot) | `./gpr_view.sh` (opens from Desktop → AgriSentry GPR Views) |
+| **See what GPR measures right now** (photo + mask, per pot) | `./gpr_view.sh` (opens from Desktop → Thesis GPR Views) |
 | Build + flash the **system firmware** (`Dual_Archi_Firmware/src/main.cpp`) | `./flash_esp.sh` |
 | Flash a different ESP32-S3 project instead (replaces the system firmware) | `./flash_esp.sh Test/TestBench` |
 | Send code edits from the Mac to the Pi | `./sync_pi.sh push` |
@@ -263,7 +263,7 @@ It explains dips or jumps in the data later. `./sync_pi.sh pull` copies it to th
 
 ## Bench photos when running on the Pi
 
-`./bench_test.sh` works from **either** machine, and the photo always ends up on the **Mac** in Desktop → AgriSentry Bench Photos.
+`./bench_test.sh` works from **either** machine, and the photo always ends up on the **Mac** in Desktop → Thesis Bench Photos.
 
 - **From the Mac:** works out of the box.
 - **On the Pi** (after you `ssh` in): the Pi sends the photo back to the Mac you connected from. This needs a **one-time setup** on the Mac so it trusts the Pi's key:

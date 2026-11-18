@@ -173,7 +173,7 @@ def sync_hardware(message=None):
     days_left = max(0, (HARVEST_DATE - today).days)
     now_str = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    print(f"\n\033[1;36m=== [1/3] AgriSentry Run 2 Status: Day {day_num} of 30 ===\033[0m")
+    print(f"\n\033[1;36m=== [1/3] Pechay Growth & Yield Run 2 Status: Day {day_num} of 30 ===\033[0m")
     print(f"  Sowing date: {SOWING_DATE} (D1)")
     print(f"  Today:       {today} (Day {day_num})")
     print(f"  Harvest:     {HARVEST_DATE} (Day 30, {days_left} days remaining)")

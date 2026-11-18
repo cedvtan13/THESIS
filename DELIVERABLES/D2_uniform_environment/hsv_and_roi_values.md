@@ -1,6 +1,6 @@
 # HSV tuning values and ROI configuration (Deliverable 2)
 
-AgriSentry, run 2. Source: `Dual_Archi/capture_gpr.py` and `Dual_Archi/pot_rois.json`. These values are fixed for the whole run.
+Pechay Growth Monitoring & Yield Prediction, Run 2. Source: `Dual_Archi/capture_gpr.py` and `Dual_Archi/pot_rois.json`. These values are fixed for the whole run.
 
 ## 1. Green threshold (HSV)
 | Channel | Value used (OpenCV units) | Meaning | On the usual scale |

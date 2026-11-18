@@ -1,6 +1,6 @@
 # Two-point soil moisture calibration log (Deliverable 1)
 
-AgriSentry, run 2 (sown 2026-10-29). Source of every number: `Dual_Archi/Dual_Archi_Firmware/src/main.cpp`.
+Pechay Growth Monitoring & Yield Prediction, Run 2 (sown 2026-10-29). Source of every number: `Dual_Archi/Dual_Archi_Firmware/src/main.cpp`.
 
 ## 1. Method (Section III.E.1)
 | Point | How it was made | Reading taken as |

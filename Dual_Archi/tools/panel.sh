@@ -8,7 +8,7 @@ DATA="$HOME/agrisentry_data"
 B=$'\e[1m'; N=$'\e[0m'
 rows() { [[ -f $1 ]] && echo $(( $(wc -l < "$1") - 1 )) || echo 0; }
 
-echo "${B}AgriSentry -- system summary  $(date '+%Y-%m-%d %H:%M')${N}"
+echo "${B}Pechay Growth & Yield Monitoring -- system summary  $(date '+%Y-%m-%d %H:%M')${N}"
 python3 - "$DUAL/sowing_date.txt" <<'EOF'
 import sys, datetime as dt
 s = open(sys.argv[1]).read().strip()

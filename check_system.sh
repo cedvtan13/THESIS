@@ -37,7 +37,7 @@ for arg in "$@"; do
 done
 
 echo -e "${BOLD}${CYAN}======================================================${RESET}"
-echo -e "${BOLD}${CYAN}    AgriSentry Daily System & ROI Health Check        ${RESET}"
+echo -e "${BOLD}${CYAN}    Pechay Growth Monitoring — Daily System & ROI Health Check        ${RESET}"
 echo -e "${BOLD}${CYAN}======================================================${RESET}"
 echo -e "${DIM}Timestamp: $(date '+%Y-%m-%d %H:%M:%S %Z')${RESET}\n"
 
@@ -120,7 +120,7 @@ if [ -f /tmp/roi_drift_out.txt ]; then
   
   # Fetch the annotated alignment verification image
   scp -q -o HostKeyAlias=groupb.local "$PI:/tmp/check_roi_drift.jpg" "_pi_data/latest_inspection/roi_drift_check.jpg" 2>/dev/null || true
-  scp -q -o HostKeyAlias=groupb.local "$PI:/tmp/check_roi_drift.jpg" "$HOME/Desktop/AgriSentry_ROI_Check.jpg" 2>/dev/null || true
+  scp -q -o HostKeyAlias=groupb.local "$PI:/tmp/check_roi_drift.jpg" "$HOME/Desktop/Thesis_ROI_Check.jpg" 2>/dev/null || true
 
   echo ""
   if [[ -n "$shift_x" && -n "$shift_y" ]]; then
@@ -132,7 +132,7 @@ if [ -f /tmp/roi_drift_out.txt ]; then
     elif [ "$mag" -le 25 ]; then
       echo -e "${YELLOW}${BOLD}▲ ROI STATUS: MINOR DRIFT DETECTED${RESET} (Drift: ${mag} px, $rims_found)"
       echo -e "  Pots or camera have shifted slightly. Still acceptable, but inspect:"
-      echo -e "  $HOME/Desktop/AgriSentry_ROI_Check.jpg"
+      echo -e "  $HOME/Desktop/Thesis_ROI_Check.jpg"
     else
       echo -e "${RED}${BOLD}✘ ROI STATUS: SIGNIFICANT MISALIGNMENT${RESET} (Drift: ${mag} px, $rims_found)"
       echo -e "  Camera or pots moved! Run recentering or inspect camera mount:"
@@ -141,7 +141,7 @@ if [ -f /tmp/roi_drift_out.txt ]; then
   else
     echo -e "${YELLOW}▲ Rim detection incomplete. Please review Desktop image by eye.${RESET}"
   fi
-  echo -e "${DIM}  Inspection image saved to: $HOME/Desktop/AgriSentry_ROI_Check.jpg${RESET}"
+  echo -e "${DIM}  Inspection image saved to: $HOME/Desktop/Thesis_ROI_Check.jpg${RESET}"
 fi
 
 # ------------------------------------------------------------------------------
