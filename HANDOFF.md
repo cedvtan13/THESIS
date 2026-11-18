@@ -66,6 +66,7 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Cast guard APPLIED from D21:** a blue noon frame (blue/red > 1.25) is retried; 12:50 always writes.
 - **Backups** at 13:15 and 23:45 to `~/backups`.
 - **`fix_d20.bat` run (16:57):** D20 = the 12:42 set only; `catch_up.sh` now captures only between 12:00 and 12:55.
+- **Nov 18 (D21):** 3 full power losses in 24 h (cut, not sag). Since Nov 17 16:32 every probe reads about 10 points lower (electrical shift). D21 blue (1.65), captured 12:54. See `DATA/2026-11-18-data-update-log.md`.
 - **NEW PROBLEM, probe readings oscillate:** since Nov 16 23:44 all probes jump up 15 to 20 points together and drop back within 20 to 30 min, 12 times by Nov 17 13:44.
   - It is electrical (probe supply or ADC), not water.
   - D20 12:42 soil moisture is invalid-high.
@@ -422,6 +423,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-18 afternoon, D21):** Rey's pull `2026-11-18_1347` pushed as `ef98699` (D21, D20 fix, logs to 13:52). Found: 3 full power losses in 24 h (Nov 17 16:32; Nov 18 10:17 to 11:50 and 12:30 to 12:52), no under-voltage; all probes about 10 points lower since the 16:32 power loss (electrical shift; P-05 and P-08 dosed on it); D21 blue, captured 12:54 by catch_up. Details: `DATA/2026-11-18-data-update-log.md`. `b812af3` added 40 unrelated files (cleanup pending).
 
 - **Sync (2026-11-18, D21):** question-and-answer prep for the Nov 21 checking started (`DATA/2026-11-18-checking-qa-prep.md`; data to Nov 17 16:06). New `pull_new_from_pi.bat` / `./kit.sh pull-new`: quick daily pull (all data files + last 2 days of frames, one password); `pull_from_pi.bat` stays for a weekly full copy.
 

@@ -8,7 +8,7 @@ The layout is the same as `~/agrisentry_data/frames/` on the Pi, so new frames f
 
 | Location | Contents |
 |---|---|
-| this folder | one noon frame per day as kept on the Pi, D1 and D4 to D20 (D2, D3 lost to the Oct 30 to 31 power outage), plus the **set-aside** D20 09:36 catch-up frame, which is not used for the data |
+| this folder | one noon frame per day as kept on the Pi, D1 and D4 to D21 (D2, D3 lost to the Oct 30 to 31 power outage), plus the **set-aside** D20 09:36 catch-up frame, which is not used for the data |
 | `replaced/` | frames replaced by a retake (D11 12:30, D12 12:00), with their overlays |
 | `overlay/` | the mask drawn on each day's frame by the capture code (derived, for viewing). For D12 and D20 this is the later capture of the day |
 
@@ -38,6 +38,7 @@ Frame names are `Dxx_date_HHMM.png`. Camera: Raspberry Pi Camera Module 3, top v
 | D18 | 2026-11-15 | 12:00 | `D18_2026-11-15_1200.png` | yes | rows recovered on Nov 16 from this saved frame (recover_day.py) | `82b5a5e923a18f4776981a7b0d48d59d5fd588f721c7b459c53fb947f42da9c8` |
 | D19 | 2026-11-16 | 12:47 | `D19_2026-11-16_1247.png` | yes | blue colour cast (blue/red 1.84), overcast; flagged | `9f12dd16dea9fa4be82d712fef066ff8ee564fc210acd655bc9e1d037840e613` |
 | D20 | 2026-11-17 | 12:42 | `D20_2026-11-17_1242.png` | yes | blue colour cast (blue/red 1.57), dim; P-04 straightened before this manual retake; flagged R | `f85f92a723d9dd932dcf70809a9be4104395f5d8e65aae685cc19888d3e7c181` |
+| D21 | 2026-11-18 | 12:54 | `D21_2026-11-18_1254.png` | yes | blue colour cast (blue/red 1.65), dim (exposure 14.9 ms), alignment confidence 0.19. Written by the catch-up capture after the Pi came back at 12:52 (Pi down about 12:30 to 12:52); the 12:00, 12:13 and 12:20 tries were not written. Flagged R | `ad457696b31b9ff05076fc4ac952dce162a8472a0168961bc7838a082e3dc0cd` |
 
 ## Replaced and set-aside frames
 
@@ -70,8 +71,11 @@ Frame names are `Dxx_date_HHMM.png`. Camera: Raspberry Pi Camera Module 3, top v
 | `overlay/D18_overlay.jpg` | `8246a26426a2d64bd58c9689ab563d8ef776e14b6c7e209f484c6c97439d8a15` |
 | `overlay/D19_overlay.jpg` | `16a6bee8575e0d3d0f106788f59d9dcb82a5eebb33d80622964de8cb53bd66bf` |
 | `overlay/D20_overlay.jpg` | `55e1f907035f95d5c338e9c224ef44faa44fc9062bcc0f28cf2de7f467d2f148` |
+| `overlay/D21_overlay.jpg` | `a7f7ef1c8471d35b936eb27596f3a8b736d8809b711e7bce6c0b64ebc009917b` |
 | `replaced/D11_overlay_1230.jpg` | `788680a54ccf272e9ead9010565476d166715dc3fade97608017e6f37e18570e` |
 | `replaced/D12_overlay_1200.jpg` | `d0d3616989059d9feb3a40becf7415dba356efba34610fdfcd5b276d3bb36001` |
+
+**Added later:** D21 (Rey's pull `2026-11-18_1347`, commit `ef98699`), checksums computed from the file on GitHub.
 
 ## Not included
 
