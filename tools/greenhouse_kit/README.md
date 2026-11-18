@@ -27,7 +27,8 @@ The laptop must be on the Pi's hotspot. The Pi password is for user `crk`.
 |---|---|---|
 | Find the Pi | `find_pi.bat` | `ping groupb.local` |
 | Daily health check (read-only) | `check_pi.bat` | `./kit.sh check` |
-| Bring all data and frames to the laptop | `pull_from_pi.bat` | `./kit.sh pull` |
+| **Daily quick pull:** all data files + frames from the last 2 days (one password) | `pull_new_from_pi.bat` | `./kit.sh pull-new` |
+| Full copy of all data and every frame since D1 (about once a week) | `pull_from_pi.bat` | `./kit.sh pull` |
 | Install or refresh the kit on the Pi | `send_kit_to_pi.bat` | `./kit.sh send` |
 | Git guard, light_log off, field notes | `tomorrow_fixes.bat` | `./kit.sh fixes` |
 | Resolve D20 duplicate rows, limit catch_up | `fix_d20.bat` | `./kit.sh fix-d20` |

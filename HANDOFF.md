@@ -423,6 +423,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 ## Daily Sync & Field Log History
 
+- **Sync (2026-11-18, D21):** question-and-answer prep for the Nov 21 checking started (`DATA/2026-11-18-checking-qa-prep.md`; data to Nov 17 16:06). New `pull_new_from_pi.bat` / `./kit.sh pull-new`: quick daily pull (all data files + last 2 days of frames, one password); `pull_from_pi.bat` stays for a weekly full copy.
+
 - **Sync (2026-11-18, later):** frames moved from `DATA/frames_run2/` to `DATA/agrisentry_data/frames/` in the Pi's layout, to match Cedric's rule (36ecd26). Same files and checksums.
 
 - **Sync (2026-11-18):** raw noon frames D1 to D20 added to `DATA/frames_run2/` (main, replaced, set-aside, overlays; 74 MB, 42 files), copied byte-for-byte from `pi_pulls/2026-11-17_1606`, with SHA-256 checksums in its README. The D12 rows use `replaced/D12_2026-11-09_1200.png`. New frames are added after each pull.
