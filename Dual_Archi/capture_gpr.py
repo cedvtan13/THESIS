@@ -794,7 +794,13 @@ def main():
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     green_all = green_mask(hsv)          # original baseline, computed once
     green_raw = hsv_mask(hsv)            # diagnostic: same thing, no opening
-    clean_all, clean_raw = clean_green_mask(frame, rois)
+    # The clean track is extra: if it fails, the original track must still be written.
+    try:
+        clean_all, clean_raw = clean_green_mask(frame, rois)
+    except Exception as e:
+        print(f"[capture_gpr] WARNING: clean mask failed ({e}); "
+              f"writing the original track only", file=sys.stderr)
+        clean_all = clean_raw = None
 
     # --- soil moisture, via the daemon so the serial port has one owner ---
     sm_values = None
@@ -840,11 +846,17 @@ def main():
         row, (gpr, gpr_raw, t_gpr, c_gpr, g, cw, ch, flag) = _measure_pot_row(
             d, stamp, pot_id, sm_str, area, total, t_area, t_total,
             cells[pot_id], c_total, green_all, green_raw, prev)
-        clean_row, (_, _, _, cc_gpr, cg_px, _, _, _) = _measure_pot_row(
-            d, stamp, pot_id, sm_str, area, total, t_area, t_total,
-            cells[pot_id], c_total, clean_all, clean_raw, prev_clean)
         rows.append(row)
-        clean_rows.append(clean_row)
+        cc_gpr = float("nan")
+        if clean_all is not None:
+            try:
+                clean_row, (_, _, _, cc_gpr, _, _, _, _) = _measure_pot_row(
+                    d, stamp, pot_id, sm_str, area, total, t_area, t_total,
+                    cells[pot_id], c_total, clean_all, clean_raw, prev_clean)
+                clean_rows.append(clean_row)
+            except Exception as e:
+                print(f"[capture_gpr] WARNING: clean row for {pot_id} failed ({e})",
+                      file=sys.stderr)
 
         print(f"{pot_id}  SM={sm_str:>6}  cell={c_gpr:6.2f}% (clean={cc_gpr:5.2f}%)  "
               f"GPR={gpr:6.2f}%  (noopen {gpr_raw:5.2f}%, terr {t_gpr:5.2f}%)  "
@@ -874,11 +886,15 @@ def main():
 
     _append_csv_rows(OUT_CSV, rows)
     print(f"[capture_gpr] day {d} written to {OUT_CSV}")
-    try:
-        _append_csv_rows(OUT_CLEAN_CSV, clean_rows)
-        print(f"[capture_gpr] day {d} written to {OUT_CLEAN_CSV}")
-    except Exception as e:
-        print(f"[capture_gpr] WARNING: clean CSV not saved ({e})", file=sys.stderr)
+    if len(clean_rows) == 9:      # all nine pots or none, never a partial day
+        try:
+            _append_csv_rows(OUT_CLEAN_CSV, clean_rows)
+            print(f"[capture_gpr] day {d} written to {OUT_CLEAN_CSV}")
+        except Exception as e:
+            print(f"[capture_gpr] WARNING: clean CSV not saved ({e})", file=sys.stderr)
+    else:
+        print(f"[capture_gpr] WARNING: clean track incomplete ({len(clean_rows)}/9 pots); "
+              f"day {d} not written to {OUT_CLEAN_CSV}", file=sys.stderr)
 
     # Keep the raw frame (lossless, so HSV is unchanged) for recomputation. The
     # rows are already written; a failed save must not cost the day.
@@ -898,6 +914,8 @@ def main():
         except Exception as e:      # never cost the day for a check picture
             print(f"[capture_gpr] WARNING: overlay not saved ({e})", file=sys.stderr)
         try:
+            if clean_all is None:
+                raise RuntimeError("no clean mask")
             _save_overlay(frame, clean_all, cells, rois,
                           os.path.join(FRAME_DIR, "overlay_clean", f"D{d:02d}_overlay.jpg"))
         except Exception as e:

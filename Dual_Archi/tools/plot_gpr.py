@@ -52,6 +52,8 @@ def main():
     ap.add_argument("--base", default="DATA/thesis")
     ap.add_argument("--out", default="DELIVERABLES/D3_gpr_timeseries/gpr_by_group.png")
     ap.add_argument("--bands-day", type=int, default=8, help="day the treatment bands were switched on")
+    ap.add_argument("--label", default="",
+                    help="text added to the title, e.g. 'CLEAN MASK (exploratory)'")
     a = ap.parse_args()
 
     data = {p: read_pot(Path(a.base) / "gpr_per_pot" / f"{p}_gpr.csv") for _, ps in GROUPS for p in ps}
@@ -138,7 +140,8 @@ def main():
 
     axes[0].set_ylabel("Green pixel ratio, pot area (%)", color=MUTED)
     axes[0].yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.1f}%"))
-    fig.suptitle(f"Pechay Growth Monitoring (Run 2): Green Pixel Ratio per Pot, D1–D{last} (Noon Capture)",
+    fig.suptitle(f"Pechay Growth Monitoring (Run 2): Green Pixel Ratio per Pot, D1–D{last} (Noon Capture)"
+                 + (f" — {a.label}" if a.label else ""),
                  x=0.06, y=0.96, ha="left", fontsize=15, color=INK)
     fig.text(0.06, 0.885, "cell_gpr: green pixels in each pot's area ÷ area. Missed days are left blank, "
              "never filled in.", fontsize=10.5, color=MUTED)

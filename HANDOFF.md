@@ -18,9 +18,13 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
    - **Deploying the Nov 18 dual-masking update to the Pi (Kent):** After running `git pull` on your Windows laptop, copy the updated capture script and parallel clean dataset (`D1`–`D21` already populated) to the Pi via `scp` (replacing `<PI_IP>` with the IP from `find_pi.bat` or `groupb.local`):
      ```bat
      scp Dual_Archi\capture_gpr.py Dual_Archi\growth_dataset_clean.csv crk@<PI_IP>:~/THESIS/Dual_Archi/
-     scp Dual_Archi\tools\remask_all.py crk@<PI_IP>:~/THESIS/Dual_Archi/tools/
      ```
-     Once deployed, `capture_gpr.py` writes **both** tracks automatically on every noon capture (`growth_dataset.csv` + `frames/overlay/` for the original baseline, and `growth_dataset_clean.csv` + `frames/overlay_clean/` for the sunny-WB + pot-anchored clean mask). Never overwrite `growth_dataset.csv` on the Pi.
+     - Do it **before 12:00**, or that day has no clean row. A missed clean day is filled on the laptop afterwards: add the day's frame to `DAY_FRAMES` in `Dual_Archi/tools/remask_all.py`, run it, and copy the new `growth_dataset_clean.csv` to the Pi before the next noon.
+     - `remask_all.py` runs on the laptop only (it reads the frames in `DATA/agrisentry_data/frames/`); don't copy it to the Pi.
+     - Once deployed, `capture_gpr.py` writes **both** tracks automatically on every noon capture (`growth_dataset.csv` + `frames/overlay/` for the original baseline, and `growth_dataset_clean.csv` + `frames/overlay_clean/` for the sunny-WB + pot-anchored clean mask). If the clean mask fails, the original track is still written and `cron.log` shows a WARNING. Never overwrite `growth_dataset.csv` on the Pi.
+     - Check after the first noon: `cron.log` shows two "written to" lines, and both CSVs have the new day's 9 rows.
+     - **The clean mask is exploratory.** It hasn't been checked against the hand-labelled pots yet; the original track stays the main measure until it is.
+     - Fixed Nov 19: `remask_all.py` used a pot pitch of 230 mm (capture uses 330), so the clean CSV's `terr_*` columns were on a different scale; regenerated (only `terr_gpr`/`terr_total_px` changed). `gpr_by_group_clean_D21.png` was a copy of the D19 original plot; rebuilt from `DATA/thesis_clean`.
 2. **Don't run `capture_gpr.py` by hand.** If a retake is truly needed, log who did it, when, why and the exact command.
 3. **Don't run `agrisentry.sh start`.** It turns the hourly camera job back on, and that job crashes the Pi at :30.
 4. **No re-flashing the ESP32, no moving pots, no replanting.**

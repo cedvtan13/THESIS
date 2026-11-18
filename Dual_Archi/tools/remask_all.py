@@ -37,7 +37,7 @@ POT_INNER_R_PX = 68.0
 REF_R, REF_G, REF_B = 62.3, 72.3, 60.5
 
 CELL_R_PX = 175.0
-POT_PITCH_MM = 230.0
+POT_PITCH_MM = 330.0        # same as capture_gpr.py (territory r = 221 px)
 PX_PER_MM = 1.34
 ANOMALY_DELTA_PER_DAY = 15.0
 
