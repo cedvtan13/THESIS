@@ -8,6 +8,57 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
 
 *Updated by Claude with Kent, Nov 17. The latest state is here; older sections below are history.*
 
+### For Kent: deploy the dual-mask capture (Nov 19, D22)
+*Written by Claude with Cedric, Nov 19. Code reviewed and tested on the laptop; not yet on the Pi.*
+
+**What changed** (commits `77544a9` by Cedric, `59bf404` fixes):
+- `capture_gpr.py` now writes **two tracks** at every noon capture:
+  - **original** (unchanged): `growth_dataset.csv` + `frames/overlay/`. Still the main measure.
+  - **clean** (new, exploratory): `growth_dataset_clean.csv` + `frames/overlay_clean/`. It corrects the frame's colour to a sunny-day reference, keeps only green blobs that touch a pot, and recovers 1 px at leaf edges. It mainly lifts the blue (overcast) days: D19 and D21 read about 3 to 4× the original.
+- If the clean track fails for any reason, the original rows are still written and `cron.log` shows a WARNING.
+- The cast guard from Nov 17 is still in the file.
+- Checked on the laptop: on all 19 saved noon frames (D1 to D21), the new code reproduces both CSVs (171 rows; one 0.01 rounding difference).
+
+**Steps (Windows laptop, on the Pi's hotspot). Do them before 11:30 or after 13:00, never during the noon window.**
+1. `git pull` in the repo.
+2. Back up the Pi's current script:
+   ```bat
+   ssh crk@<PI_IP> "cp ~/THESIS/Dual_Archi/capture_gpr.py ~/THESIS/Dual_Archi/capture_gpr.py.before_dual_mask"
+   ```
+3. Copy the script and the clean CSV (D1 to D21 already filled in):
+   ```bat
+   scp Dual_Archi\capture_gpr.py Dual_Archi\growth_dataset_clean.csv crk@<PI_IP>:~/THESIS/Dual_Archi/
+   ```
+4. Check that the cast guard is still in the file (should print `1`):
+   ```bat
+   ssh crk@<PI_IP> "grep -c 'Colour-cast guard' ~/THESIS/Dual_Archi/capture_gpr.py"
+   ```
+5. Dry run on a saved frame. It doesn't use the camera or touch any CSV, and it also shows how long the Pi takes:
+   ```bat
+   ssh crk@<PI_IP> "cd ~/THESIS/Dual_Archi && time python3 capture_gpr.py --test-image ~/agrisentry_data/frames/D21_2026-11-18_1254.png --no-write --no-sm --no-align"
+   ```
+   - Expect 9 pot lines, each with `cell=` and `clean=` values, and no WARNING.
+   - D21 clean values should be close to the clean CSV's: P-05 about 0.73, P-08 about 0.51, P-03 0.00.
+6. Log it in `field_log.csv`: date, time, "deployed dual-mask capture_gpr.py (59bf404), backup capture_gpr.py.before_dual_mask".
+
+**After the next noon capture:**
+- `cron.log` shows two "written to" lines (`growth_dataset.csv` and `growth_dataset_clean.csv`).
+- Both CSVs have that day's 9 rows, and `frames/overlay_clean/DXX_overlay.jpg` exists.
+- If the clean CSV is missing the day, the original is still fine. Fill it on the laptop: add the day's frame to `DAY_FRAMES` in `Dual_Archi/tools/remask_all.py`, run it, and copy the new `growth_dataset_clean.csv` to the Pi before the next noon. **If the deploy misses D22's noon, D22 needs this.**
+- **To undo:** copy `capture_gpr.py.before_dual_mask` back over `capture_gpr.py`.
+
+**Don't:**
+- copy `remask_all.py` to the Pi (it is laptop-only and reads `DATA/agrisentry_data/frames/`);
+- overwrite the Pi's `growth_dataset.csv`;
+- use git on the Pi.
+
+**Open:**
+- **The clean mask isn't validated.** It hasn't been scored against the hand-labelled pots (`GPR_VALIDATION/`). Present it on Saturday as exploratory, next to the original, not instead of it.
+- **Title:** commit `77544a9` treats the manuscript title as official and dropped the question to Sir AJ. The checking schedule still lists "AgriSentry: An Edge-Vision IoT System…". Confirm with Sir AJ or the office before the slides are final.
+- **Fixed Nov 19 (`59bf404`):**
+  - `remask_all.py` used a pot pitch of 230 mm instead of 330, so the clean CSV's `terr_*` columns were on another scale. Regenerated; only `terr_gpr` and `terr_total_px` changed.
+  - `gpr_by_group_clean_D21.png` was a copy of the D19 original plot. Rebuilt from `DATA/thesis_clean` and labelled "CLEAN MASK (exploratory)".
+
 ### Rules until harvest (Nov 27)
 1. **No git commands on the Pi.**
    - On Nov 15 a `git pull`/merge on the Pi put back old copies of `growth_dataset.csv` (wiping the D18 rows written at 12:00) and of `sowing_date.txt` (2026-10-06). Every capture then refused to run until Nov 16.
@@ -15,16 +66,7 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
    - `protect_data.sh` (fix kit) blocks merges on the Pi.
    - **Data path:** Pi → laptop (`pull_from_pi.bat`) → GitHub from the laptop.
    - **Code path:** `scp` only.
-   - **Deploying the Nov 18 dual-masking update to the Pi (Kent):** After running `git pull` on your Windows laptop, copy the updated capture script and parallel clean dataset (`D1`–`D21` already populated) to the Pi via `scp` (replacing `<PI_IP>` with the IP from `find_pi.bat` or `groupb.local`):
-     ```bat
-     scp Dual_Archi\capture_gpr.py Dual_Archi\growth_dataset_clean.csv crk@<PI_IP>:~/THESIS/Dual_Archi/
-     ```
-     - Do it **before 12:00**, or that day has no clean row. A missed clean day is filled on the laptop afterwards: add the day's frame to `DAY_FRAMES` in `Dual_Archi/tools/remask_all.py`, run it, and copy the new `growth_dataset_clean.csv` to the Pi before the next noon.
-     - `remask_all.py` runs on the laptop only (it reads the frames in `DATA/agrisentry_data/frames/`); don't copy it to the Pi.
-     - Once deployed, `capture_gpr.py` writes **both** tracks automatically on every noon capture (`growth_dataset.csv` + `frames/overlay/` for the original baseline, and `growth_dataset_clean.csv` + `frames/overlay_clean/` for the sunny-WB + pot-anchored clean mask). If the clean mask fails, the original track is still written and `cron.log` shows a WARNING. Never overwrite `growth_dataset.csv` on the Pi.
-     - Check after the first noon: `cron.log` shows two "written to" lines, and both CSVs have the new day's 9 rows.
-     - **The clean mask is exploratory.** It hasn't been checked against the hand-labelled pots yet; the original track stays the main measure until it is.
-     - Fixed Nov 19: `remask_all.py` used a pot pitch of 230 mm (capture uses 330), so the clean CSV's `terr_*` columns were on a different scale; regenerated (only `terr_gpr`/`terr_total_px` changed). `gpr_by_group_clean_D21.png` was a copy of the D19 original plot; rebuilt from `DATA/thesis_clean`.
+   - **Deploying the dual-mask capture:** see "For Kent: deploy the dual-mask capture" above.
 2. **Don't run `capture_gpr.py` by hand.** If a retake is truly needed, log who did it, when, why and the exact command.
 3. **Don't run `agrisentry.sh start`.** It turns the hourly camera job back on, and that job crashes the Pi at :30.
 4. **No re-flashing the ESP32, no moving pots, no replanting.**
@@ -433,6 +475,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-19, D22):** Cedric's dual-mask commit `77544a9` reviewed (original track untouched; new code reproduces both CSVs on D1 to D21). Fixes in `59bf404`: the clean track can no longer stop the original from being written, the remask pitch is 330 mm, and the clean D21 plot is rebuilt. Deploy steps for Kent are at the top. Not yet on the Pi.
 
 - **Sync (2026-11-18 afternoon, D21):** Rey's pull `2026-11-18_1347` pushed as `ef98699` (D21, D20 fix, logs to 13:52). Found: 3 full power losses in 24 h (Nov 17 16:32; Nov 18 10:17 to 11:50 and 12:30 to 12:52), no under-voltage; all probes about 10 points lower since the 16:32 power loss (electrical shift; P-05 and P-08 dosed on it); D21 blue, captured 12:54 by catch_up. Details: `DATA/2026-11-18-data-update-log.md`. `b812af3` added 40 unrelated files (cleanup pending).
 
