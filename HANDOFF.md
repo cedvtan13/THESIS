@@ -15,6 +15,7 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
 - `capture_gpr.py` now writes **two tracks** at every noon capture:
   - **original** (unchanged): `growth_dataset.csv` + `frames/overlay/`. Still the main measure.
   - **clean** (new, exploratory): `growth_dataset_clean.csv` + `frames/overlay_clean/`. It corrects the frame's colour to a sunny-day reference, keeps only green blobs that touch a pot, and recovers 1 px at leaf edges. It mainly lifts the blue (overcast) days: D19 and D21 read about 3 to 4× the original.
+  - **The clean mask failed the hand-label validation (Nov 19).** It over-counts; see Open below. Deploying it is still harmless (it only writes its own files), but don't use its numbers as growth.
 - If the clean track fails for any reason, the original rows are still written and `cron.log` shows a WARNING.
 - The cast guard from Nov 17 is still in the file.
 - Checked on the laptop: on all 19 saved noon frames (D1 to D21), the new code reproduces both CSVs (171 rows; one 0.01 rounding difference).
@@ -53,7 +54,19 @@ Picking up work in progress. Handoff first written 2026-10-29 ~00:30 (the night 
 - use git on the Pi.
 
 **Open:**
-- **The clean mask isn't validated.** It hasn't been scored against the hand-labelled pots (`GPR_VALIDATION/`). Present it on Saturday as exploratory, next to the original, not instead of it.
+- **The clean mask fails the hand-label validation** (Nov 19, `GPR_VALIDATION/2026-11-19-clean-mask-validation.md`).
+  - Scored on the same 36 hand-labelled pot-images (run 1 D12/D13, Cedric + Kent) and the same method as the committed validation. The original row reproduces it exactly.
+  - Results:
+
+    | Mask | IoU | Bias | MAE |
+    |---|---|---|---|
+    | original | 0.630 | +0.04 pp | 0.28 pp |
+    | clean | 0.502 | +0.58 pp | 0.80 pp |
+
+  - The clean mask is also worse on the bluer labelled frame (D12, blue/red 1.32).
+  - The white balance and the 1 px edge recovery add non-leaf pixels, so the 3 to 4× higher clean GPR on D19/D21 is mostly over-counting, not recovered growth.
+  - Keep the original as the thesis measure. On Saturday, show the clean mask as "tested, over-counts, not used".
+  - **Untested:** frames as blue as D19 (1.84). To settle that, hand-label D19 and D17 with `gpr_validate.py export` and score with `tools/validate_clean_mask.py`.
 - **Title:** commit `77544a9` treats the manuscript title as official and dropped the question to Sir AJ. The checking schedule still lists "AgriSentry: An Edge-Vision IoT System…". Confirm with Sir AJ or the office before the slides are final.
 - **Fixed Nov 19 (`59bf404`):**
   - `remask_all.py` used a pot pitch of 230 mm instead of 330, so the clean CSV's `terr_*` columns were on another scale. Regenerated; only `terr_gpr` and `terr_total_px` changed.
@@ -475,6 +488,8 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-19, later):** clean mask scored against the hand labels (`GPR_VALIDATION/2026-11-19-clean-mask-validation.md`, script `Dual_Archi/tools/validate_clean_mask.py`). It fails: IoU 0.502 vs 0.630, bias +0.58 vs +0.04 pp. The original stays the thesis measure.
 
 - **Sync (2026-11-19, D22):** Cedric's dual-mask commit `77544a9` reviewed (original track untouched; new code reproduces both CSVs on D1 to D21). Fixes in `59bf404`: the clean track can no longer stop the original from being written, the remask pitch is 330 mm, and the clean D21 plot is rebuilt. Deploy steps for Kent are at the top. Not yet on the Pi.
 
