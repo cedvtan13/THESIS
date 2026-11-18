@@ -1,0 +1,9 @@
+[33m81bf3aa[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m all
+[33mf87a72d[m Handoff: Oct 17-19 updates (reboots, slow drying, P-05 leaning)
+[33m88a027d[m Handoff: Oct 18 check (P-06 wet, P-07 dose not delivered)
+[33m2cff69d[m Handoff: pending field_log entry for pump re-plug
+[33m574bd78[m Handoff: pump confirmed plugged in
+[33m99eac62[m Handoff: probe remap, ROI refit, frame saving (Oct 16)
+[33m9546229[m Keep the raw noon frame daily (lossless PNG in ~/agrisentry_data/frames) from D12
+[33m1beedcf[m Firmware: remap pot->MUX channel (probes wired rotated 180 deg)
+[33m4b0ad2c[m Re-fit pot ROIs to rims (r=85, from D11); probe/valve diagnostic tools
