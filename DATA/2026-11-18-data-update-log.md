@@ -72,9 +72,27 @@ At the full power loss of **Nov 17 16:32**, every probe dropped about **10 point
 - So the soil record now has at least three electrical level changes: D12, the jumps from Nov 16 23:44, and this drop. **D21's "Low in band" readings come after the drop**, so they are not evidence that Low dried into its band.
 - **What would settle it:** measure the probe supply voltage with a multimeter (at a probe connector and at the ESP32) and compare with the readings shown at the same moment.
 
-## 5. Open questions
+## 5. Correction: the Nov 18 outages were Pi freezes, then manual restarts (Rey)
+
+Rey's account (Nov 18, after this log was first written):
+- When he arrived the Pi's light was blinking. Following Cedric's standing advice (blinking means restart), he switched the **whole system** off for about 5 s and on again, twice, before 12:00. After the second time the blinking stopped.
+- Near 12:50 it was blinking again, and he switched it off and on once more.
+
+Matched with the logs:
+
+| Time | What happened |
+|---|---|
+| about 10:17 | **Pi froze**: its 5-minute throttle check and the soil logging stop |
+| before 12:00 (two restarts) | Rey switches the system off and on; Pi back at **11:50**; the ESP32 restarts too |
+| about 12:09 | Pi restarts by itself (Pi only; ESP32 kept running) |
+| about 12:30 | **Pi froze again**: logs stop |
+| near 12:50 | Rey switches the system off and on; Pi back at **12:52**; D21 captured by catch_up at 12:54 |
+
+So the cause on Nov 18 is the **Pi freezing**, not the site power. Rey's restarts were reasonable: a frozen Pi can't take the noon photo, and the second restart is what saved D21. Still to explain: why the Pi froze, and who or what cut the power on Nov 17 at 16:32.
+
+## 6. Open questions
 
 1. Who was at the greenhouse on Nov 17 at 16:32? Was anything unplugged?
-2. Did the site lose power on Nov 18 around 10:17 and 12:30, or was a plug touched?
+2. (Answered: Pi freezes, then Rey's manual restarts.) Why does the Pi freeze?
 3. Probe supply voltage (multimeter), and photos of the probe wiring.
 4. Cleanup of `b812af3` (40 unrelated files): pending Kent's OK.

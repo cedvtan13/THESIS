@@ -162,7 +162,8 @@ Full instructions: `2026-11-16-greenhouse-fix-plan.md` and `2026-11-16-masterpla
 - **Cast guard APPLIED from D21:** a blue noon frame (blue/red > 1.25) is retried; 12:50 always writes.
 - **Backups** at 13:15 and 23:45 to `~/backups`.
 - **`fix_d20.bat` run (16:57):** D20 = the 12:42 set only; `catch_up.sh` now captures only between 12:00 and 12:55.
-- **Nov 18 (D21):** 3 full power losses in 24 h (cut, not sag). Since Nov 17 16:32 every probe reads about 10 points lower (electrical shift). D21 blue (1.65), captured 12:54. See `DATA/2026-11-18-data-update-log.md`.
+- **Nov 19 (D22):** D22 normal colour at 12:00. Power loss about 14:23 (visit), then a 5-dose burst and an ESP32-only reboot at 14:39. Every full power loss so far happened during a team visit. See `DATA/2026-11-19-data-update-log.md`.
+- **Nov 18 (D21):** the Pi froze at about 10:17 and 12:30 and Rey power-cycled the whole system (back 11:50 and 12:52); full power loss Nov 17 16:32 still unexplained. **If the Pi seems frozen: check the hotspot device list / ping first, then restart the Pi only (its own cable), not the whole system, and write the time.** Since Nov 17 16:32 every probe reads about 10 points lower (electrical shift). D21 blue (1.65), captured 12:54. See `DATA/2026-11-18-data-update-log.md`.
 - **NEW PROBLEM, probe readings oscillate:** since Nov 16 23:44 all probes jump up 15 to 20 points together and drop back within 20 to 30 min, 12 times by Nov 17 13:44.
   - It is electrical (probe supply or ADC), not water.
   - D20 12:42 soil moisture is invalid-high.
@@ -519,6 +520,10 @@ Drift is a rigid shift: all nine offsets should point the same way by about the 
 
 
 ## Daily Sync & Field Log History
+
+- **Sync (2026-11-19, D22):** Kent's quick pull `2026-11-19_1505_quick` copied in. D22 sunny and normal colour (GPR back near D18). Full power loss about 14:23 during Kent's visit; 5 doses at 14:38 on readings 3 to 5 points lower after the ESP32 restart; ESP32-only reboot 14:39 (possible brownout from the valves and pump). Details: `DATA/2026-11-19-data-update-log.md`.
+
+- **Sync (2026-11-18 evening):** correction from Rey: the Nov 18 "full power losses" were his manual restarts of a frozen Pi (logs stop at about 10:17 and 12:30). Event log and `DATA/2026-11-18-data-update-log.md` section 5 updated.
 
 - **Sync (2026-11-19, evening):** replant plan written (`2026-11-19-replant-plan.md`): backup batch sown Nov 20 in identical pots off the rig, swapped in on D7 (Nov 26) only if the panel asks for a redo on Nov 21. Not yet a team decision.
 

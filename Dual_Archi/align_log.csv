@@ -19,3 +19,4 @@ day,timestamp,source,dx_px,dy_px,confidence,applied
 21,2026-11-18 12:13,noon_capture,25.3,14.9,0.20,1
 21,2026-11-18 12:20,noon_capture,28.8,14.8,0.21,1
 21,2026-11-18 12:54,noon_capture,31.4,14.7,0.19,1
+22,2026-11-19 12:00,noon_capture,10.6,12.9,0.24,1

@@ -95,3 +95,5 @@ logged_at,event,down_since,back_at,downtime_h,esp_last_alive,esp_uptime_s,clock_
 2026-11-18T10:17:08,UNCLEAN_SHUTDOWN,2026-11-18T10:16:52,2026-11-18T10:17:08,0.00,2026-11-18T11:43:17,83,unsynced,ESP32 restarted too (full power loss?); ESP32 last alive ~2026-11-18T11:43:17 (+-10 min); back_at UNRELIABLE (no synced clock)
 2026-11-18T12:10:40,UNCLEAN_SHUTDOWN,2026-11-18T12:09:32,2026-11-18T12:10:40,0.02,2026-11-18T11:43:17,1266,esp32,Pi-only outage: the ESP32 kept running
 2026-11-18T12:30:08,UNCLEAN_SHUTDOWN,2026-11-18T12:29:44,2026-11-18T12:30:08,0.01,2026-11-18T12:50:57,23,unsynced,ESP32 restarted too (full power loss?); ESP32 last alive ~2026-11-18T12:50:57 (+-10 min); back_at UNRELIABLE (no synced clock)
+2026-11-19T14:22:52,UNCLEAN_SHUTDOWN,2026-11-19T14:23:21,2026-11-19T14:22:52,-0.01,2026-11-19T14:23:13,24,unsynced,ESP32 restarted too (full power loss?); ESP32 last alive ~2026-11-19T14:23:13 (+-10 min); back_at UNRELIABLE (no synced clock)
+2026-11-19T14:39:51,ESP32_RESTART,,,,,,pi,ESP32 rebooted while the Pi stayed up
