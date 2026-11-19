@@ -118,7 +118,8 @@ Don't argue, don't over-explain. If you don't know, say "we'll check and include
 
 | Cause | Evidence so far |
 |---|---|
-| Light | Pak choi grows best in full sun; heavier shading inhibited growth (Fadilah et al., 2022). Our noon frames are often dim (D20 12:42: exposure 10.9 ms). Shade cloth over P-01, P-04 and P-07 from D8 to D10. **Measure light at noon (lux) to confirm** |
+| Light & Building Shade | Pak choi grows best in full sun; heavier shading inhibited growth (Fadilah et al., 2022). Because the greenhouse sits between two Bunzel buildings, the seasonal solar azimuth shift from Oct toward Nov lowered the sun angle and shortened direct sunlight to a narrow ~3 h midday window. Noon frames are often dim (D20 12:42: exposure 10.9 ms). Shade cloth over P-01, P-04 and P-07 from D8 to D10. **Measure light at noon (lux) to confirm** |
+| Alkaline CRH in `8:4:3` | The `8:4:3` mix has 26.7% Carbonized Rice Hull (CRH), which is alkaline (pH 7.5–8.5+; PhilRice Bulletin 47) while pechay prefers pH 5.5–6.5 (DA-BPI). Measuring retained Day 0 soil pH and comparing with `3:1:1` (20% CRH) |
 | Small pot | 0.60 L; see Q1 (Poorter et al., 2012) |
 | Transplanting | P-01, P-03 and P-06 got transplanted seedlings on D8, a week behind |
 | Too wet (P-01) | P-01 has read above 89% since D11, far above its 30–40 band, after 7 false 100 mL doses |
@@ -172,8 +173,9 @@ Don't argue, don't over-explain. If you don't know, say "we'll check and include
 - Average bias: **+0.04 percentage points** of pot area (mask comparison, Nov 16).
 - Alternatives were tested and rejected:
   - a two-level mask: IoU 0.653, but bias +0.33;
-  - ExG: IoU 0.165, because the rice-hull mulch reads as green.
-- The phone photos on Nov 17 match what the masks counted.
+  - ExG: IoU 0.165, because the rice-hull mulch reads as green;
+  - a white-balanced "clean" mask with 1-px edge recovery (`GPR_VALIDATION/2026-11-19-clean-mask-validation.md`): **failed validation** (IoU 0.502, bias +0.58 pp, MAE 0.80 pp vs. Original 0.28 pp) due to background/edge over-counting.
+- The phone photos on Nov 17 match what the masks counted, and on sunny D22 (`blue/red = 1.00`, 2.4 ms exposure) Original `cell_gpr` rebounded right back to D18 levels (`P-05: 0.42%`, `P-08: 0.37%`), confirming the D19–D21 dip was caused by overcast blue cast rather than plant loss.
 
 **The honest part:**
 - The labels were made by team members, on D12 and D13 frames.
@@ -229,6 +231,35 @@ Don't argue, don't over-explain. If you don't know, say "we'll check and include
 - The PH-4502C is a liquid probe, so soil is measured as a soil-and-water mix (**method to verify**).
 - Pot pH at harvest, to avoid disturbing roots now.
 - The table records that the Day 0 soil was measured on Nov 19 from the retained sample.
+
+## Q13. Why didn't you extend the capture window to 12:00–16:00 to find better lighting?
+
+**Fact:** the automated capture window is fixed at solar noon (`12:00–12:50`, 10-minute retries on blue cast).
+
+**Why:**
+1. **Diurnal leaf movement (hyponasty / turgor):** Between 12:00 and 16:00, transpiration shifts leaf angles and drooping. Comparing a 12:00 frame on one day to a 15:30 frame on another introduces false GPR variance from leaf pose rather than biomass growth.
+2. **Moving building shadows:** Because the greenhouse sits between two Bunzel buildings, afternoon captures past 13:00 introduce moving shadow lines across the 3×3 grid, illuminating some pots while shading others.
+3. **Standardization:** Solar noon ($\pm 30\text{ min}$) maximizes overhead zenith light, minimizes pot-rim shadows, and keeps daily geometry/lighting comparable (Patrignani & Ochsner, 2015). Cloud cover variation is handled inside the noon window by the $V=73$ exposure loop and the D21 colour-cast retry guard.
+
+## Q14. Why didn't you use the LED capture light array?
+
+**Fact:** the overhead LED array was removed after bench testing (`REVISION_LETTER.md` Item 7).
+
+**Why:**
+1. **Voltage sag and brownouts:** Switching the high-draw LED array created transient current spikes ($> 1.5\text{ A}$) on the shared DC rail, repeatedly causing voltage sag that brownout-reset the Raspberry Pi Zero 2 W.
+2. **Negligible optical benefit:** Midday tropical daylight inside a greenhouse reaches $20,000\text{–}50,000\text{ lux}$, whereas a small DC LED array mounted at $136\text{ cm}$ elevation delivers $< 1,000\text{ lux}$ at the canopy plane—optically drowned out by ambient daylight while risking system stability.
+
+**What we did instead:** locked white balance gains ($1.8, 1.6$), locked focus, and ran software exposure convergence targeting mean frame luminance $V = 73$.
+
+## Q15. Why did you spray/mist the pots manually (especially Low)? Doesn't that corrupt the automated data?
+
+**Fact:** hand watering (`D1–D4`), sprays (`D6, D7, D10`), and misting (`D10–D14`) were applied during early establishment and logged in `DATA/2026-11-17-run2-event-log.md` and `field_log.csv`.
+
+**Why:**
+1. **Root-probe depth discrepancy:** Capacitive probes sense moisture at $4\text{–}8\text{ cm}$ depth, while young cotyledon seedlings only have $\sim 5\text{ mm}$ shallow roots. In the Low band ($30\text{–}40\%$), the top $1\text{ cm}$ crust dried out under airflow and risked killing seedlings even while the deep probe read near band.
+2. **Transparent survival intervention:** Surface misting was an emergency agronomic measure to keep seedlings alive until roots reached the probe zone—not hidden watering. Automated valve doses remain isolated in `irrigation_log.csv`, and all manual sprays are flagged in the event log (zero synthetic or altered data).
+
+**What we learned / changed:** start every pot at its target weight on Day 1 and enforce a dedicated **7-day off-rig / germination establishment phase** before activating differential moisture bands (implemented in `2026-11-19-replant-plan.md`).
 
 ---
 

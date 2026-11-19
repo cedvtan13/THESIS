@@ -141,20 +141,32 @@ Answer each one in three parts: **the honest fact, with a number; why we chose i
 | 10 | Treatment mixed up with position? | Yes: each group is one row. Limitation; randomise positions next time |
 | 11 | You changed the code mid-run? | The colour guard only chooses when, inside the 12:00 to 12:50 window, the photo is taken; the measurement is unchanged. Logged |
 | 12 | Where is the pH? | The Day 0 soil and tank water measured on Nov 19 to 20 (if the sensor arrives); pot pH at harvest |
+| 13 | Why not extend capture to 12:00–16:00? | Diurnal leaf droop/movement + moving Bunzel building shadows after 13:00 break time-series consistency. Solar noon ($\pm 30\text{ min}$) + $V=73$ exposure loop keeps geometry & lighting comparable (Patrignani & Ochsner, 2015) |
+| 14 | Why not use the LED capture light? | Switching the LED array caused $>1.5\text{ A}$ current spikes and voltage sag that brownout-reset the Pi; at $136\text{ cm}$ in $20\text{k–}50\text{k lux}$ daylight its optical gain was negligible. Replaced by $V=73$ software normalization |
+| 15 | Why manual misting/spraying in Low? | Root-probe depth gap: capacitive probes sit $4\text{–}8\text{ cm}$ deep while cotyledon roots are $\sim 5\text{ mm}$ in a drying $1\text{ cm}$ crust. Survival misting logged in `event_log.md`/`field_log.csv` and separated from `irrigation_log.csv` |
 
 ## 5. What we propose to the panel
 
-**Option 1 (preferred): extend the current run to D40.**
+**Option 1 (preferred if panel accepts small plants): extend the current run to D40.**
 - Harvest on **Dec 7 (D40)** instead of Nov 27 (D30); the last checking is Dec 12.
 - P-03 is dead and P-04 is weak: harvest P-04 at D30 (Nov 27) if it is still alive, so it still gives a weight.
 - With 7 to 8 plants, the main yield model is **weight = a + b × GPR**; the six-term model is reported as exploratory. This is written and committed before harvest, like the growth-model protocol.
 - The pre-harvest growth model result (does not beat persistence, canopy stalled) is reported as a result.
 
-**Option 2 (if the panel asks for a replant): fast replant.**
-- Transplant 2 to 3 week old seedlings on Nov 22, with 3 to 6 extra pots to harvest early (about Nov 29 and Dec 4), final harvest about Dec 9.
-- Risk: very tight before Dec 12, and the treatment period is short.
+**Option 2 (if the panel asks for a replant): swap in the Nov 20 backup batch on D7 (`2026-11-19-replant-plan.md`).**
+- Backup batch of 15–20 pots (improved `3:1:1` soil mix, pH-checked) sown **Thu Nov 20 (New D1)** off-rig and watered by weight.
+- Harvest Run 2 on **Wed Nov 26 (New D7)**, swap the 9 most uniform seedlings into the rig, turn `bands-on` on **Thu Nov 27 (D8)**, and run official captures through **Dec 19 (D30)** (2nd checking Dec 7–13 falls on D18–D24).
 
-Either way, the current plants stay in place and keep being logged.
+Either way, the current plants stay in place and keep being logged through Nov 21.
+
+## 5b. Briefing Slide Flow for Kent's PPT (8–10 min)
+
+*Approach: Lead 70% with verified engineering proof, name the plant status & diagnostics proactively (30%) as findings rather than apologies, and end on Option 1 vs Option 2.*
+
+1. **Slide 1 — Title & Decoupled Dual-Architecture (1 min):** Official title; diagram of ESP32-S3 (9 probes via MUX, BMP388, 12 relays, 4 safety guards) $\leftrightarrow$ UART $\leftrightarrow$ Pi Zero 2 W (Camera Module 3 IMX708 at $136\text{ cm}$, $V=73$ normalization).
+2. **Slide 2 — Deliverables Verification Matrix (4 mins):** Table I deliverables (D1–D7) mapped directly to live repo files (`irrigation_log.csv`, `pot_rois.json`, `growth_dataset.csv` D1–D22, `frames/`, `analyze_yield.py`, `power_log.csv`, 36-image GPR validation $\text{IoU}=0.630, \text{MAE}=0.28\text{ pp}$).
+3. **Slide 3 — Plant Growth Progress & Diagnostics (2 mins):** Proactive summary: 7/9 alive at cotyledon stage (`0.02%–0.42%` `cell_gpr` on sunny D22); diagnosed causes: (a) seasonal solar azimuth shift between the two Bunzel buildings shortening direct sun, (b) $26.7\%$ alkaline CRH in `8:4:3` (vs `3:1:1` / $5.5\text{–}6.5$ target), (c) $0.60\text{ L}$ pot volume (Poorter et al., 2012), and (d) D1–D4 wet start + electrical shifts logged transparently. *(Keep Q13–Q15 defenses in backup slides).*
+4. **Slide 4 — Forward Proposal (2 mins):** Option 1 (extend Run 2 to D40 + 1-predictor LOOCV) vs. Option 2 (Nov 20 backup batch swap on Nov 26).
 
 ## 6. Not doing before the checking
 

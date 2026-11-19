@@ -116,17 +116,24 @@ Because observations within a single plant's 30-day time-series are temporally a
 
 ## 6. Key Literature References for Revisions & Defense
 
+> **Complete Verified Bibliography:** See [`REFERENCES.md`](file:///Users/moapilaw/Desktop/THESIS/REFERENCES.md) for the full, Crossref-verified list of all thesis references, DOIs, and audit notes synced with [`references.bib`](file:///Users/moapilaw/Desktop/THESIS/2026-11-11-GroupB-Manuscript-Draft1/References/references.bib).
+
 1. **Pak Choi Growth Curves:**  
-   * *Ding et al. (2022)*, *HortScience* 57(5): 643–651. Proves pak choi leaf expansion in greenhouses follows 3-parameter logistic curves ($R^2 > 0.98$).
-   * *Cho et al. (2015)*, *Hort. Environ. Biotechnol.* 56(3): 310–315. Demonstrates expolinear growth for pak choi dry/fresh weight ($R^2 = 0.982$).
+   * *Ding et al. (2022)* — *"Changes in Leaf and Growth of Pak Choi in a Semi-closed Greenhouse in Eastern China"*, *HortScience* 57(5): 643–651 ([DOI: 10.21273/hortsci16523-22](https://doi.org/10.21273/hortsci16523-22)). Demonstrates sigmoidal logistic growth in greenhouse pak choi (*Brassica rapa* ssp. *chinensis*) leaf dimensions ($R^2 > 0.98$) and plant width ($R^2 > 0.93$).
+   * *Cho et al. (2015)* — *"Development of an expolinear growth model for pak-choi using the radiation integral and planting density"*, *Hort. Environ. Biotechnol.* 56(3): 310–315 ([DOI: 10.1007/s13580-015-0140-z](https://doi.org/10.1007/s13580-015-0140-z)). Models pak-choi shoot fresh and dry weight accumulation via expolinear equations driven by radiation integral and planting density.
 2. **Early Image Time-Series Forward Projection:**  
-   * *Hosoda et al. (2024)*, *IEEE Access* 12: 97226–97234. Uses 10 days of early plant images to predict fresh weight 10 days ahead ($R^2 = 0.885$).
-   * *Kim & van Iersel (2022)*, *Remote Sensing* 14(2): 316. Validates early projected canopy area as a predictor of final biomass ($R^2 = 0.74$).
-3. **Vegetation Fraction Under Moisture Treatments:**  
-   * *Lee & Park (2024)*, *Remote Sensing* 16(18): 3455. Uses image vegetation fraction to predict *Brassica rapa* fresh weight under varying irrigation regimes.
+   * *Hosoda, Tada, & Goto (2024)* — *"Lettuce Fresh Weight Prediction in a Plant Factory Using Plant Growth Models"*, *IEEE Access* 12: 97226–97234 ([DOI: 10.1109/access.2024.3423455](https://doi.org/10.1109/access.2024.3423455)). Uses 10 days of early growth images (projection area, edge length, skeleton length) to predict lettuce fresh weight 10 days ahead ($R^2 = 0.885$, $\text{MAE} = 6.684\text{ g}$).
+   * *Kim & van Iersel (2022)* — *"Morphological and Physiological Screening to Predict Lettuce Biomass Production in Controlled Environment Agriculture"*, *Remote Sensing* 14(2): 316 ([DOI: 10.3390/rs14020316](https://doi.org/10.3390/rs14020316)). Shows early projected canopy size (PCS at 13 DAG) predicts final biomass of green lettuce cultivars ($R^2 = 0.74$).
+3. **Vegetation Fraction Under Moisture & Soil Regimes:**  
+   * *Lee & Park (2024)* — *"Development of a UAS-Based Multi-Sensor Deep Learning Model for Predicting Napa Cabbage Fresh Weight and Determining Optimal Harvest Time"*, *Remote Sensing* 16(18): 3455 ([DOI: 10.3390/rs16183455](https://doi.org/10.3390/rs16183455)). Predicts *Brassica rapa* fresh weight from RGB/multispectral vegetation fraction and water-stress indicators ($R^2 = 0.82$), capturing variability across soil types and drip irrigation regimes.
 4. **Institutional Lineage (USC):**  
    * *Aala et al. (2022)* — Initial IoT precision farming prototype at USC.
    * *Zamora et al. (2025)* — Solenoid baseline automated irrigation for pechay (+92.1% yield vs. manual watering).
+5. **Potting Media Ratios (`3:1:1` & `8:4:3`) and Capacitive Soil Moisture Calibration:**  
+   * *Gonzaga et al. (2023)* — *"Ensuring household food security through enhanced production of pechay (Brassica rapa L.) as influenced by different levels of carbonized rice hull integration"*, *IOP Conf. Ser.: Earth Environ. Sci.* 1208(1): 012048 ([DOI: 10.1088/1755-1315/1208/1/012048](https://doi.org/10.1088/1755-1315/1208/1/012048)). Evaluates CRH integration ($5\%\text{–}15\%$) in pechay potting mixes, confirming higher dry matter yield and ROI over pure garden soil.
+   * *Lagon et al. (2022)* — *"Growth and Yield of Screenhouse-grown potted Pechay (Brassica rapa L. ssp. chinensis cv. Black Behi) in selected Davao-produced Composts"*, *Mindanao J. Sci. Technol.* 20(2) ([DOI: 10.61310/mndjstea.0990.22](https://doi.org/10.61310/mndjstea.0990.22)). Demonstrates that `20%` vermicompost inclusion (matching both `3:1:1` and `8:4:3`) yields the best leaf dimensions, germination ($94\text{--}100\%$), and marketable fresh weight in potted pechay.
+   * *Nagahage, Nagahage, & Fujino (2019)* — *"Calibration and Validation of a Low-Cost Capacitive Moisture Sensor to Integrate the Automated Soil Moisture Monitoring System"*, *Agriculture* 9(7): 141 ([DOI: 10.3390/agriculture9070141](https://doi.org/10.3390/agriculture9070141)); alongside *Mane et al. (2024)*, *Comput. Electron. Agric.* 218: 108686 ([DOI: 10.1016/j.compag.2024.108686](https://doi.org/10.1016/j.compag.2024.108686)). Supports soil-specific gravimetric two-point calibration of dielectric capacitive probes.
+   * *DA-BPI / DA-ATI & PhilRice (Rice Technology Bulletin No. 47)* — Establishes pechay soil pH targets ($5.5\text{–}6.5$), container potting blends (`2:1:1`–`3:1:1`), $21\text{–}40\text{ day}$ harvest windows, and alkaline/porous soil-conditioning behavior of carbonized rice hull.
 
 ---
 
