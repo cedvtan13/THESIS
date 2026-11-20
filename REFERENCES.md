@@ -192,3 +192,22 @@ During preparation for the November 21 Project Checking, every journal/conferenc
 | `Kim2022` & `Lee2024` | Paraphrased titles & missing first-name initials (`J. Kim` instead of `C. Kim`, `S. Lee` instead of `D.-H. Lee`). | Updated to exact published titles and author names from Crossref (`10.3390/rs14020316` & `10.3390/rs16183455`). |
 | `Prathibha2017` & `Kushwaha2024` | Missing DOIs, page numbers, and truncated co-authors (`and others`). | Completed full Crossref author list, pages (`3224--3243`), and DOIs (`10.1109/ICRAECT.2017.52`, `10.2166/hydro.2024.241`). |
 | *New Soil & Sensor Refs* | Needed formal academic backing for `3:1:1` / `8:4:3` potting mix, pH/CRH effects, and capacitive dielectric calibration. | Added Crossref-verified **`Gonzaga2023`**, **`Lagon2022`**, **`Mane2024`**, plus official **`BPI_Pechay`** and **`PhilRiceCRH`** guides. |
+
+---
+
+## 7. Diurnal Leaf Movement & Image Standardization References (Defense Q13)
+
+### 7.1 `Poorter2023` — High-Throughput Phenotyping Pitfalls & Diurnal Leaf Angle Changes
+* **Citation:** Poorter, H., Armstrong, P. R., Runion, G. B., Dijkman, M., & Fiorani, F. (2023). "Pitfalls and potential of high-throughput plant phenotyping platforms." *Frontiers in Plant Science*, **14**, 1233794.
+* **DOI:** [10.3389/fpls.2023.1233794](https://doi.org/10.3389/fpls.2023.1233794)
+* **Used in:** Checking Defense Q13 & Chapter 5 Recommendations — establishes that diurnal changes in leaf angle (hyponasty / circadian leaf movement) cause top-down projected leaf area estimates to vary by **18% to 35% (>20%)** over the course of a day. This variation exceeds the daily vegetative growth signal (median 29% relative increase), demonstrating that expanding capture beyond a fixed solar-noon window would confound diurnal leaf movement with actual biomass growth.
+
+### 7.2 `Dornbusch2012` — Diurnal Leaf Hyponasty Quantification
+* **Citation:** Dornbusch, T., Michaud, O., Xenarios, I., & Fankhauser, C. (2012). "Differentially phased plant growth and leaf movements in *Arabidopsis thaliana*." *Functional Plant Biology*, **39**(11), 860–869.
+* **DOI:** [10.1071/FP12018](https://doi.org/10.1071/FP12018)
+* **Used in:** Checking Defense Q13 — provides empirical confirmation of circadian and diurnal patterns of leaf elevation angles and projected rosette area variation.
+
+### 7.3 `Bours2012` — Automated Tracking of Diurnal Canopy Oscillations
+* **Citation:** Bours, R., van Zanten, M., Pierik, R., Bouwmeester, H., & van der Krol, A. (2012). "OSCILLATOR: a system for studying circadian clock-controlled plant movements." *Plant Methods*, **8**, 29.
+* **DOI:** [10.1186/1746-4811-8-29](https://doi.org/10.1186/1746-4811-8-29)
+* **Used in:** Checking Defense Q13 — validates automated imaging frameworks for tracking rhythmic diurnal leaf angle oscillations.

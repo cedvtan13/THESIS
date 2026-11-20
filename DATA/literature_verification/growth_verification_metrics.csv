@@ -1,0 +1,17 @@
+cultivar,model,mae_pp,rmse_pp,skill_vs_b1,params
+Aphylion,B1_Persistence,6.776,7.286,0.0,last=8.96%
+Aphylion,M1_Logistic,0.712,0.755,0.895,"K=46.94%, r=0.079, t0=53.5d"
+Aphylion,M2_Gompertz,1.778,1.947,0.738,"K=53.50%, b=4.98, r=0.029"
+Aphylion,M3_Linear,5.067,5.362,0.252,"a=-1.33, c=0.264"
+Lugano,B1_Persistence,2.393,2.525,0.0,last=7.63%
+Lugano,M1_Logistic,0.218,0.239,0.909,"K=12.97%, r=0.096, t0=31.3d"
+Lugano,M2_Gompertz,1.319,1.399,0.449,"K=33.16%, b=4.19, r=0.030"
+Lugano,M3_Linear,0.356,0.356,0.851,"a=-0.92, c=0.233"
+Salanova,B1_Persistence,3.027,3.112,0.0,last=10.00%
+Salanova,M1_Logistic,0.804,0.859,0.734,"K=13.26%, r=0.132, t0=26.2d"
+Salanova,M2_Gompertz,1.249,1.36,0.587,"K=24.46%, b=4.54, r=0.047"
+Salanova,M3_Linear,0.427,0.433,0.859,"a=-1.83, c=0.328"
+Satine,B1_Persistence,2.667,3.061,0.0,last=7.01%
+Satine,M1_Logistic,1.088,1.452,0.592,"K=10.02%, r=0.107, t0=27.3d"
+Satine,M2_Gompertz,0.666,0.667,0.75,"K=17.72%, b=3.88, r=0.041"
+Satine,M3_Linear,0.742,0.993,0.722,"a=-0.85, c=0.217"
