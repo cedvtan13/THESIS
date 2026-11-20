@@ -234,12 +234,26 @@ Don't argue, don't over-explain. If you don't know, say "we'll check and include
 
 ## Q13. Why didn't you extend the capture window to 12:00–16:00 to find better lighting?
 
-**Fact:** the automated capture window is fixed at solar noon (`12:00–12:50`, 10-minute retries on blue cast).
+**Fact:** the automated capture window is strictly fixed at solar noon (`12:00–12:50`, with 10-minute retries up to 12:55 for blue-cast frames).
 
-**Why:**
-1. **Diurnal leaf movement (hyponasty / turgor):** Between 12:00 and 16:00, transpiration shifts leaf angles and drooping. Comparing a 12:00 frame on one day to a 15:30 frame on another introduces false GPR variance from leaf pose rather than biomass growth.
-2. **Moving building shadows:** Because the greenhouse sits between two Bunzel buildings, afternoon captures past 13:00 introduce moving shadow lines across the 3×3 grid, illuminating some pots while shading others.
-3. **Standardization:** Solar noon ($\pm 30\text{ min}$) maximizes overhead zenith light, minimizes pot-rim shadows, and keeps daily geometry/lighting comparable (Patrignani & Ochsner, 2015). Cloud cover variation is handled inside the noon window by the $V=73$ exposure loop and the D21 colour-cast retry guard.
+**Why (5 Defensible Reasons):**
+1. **Circadian Leaf Hyponasty vs. Growth Signal:** 
+   - A top-down overhead camera measures projected canopy footprint, not 3D biomass. Pechay leaf angles change significantly over the diurnal cycle.
+   - **Poorter et al. (2023)** demonstrated that diurnal leaf-angle movements shift top-down projected leaf area estimates by **18% to 35% (>20%)**. Dornbusch et al. (2012) and Bours et al. (2012) similarly document strong diurnal hyponasty patterns.
+   - In our experiment, the median day-to-day GPR growth signal is **0.050 percentage points on a 0.175% canopy (~29%)**.
+   - If the camera captured at 12:10 on Day $N$ and 15:30 on Day $N+1$, the diurnal leaf-angle shift (~20–35%) would be **as large as or larger than the daily vegetative growth signal**, destroying data consistency.
+2. **Courtyard Site Geometry & Afternoon Blue Shade:** 
+   - The greenhouse sits between two tall Bunzel buildings. Direct sun is available only from ~7:30 AM until ~12:00 noon.
+   - After 12:00, the pots fall into deep diffuse building shade. Shaded diffuse daylight has a high blue-to-red ratio ($B/R = 1.65\text{–}1.84$), which we confirmed cut GPR readings in half on D19–D21. A 3-hour afternoon window would accumulate worse, bluer frames, not better ones.
+3. **Statistical Selection Bias:** 
+   - If an automated rule evaluated ~18 frames between 12:00 and 15:00 to pick the "best lit" frame by brightness or saturation, it would systematically favor frames where leaves appear most vivid green, artificially inflating GPR and breaking temporal equivalence.
+4. **Hardware Reliability & Crash Prevention:** 
+   - Out of 98 logged power/outage events, 69 were Pi-only brownouts/crashes. These were heavily concentrated around camera sensor initialization (which previously ran hourly via `light_log`). Spreading captures across a 3–4 hour window drastically increases camera activation cycles and reboot risks.
+5. **Safe Existing Implementation:** 
+   - The system already implements an objective, non-biased lighting guard: frames with $B/R > 1.25$ trigger up to five 10-minute retries inside 12:00–12:50. This selects better lighting without looking at GPR.
+
+**Panel Response (Cedric):**
+> *"A top camera measures the leaves' footprint, and leaf angle changes through the day. Poorter et al. (2023) found this shifts top-view size by over 20%, which is as big as our day-to-day growth signal. So we fix the time and pick the best frame only inside 12:00 to 12:50, using a color rule that never looks at GPR. At our site the pots are in shade after noon, so a longer window would mostly add bluer frames, and every extra capture is another chance to crash the Pi."*
 
 ## Q14. Why didn't you use the LED capture light array?
 

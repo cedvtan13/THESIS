@@ -1,0 +1,16 @@
+cohort,n_total,n_test,model,formula,fit_r2,fit_mae_g,fit_rmse_g,loocv_r2,loocv_mae_g,loocv_rmse_g,test_split_r2,test_split_mae_g,test_split_rmse_g
+Aphylion,92,14,Y1_Linear_GPR,Y = b0 + b1*GPR,0.9483,20.9,31.17,0.9447,21.51,32.25,0.9466,23.24,31.85
+Aphylion,92,14,Y2_Quadratic_GPR,Y = b0 + b1*GPR + b2*GPR^2,0.9502,19.45,30.59,0.943,20.41,32.73,0.9493,22.05,31.05
+Aphylion,92,14,Y3_Thesis_Poly_D_GPR,Y = b0 + b1*D + b2*GPR + b4*GPR^2,0.9516,19.69,30.18,0.9433,20.88,32.65,0.9447,24.62,32.44
+Lugano,96,15,Y1_Linear_GPR,Y = b0 + b1*GPR,0.8901,30.17,38.55,0.8855,30.79,39.34,0.897,33.93,43.61
+Lugano,96,15,Y2_Quadratic_GPR,Y = b0 + b1*GPR + b2*GPR^2,0.9041,25.17,36.01,0.8951,26.21,37.65,0.9127,29.92,40.16
+Lugano,96,15,Y3_Thesis_Poly_D_GPR,Y = b0 + b1*D + b2*GPR + b4*GPR^2,0.9398,19.46,28.53,0.932,20.58,30.31,0.9235,30.39,37.59
+Salanova,102,15,Y1_Linear_GPR,Y = b0 + b1*GPR,0.8502,28.61,35.07,0.8443,29.17,35.75,0.7875,32.63,42.51
+Salanova,102,15,Y2_Quadratic_GPR,Y = b0 + b1*GPR + b2*GPR^2,0.8822,20.51,31.09,0.8755,21.11,31.96,0.8097,25.3,40.22
+Salanova,102,15,Y3_Thesis_Poly_D_GPR,Y = b0 + b1*D + b2*GPR + b4*GPR^2,0.9331,17.08,23.43,0.9253,17.95,24.76,0.8562,23.68,34.96
+Satine,98,14,Y1_Linear_GPR,Y = b0 + b1*GPR,0.9202,16.7,22.24,0.9156,17.11,22.87,0.8932,19.94,25.6
+Satine,98,14,Y2_Quadratic_GPR,Y = b0 + b1*GPR + b2*GPR^2,0.9252,14.64,21.53,0.9175,15.26,22.62,0.8797,17.69,27.17
+Satine,98,14,Y3_Thesis_Poly_D_GPR,Y = b0 + b1*D + b2*GPR + b4*GPR^2,0.9415,12.3,19.04,0.9338,12.97,20.26,0.9015,14.93,24.58
+ALL,388,58,Y1_Linear_GPR,Y = b0 + b1*GPR,0.8314,29.28,44.73,0.8295,29.45,44.98,0.7898,38.1,55.24
+ALL,388,58,Y2_Quadratic_GPR,Y = b0 + b1*GPR + b2*GPR^2,0.8319,28.77,44.67,0.8286,29.04,45.1,0.7887,37.79,55.39
+ALL,388,58,Y3_Thesis_Poly_D_GPR,Y = b0 + b1*D + b2*GPR + b4*GPR^2,0.8811,25.49,37.57,0.8769,25.84,38.22,0.8341,33.73,49.08
